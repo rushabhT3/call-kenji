@@ -33,18 +33,7 @@ class Advice(BaseModel):
     next_move: str
 
 
-ADVICE_JSON_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "identity": {"type": "string"},
-        "situation": {"type": "string"},
-        "ability_to_pay": {"type": "string"},
-        "offers": {"type": "array", "items": {"type": "string"}},
-        "next_move": {"type": "string"},
-    },
-    "required": ["identity", "situation", "ability_to_pay", "offers", "next_move"],
-}
+ADVICE_JSON_SCHEMA: dict[str, Any] = Advice.model_json_schema()
 
 
 def count_caller_turns(messages: Sequence[object]) -> int:
