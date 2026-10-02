@@ -123,20 +123,44 @@ def purge_expired_calls(data_dir: Path, today: date, retention_days: int) -> lis
 
 
 class JsonContactStore:
+    """Stop-contact requests, read from disk once and saved off the event loop.
+
+    The server runs as a single instance, so memory is the source of truth while it runs.
+    """
+
     def __init__(self, path: Path) -> None:
         self._path = path
+        self._preferences = self._load()
+        self._writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="contacts")
+        self._last_save: Future[None] | None = None
 
     def preferences(self) -> ContactPreferences:
+        return self._preferences
+
+    def record(self, request: StopContactRequest) -> None:
+        self._preferences = record_stop_contact(self._preferences, request)
+        self._last_save = self._writer.submit(self._save, self._preferences)
+        self._last_save.add_done_callback(self._report_failure)
+
+    def wait_for_save(self) -> None:
+        if self._last_save is not None:
+            self._last_save.result()
+
+    def _load(self) -> ContactPreferences:
         if not self._path.exists():
             return ContactPreferences()
         stopped = json.loads(self._path.read_text(encoding="utf-8"))["stopped_callers"]
         return ContactPreferences(stopped_callers=frozenset(stopped))
 
-    def record(self, request: StopContactRequest) -> None:
-        updated = record_stop_contact(self.preferences(), request)
+    def _save(self, preferences: ContactPreferences) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {"stopped_callers": sorted(updated.stopped_callers)}
+        payload = {"stopped_callers": sorted(preferences.stopped_callers)}
         self._path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    def _report_failure(self, done: Future[None]) -> None:
+        error = done.exception()
+        if error is not None:
+            logger.error("could not save a stop-contact request", error=str(error))
 
 
 class _DailyUsage(BaseModel):

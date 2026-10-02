@@ -95,6 +95,9 @@ def test_usage_ledger_counts_per_pool_and_caller(tmp_path: Path) -> None:
 def test_contact_store_persists_stop_requests(tmp_path: Path) -> None:
     path = tmp_path / "contacts.json"
     requested_at = datetime(2026, 10, 2, 15, 0, tzinfo=JAPAN_STANDARD_TIME)
-    JsonContactStore(path).record(StopContactRequest("caller-a", requested_at))
+    store = JsonContactStore(path)
+    store.record(StopContactRequest("caller-a", requested_at))
+    store.wait_for_save()
 
+    assert store.preferences().stopped_callers == frozenset({"caller-a"})
     assert JsonContactStore(path).preferences().stopped_callers == frozenset({"caller-a"})
