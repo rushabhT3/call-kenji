@@ -6,6 +6,7 @@ from pipecat.frames.frames import (
     InterimTranscriptionFrame,
     InterruptionFrame,
     LLMFullResponseEndFrame,
+    LLMTextFrame,
     ProposedUserStartedSpeakingFrame,
     ProposedUserStoppedSpeakingFrame,
     TranscriptionFrame,
@@ -215,6 +216,7 @@ def test_the_floor_is_kept_through_the_gap_and_released_when_the_answer_starts()
     assert floor.is_held
     floor.kenji_stopped_speaking()
     assert floor.is_held
+    floor.model_answered()
     floor.kenji_started_speaking()
     assert not floor.is_held
 
@@ -232,6 +234,7 @@ def test_the_floor_is_released_when_kenji_stops_after_the_model_has_answered() -
     floor = Floor()
     floor.hold()
 
+    floor.model_answered()
     floor.answer_ready()
     assert floor.is_held
     floor.kenji_stopped_speaking()
@@ -252,7 +255,35 @@ async def test_the_answer_watch_marks_the_end_of_the_models_answer() -> None:
     floor = Floor()
     floor.hold()
 
-    await run_test(AnswerWatch(floor), frames_to_send=[LLMFullResponseEndFrame()])
+    await run_test(
+        AnswerWatch(floor),
+        frames_to_send=[LLMTextFrame("承知いたしました。"), LLMFullResponseEndFrame()],
+    )
     floor.kenji_stopped_speaking()
 
     assert not floor.is_held
+
+
+def test_an_empty_answer_or_kenjis_own_holding_line_does_not_release_the_floor() -> None:
+    floor = Floor()
+    floor.hold()
+
+    floor.kenji_started_speaking()
+    floor.kenji_stopped_speaking()
+    floor.answer_ready()
+    floor.kenji_started_speaking()
+    floor.kenji_stopped_speaking()
+
+    assert floor.is_held
+    assert floor.is_awaiting_model
+
+
+async def test_blank_model_text_is_not_an_answer() -> None:
+    floor = Floor()
+    floor.hold()
+
+    await run_test(
+        AnswerWatch(floor), frames_to_send=[LLMTextFrame("  "), LLMFullResponseEndFrame()]
+    )
+
+    assert floor.is_awaiting_model

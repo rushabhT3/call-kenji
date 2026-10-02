@@ -4,15 +4,16 @@ from typing import cast
 
 import pytest
 from pipecat.flows import NodeConfig
-from pipecat.frames.frames import LLMContextFrame, TTSSpeakFrame
+from pipecat.frames.frames import Frame, LLMContextFrame, LLMTextFrame, TTSSpeakFrame
+from pipecat.pipeline.pipeline import Pipeline
 from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.tests.utils import run_test
+from pipecat.tests.utils import SleepFrame, run_test
 
 from kenji.app.call_parts import CallIO, CallParts, build_call_parts
 from kenji.app.events import ComplianceUpdated
 from kenji.app.fast_path import Acknowledgement, FastPath, last_caller_text
 from kenji.app.tools import NodeName
-from kenji.app.turns import Floor
+from kenji.app.turns import AnswerWatch, Floor
 from kenji.domain.compliance import CheckStatus
 from kenji.domain.identity import IdentityStatus
 from tests.conversation.harness import MemoryRecorder, build_text_kit, text_call_context
@@ -253,3 +254,62 @@ def test_steps_that_change_on_the_callers_reply_keep_the_same_tools() -> None:
 
     assert _tool_names(greeting) == _tool_names(verify)
     assert _tool_names(balance.node) == _tool_names(listen)
+
+
+GUARD_SECS = 0.15
+
+
+async def _model_stays_silent(
+    model_frames: list[Frame],
+) -> tuple[list[object], Floor]:
+    parts, _ = _verified()
+    floor = Floor()
+    spoken: list[str] = []
+    acknowledgement = Acknowledgement(
+        "はい、",
+        floor,
+        on_spoken=spoken.append,
+        holding="少々お待ちください。",
+        apology="申し訳ございません。もう一度お聞かせいただけますか。",
+        deadline_secs=GUARD_SECS,
+    )
+
+    async def set_node(_node: NodeConfig) -> None:
+        return None
+
+    context = LLMContext(messages=[{"role": "user", "content": "今月はちょっと厳しいんです。"}])
+    pipeline = Pipeline([FastPath(parts.planner, acknowledgement, set_node), AnswerWatch(floor)])
+    downstream, _ = await run_test(
+        pipeline,
+        frames_to_send=[
+            LLMContextFrame(context=context),
+            *model_frames,
+            SleepFrame(sleep=GUARD_SECS * 3),
+        ],
+    )
+    return list(downstream), floor
+
+
+def _spoken_texts(frames: list[object]) -> list[str]:
+    return [frame.text for frame in frames if isinstance(frame, TTSSpeakFrame)]
+
+
+async def test_a_silent_model_gets_a_holding_line_a_retry_then_an_apology() -> None:
+    frames, floor = await _model_stays_silent([])
+
+    assert _spoken_texts(frames) == [
+        "はい、",
+        "少々お待ちください。",
+        "申し訳ございません。もう一度お聞かせいただけますか。",
+    ]
+    assert sum(isinstance(frame, LLMContextFrame) for frame in frames) == 2
+    assert not floor.is_held
+
+
+async def test_a_model_that_answers_in_time_is_left_alone() -> None:
+    frames, _ = await _model_stays_silent(
+        [SleepFrame(sleep=0.02), LLMTextFrame("ご事情お察しします。")]
+    )
+
+    assert _spoken_texts(frames) == ["はい、"]
+    assert sum(isinstance(frame, LLMContextFrame) for frame in frames) == 1

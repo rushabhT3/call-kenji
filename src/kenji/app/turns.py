@@ -17,8 +17,10 @@ from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
     BotStoppedSpeakingFrame,
     Frame,
+    FunctionCallsStartedFrame,
     InterimTranscriptionFrame,
     LLMFullResponseEndFrame,
+    LLMTextFrame,
     ProposedUserStartedSpeakingFrame,
     TranscriptionFrame,
     VADUserStartedSpeakingFrame,
@@ -59,22 +61,33 @@ class Floor:
     def __init__(self) -> None:
         self._is_held = False
         self._acknowledgement_played = False
+        self._model_answered = False
         self._answer_ready = False
 
     @property
     def is_held(self) -> bool:
         return self._is_held
 
+    @property
+    def is_awaiting_model(self) -> bool:
+        """Kenji holds the floor and the model has not yet said or done anything."""
+        return self._is_held and not self._model_answered
+
     def hold(self) -> None:
         self._is_held = True
         self._acknowledgement_played = False
+        self._model_answered = False
         self._answer_ready = False
 
     def release(self) -> None:
         self._is_held = False
 
-    def answer_ready(self) -> None:
+    def model_answered(self) -> None:
         if self._is_held:
+            self._model_answered = True
+
+    def answer_ready(self) -> None:
+        if self._model_answered:
             self._answer_ready = True
 
     def kenji_stopped_speaking(self) -> None:
@@ -85,7 +98,7 @@ class Floor:
 
     def kenji_started_speaking(self) -> None:
         """Kenji's answer has begun, so the ordinary rules for speech over him take over."""
-        if self._acknowledgement_played:
+        if self._acknowledgement_played and self._model_answered:
             self.release()
 
 
@@ -222,7 +235,11 @@ class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-unt
 
 
 class AnswerWatch(FrameProcessor):
-    """Sits after the model and tells the floor when the model has finished its answer."""
+    """Sits after the model and tells the floor when it has answered and when it has finished.
+
+    Only words or a tool call count as an answer: an empty completion leaves the floor
+    awaiting the model, which is how the answer guard notices it.
+    """
 
     def __init__(self, floor: Floor) -> None:
         super().__init__()
@@ -230,6 +247,10 @@ class AnswerWatch(FrameProcessor):
 
     async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
         await super().process_frame(frame, direction)
-        if isinstance(frame, LLMFullResponseEndFrame):
+        if isinstance(frame, FunctionCallsStartedFrame) or (
+            isinstance(frame, LLMTextFrame) and frame.text.strip()
+        ):
+            self._floor.model_answered()
+        elif isinstance(frame, LLMFullResponseEndFrame):
             self._floor.answer_ready()
         await self.push_frame(frame, direction)

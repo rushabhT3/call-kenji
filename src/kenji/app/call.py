@@ -109,10 +109,13 @@ class Call:
         )
 
     def _build_fast_path(self) -> FastPath:
+        lines = self._kit.script.lines
         acknowledgement = Acknowledgement(
-            self._kit.script.lines.acknowledgement.ja,
+            lines.acknowledgement.ja,
             self._floor,
             on_spoken=self._parts.feed.kenji_said,
+            holding=lines.holding.ja,
+            apology=lines.answer_failed.ja,
         )
         return FastPath(self._parts.planner, acknowledgement, set_node=self._set_node)
 

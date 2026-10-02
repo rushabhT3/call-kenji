@@ -6,6 +6,7 @@ and synthesis take. Anything the rules are not sure of goes to the model, after 
 「はい、」 so the caller hears Kenji while it thinks.
 """
 
+import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import date
@@ -43,6 +44,11 @@ from kenji.domain.understanding import (
 
 type NodeSetter = Callable[[NodeConfig], Awaitable[None]]
 
+# Muse's first token is usually 2 to 6 s; a hedged request covers the slow tail. Past this,
+# nothing is coming: Google's Dialogflow CX and Pipecat's retry_on_timeout handle a silent
+# model the same way, with a holding line and one retry, then a spoken fallback.
+ANSWER_DEADLINE_SECS = 8.0
+
 _IDENTITY_STEPS = frozenset({NodeName.GREETING, NodeName.VERIFY_IDENTITY})
 _PLAN_STEPS = frozenset({NodeName.STATE_BALANCE, NodeName.LISTEN, NodeName.NEGOTIATE})
 # Only the amount can be countered with a scripted line; date problems go to the model.
@@ -71,14 +77,18 @@ class FastPathParts:
 
 @dataclass(frozen=True, slots=True)
 class Acknowledgement:
-    """The word Kenji says at once when the model must answer, and the floor he keeps.
+    """What Kenji says while the model answers, and the floor he keeps meanwhile.
 
-    It stays out of the model's context, so the model's turn is the same with or without it.
+    The 「はい、」 and the holding line stay out of the model's context, so its turn is the
+    same with or without them. The apology goes in, so the model knows Kenji asked again.
     """
 
     text: str
     floor: Floor
     on_spoken: Callable[[str], object]
+    holding: str = ""
+    apology: str = ""
+    deadline_secs: float = ANSWER_DEADLINE_SECS
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,12 +197,14 @@ class FastPath(FrameProcessor):
         self._acknowledgement = acknowledgement
         self._set_node = set_node
         self.last_opening: Opening = "model"
+        self._guard: asyncio.Task[None] | None = None
 
     async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
         await super().process_frame(frame, direction)
         if not isinstance(frame, LLMContextFrame) or frame.speculation:
             await self.push_frame(frame, direction)
             return
+        await self._stop_guard()
         reply = self._planner.answer(last_caller_text(frame.context.get_messages()))
         self.last_opening = "acknowledgement" if reply is None else "rules"
         if reply is None:
@@ -203,8 +215,41 @@ class FastPath(FrameProcessor):
             )
             acknowledgement.on_spoken(acknowledgement.text)
             await self.push_frame(frame, direction)
+            self._guard = self.create_task(self._guard_answer(frame), f"{self}::guard")
             return
         if reply.node is not None:
             await self._set_node(reply.node)
         if reply.line is not None:
             await self.push_frame(TTSSpeakFrame(reply.line.ja), direction)
+
+    async def cleanup(self) -> None:
+        await super().cleanup()  # type: ignore[no-untyped-call]
+        await self._stop_guard()
+
+    async def _stop_guard(self) -> None:
+        if self._guard is not None:
+            await self.cancel_task(self._guard)
+            self._guard = None
+
+    async def _guard_answer(self, frame: LLMContextFrame) -> None:
+        """If the model stays silent, hold, retry once, then apologise and give the turn back."""
+        waiting = self._acknowledgement
+        for line, should_retry in ((waiting.holding, True), (waiting.apology, False)):
+            await asyncio.sleep(waiting.deadline_secs)
+            if not waiting.floor.is_awaiting_model:
+                return
+            logger.warning(
+                "the model has not answered; Kenji covers the silence", retry=should_retry
+            )
+            await self.broadcast_interruption()  # type: ignore[no-untyped-call]
+            if should_retry:
+                await self._say(line, into_context=False)
+                await self.push_frame(LLMContextFrame(context=frame.context))
+            else:
+                await self._say(line, into_context=True)
+        waiting.floor.release()
+
+    async def _say(self, line: str, *, into_context: bool) -> None:
+        await self.push_frame(TTSSpeakFrame(line, append_to_context=into_context))
+        if not into_context:
+            self._acknowledgement.on_spoken(line)

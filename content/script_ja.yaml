@@ -58,6 +58,12 @@ lines:
   acknowledgement:
     ja: はい、
     en: "Yes,"
+  holding:
+    ja: 少々お待ちください。
+    en: One moment, please.
+  answer_failed:
+    ja: 申し訳ございません。うまくお答えできませんでした。もう一度お聞かせいただけますか。
+    en: I'm sorry, I wasn't able to answer that. Could you say it once more?
   offer_accepted:
     ja: ありがとうございます。毎月{monthly_yen}円、初回は{first_due}のお支払いで、よろしいでしょうか。
     en: Thank you. ¥{monthly_yen} a month, with the first payment on {first_due_en}. Shall we go ahead with that?

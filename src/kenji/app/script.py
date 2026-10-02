@@ -43,6 +43,8 @@ class Lines(_Content):
     read_back: Line
     read_back_even: Line
     acknowledgement: Line
+    holding: Line
+    answer_failed: Line
     offer_accepted: Line
     offer_below_terms: Line
     read_back_single: Line
