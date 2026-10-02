@@ -4,6 +4,7 @@ from datetime import date
 
 import pytest
 
+from kenji.adapters.turn import StunOnly
 from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting
 from kenji.app.linking import LinkRegistry
@@ -29,4 +30,5 @@ def services() -> Services:
         hub=routing.hub,
         links=routing.links,
         salt=b"salt",
+        ice=StunOnly("stun:stun.l.google.com:19302"),
     )

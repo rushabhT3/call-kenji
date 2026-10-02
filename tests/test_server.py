@@ -48,3 +48,10 @@ def test_viewer_gets_a_private_code_and_only_its_linked_call(
 def test_dev_client_is_off_by_default(client: TestClient) -> None:
     with client:
         assert client.post("/start").status_code == 404
+
+
+def test_ice_servers_for_a_browser_call(client: TestClient) -> None:
+    with client:
+        reply = client.get("/api/ice").json()
+
+    assert reply == {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}

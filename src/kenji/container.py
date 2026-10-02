@@ -21,12 +21,13 @@ from kenji.adapters.speech import (
     SonioxSpeechToText,
 )
 from kenji.adapters.storage import CallRecord, JsonContactStore, JsonUsageLedger
+from kenji.adapters.turn import CloudflareTurn, StunOnly
 from kenji.adapters.twilio import TwilioWebhooks
 from kenji.app.call_parts import CallKit, VoiceServices
 from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting, TransportKind
 from kenji.app.linking import LinkRegistry
-from kenji.app.ports import CallRecorder, Clock, TalkerFactory
+from kenji.app.ports import CallRecorder, Clock, IceServerSource, TalkerFactory
 from kenji.app.script import Script
 from kenji.app.stream_tokens import StreamTokens
 from kenji.config import LanguageModelSettings, Settings
@@ -51,6 +52,7 @@ class Services:
     hub: EventHub
     links: LinkRegistry
     salt: bytes
+    ice: IceServerSource
     phone: PhoneLine | None = None
 
 
@@ -137,6 +139,13 @@ def _limits(settings: Settings) -> dict[TransportKind, CallLimits]:
     }
 
 
+def build_ice_source(settings: Settings) -> IceServerSource:
+    key_id, token = settings.cloudflare_turn_key_id, settings.cloudflare_turn_api_token
+    if key_id is None or token is None:
+        return StunOnly(settings.stun_url)
+    return CloudflareTurn(key_id, token.get_secret_value())
+
+
 def build_phone_line(settings: Settings, clock: Clock) -> PhoneLine | None:
     sid, token, base_url = (
         settings.twilio_account_sid,
@@ -170,5 +179,6 @@ def build_services(settings: Settings) -> Services:
         hub=routing.hub,
         links=routing.links,
         salt=load_or_create_salt(settings.data_dir / "caller-salt.bin"),
+        ice=build_ice_source(settings),
         phone=build_phone_line(settings, kit.clock),
     )

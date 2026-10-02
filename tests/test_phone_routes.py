@@ -34,6 +34,7 @@ def phone_services(services: Services) -> Services:
         hub=services.hub,
         links=services.links,
         salt=services.salt,
+        ice=services.ice,
         phone=phone,
     )
 

@@ -1,5 +1,6 @@
 """Interfaces the application depends on; adapters implement them."""
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Protocol
 
@@ -12,6 +13,23 @@ from kenji.app.events import CallEvent
 from kenji.domain.audit import AuditEntry, AuditRecord
 from kenji.domain.contact import ContactPreferences, StopContactRequest
 from kenji.domain.guardrails import UsageToday
+
+
+@dataclass(frozen=True, slots=True)
+class IceServer:
+    urls: list[str]
+    username: str | None = None
+    credential: str | None = None
+
+    def to_browser(self) -> dict[str, Any]:
+        server: dict[str, Any] = {"urls": self.urls}
+        if self.username is not None and self.credential is not None:
+            server |= {"username": self.username, "credential": self.credential}
+        return server
+
+
+class IceServerSource(Protocol):
+    async def ice_servers(self) -> list[IceServer]: ...
 
 
 class Clock(Protocol):

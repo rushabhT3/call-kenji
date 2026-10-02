@@ -12,7 +12,8 @@ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconn
 from loguru import logger
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from pipecat.transports.base_transport import TransportParams
-from pipecat.transports.smallwebrtc.connection import IceServer, SmallWebRTCConnection
+from pipecat.transports.smallwebrtc.connection import IceServer as PipecatIceServer
+from pipecat.transports.smallwebrtc.connection import SmallWebRTCConnection
 from pipecat.transports.smallwebrtc.request_handler import (
     IceCandidate,
     SmallWebRTCPatchRequest,
@@ -28,6 +29,7 @@ from kenji.adapters.clock import SystemClock
 from kenji.adapters.storage import purge_expired_calls
 from kenji.app.events import CallEvent
 from kenji.app.launcher import CallRequest
+from kenji.app.ports import IceServer
 from kenji.app.privacy import caller_ref
 from kenji.config import Settings
 from kenji.container import Services, build_services
@@ -68,7 +70,7 @@ async def _purge_forever(settings: Settings) -> None:
 
 def create_app(settings: Settings, services: Services | None = None) -> FastAPI:
     services = services or build_services(settings)
-    webrtc = SmallWebRTCRequestHandler(ice_servers=[IceServer(urls=settings.stun_url)])
+    webrtc = SmallWebRTCRequestHandler(ice_servers=[PipecatIceServer(urls=settings.stun_url)])
     background = _Background()
 
     @asynccontextmanager
@@ -85,6 +87,27 @@ def create_app(settings: Settings, services: Services | None = None) -> FastAPI:
     if settings.enable_dev_client:
         _add_dev_client(app, services, webrtc, background)
     return app
+
+
+def _first(urls: list[str], prefixes: tuple[str, ...]) -> str | None:
+    return next((url for url in urls if url.startswith(prefixes)), None)
+
+
+def bot_ice_servers(servers: list[IceServer]) -> list[PipecatIceServer]:
+    """aiortc reads one STUN and one TURN URL, so pick the best of each (UDP relay first)."""
+    urls = [url for server in servers for url in server.urls]
+    stun = _first(urls, ("stun:",))
+    udp_turn = next((url for url in urls if url.startswith("turn:") and "udp" in url), None)
+    turn = udp_turn or _first(urls, ("turns:", "turn:"))
+    credentials = next((server for server in servers if server.username), None)
+    picked = [PipecatIceServer(urls=stun)] if stun else []
+    if turn and credentials:
+        picked.append(
+            PipecatIceServer(
+                urls=turn, username=credentials.username, credential=credentials.credential
+            )
+        )
+    return picked
 
 
 def _browser_request(services: Services, http: Request, viewer_id: str | None) -> CallRequest:
@@ -136,6 +159,12 @@ def _add_browser_call_routes(
     @app.get("/api/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/api/ice")
+    async def ice() -> dict[str, list[dict[str, Any]]]:
+        servers = await services.ice.ice_servers()
+        webrtc.update_ice_servers(bot_ice_servers(servers))
+        return {"iceServers": [server.to_browser() for server in servers]}
 
     @app.post("/api/offer")
     async def offer(http: Request) -> dict[str, str] | None:

@@ -43,6 +43,9 @@ class Settings(LanguageModelSettings):
     backchannel_classifier: Literal["lexicon", "onnx"] = "lexicon"
     backchannel_onnx_path: FilePath | None = None
 
+    cloudflare_turn_key_id: str | None = None
+    cloudflare_turn_api_token: SecretStr | None = None
+
     twilio_account_sid: str | None = None
     twilio_auth_token: SecretStr | None = None
     public_base_url: str | None = None
@@ -71,6 +74,11 @@ class Settings(LanguageModelSettings):
     def _require_consistent_options(self) -> Self:
         if self.backchannel_classifier == "onnx" and self.backchannel_onnx_path is None:
             raise ValueError("BACKCHANNEL_ONNX_PATH is required when BACKCHANNEL_CLASSIFIER=onnx")
+        turn_parts = (self.cloudflare_turn_key_id, self.cloudflare_turn_api_token)
+        if any(turn_parts) and not all(turn_parts):
+            raise ValueError(
+                "CLOUDFLARE_TURN_KEY_ID and CLOUDFLARE_TURN_API_TOKEN must be set together"
+            )
         twilio_parts = (self.twilio_account_sid, self.twilio_auth_token, self.public_base_url)
         if any(twilio_parts) and not all(twilio_parts):
             raise ValueError(
