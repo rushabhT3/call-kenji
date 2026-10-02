@@ -53,7 +53,7 @@ The real calls exposed bugs the text harness could not, all fixed:
 - Phase 1: versions pinned (`docs/VERSIONS.md`), design references measured (`docs/DESIGN.md`), hexagonal skeleton, Makefile, `.env.example`, CI. CI green on the first push.
 - Phase 2: 100% line and branch coverage of `domain/`, all required cases, gate review findings fixed.
 - Phase 3 (code): FastAPI server, Flows talker, strategist, backchannel strategy, kana TTS transform, guardrails, live event feed, per-call ICE servers. The text-mode harness runs the real call assembly.
-- Phase 4: normal, spouse, ¥3,000 bargainer, human handoff and stop-contact scenarios pass in text mode with a scripted talker. With Muse Spark as the talker and strategist, `pytest -m real_llm` passed 5/5 three times in a row on commit 92029fb (78 s, 76 s, 89 s).
+- Phase 4: normal, spouse, ¥3,000 bargainer, human handoff and stop-contact scenarios pass in text mode with a scripted talker. With Muse Spark as the talker and strategist, `pytest -m real_llm` passed 5/5 three times in a row on commit 92029fb (78 s, 76 s, 89 s), and again after the fast path on a6b3c90 (53 s, 71 s, 58 s).
 - Phase 5: live page per `docs/DESIGN.md`, demo replay with no backend, 32 Playwright tests (WCAG AA scans, overflow at 1440, 1024, 768 and 390), screenshots in `docs/screenshots/`, design review applied (`docs/DESIGN-REVIEW.md`). The demo replay is now a real voice call (`web/public/demo/call.json`, 140 s), recorded with `scripts/record_demo.py`.
 - Phase 6 (code): signed Twilio webhook, single-use stream tokens, keypad linking to one tab, all tested with simulated Twilio messages.
 - Phase 7 (prepared): Dockerfile (built in CI), Cloudflare Worker, manual Deploy workflow, `docs/DEPLOY.md`, `scripts/smoke.py`.
