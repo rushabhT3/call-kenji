@@ -17,7 +17,7 @@ from kenji.adapters.openai_models import (
 )
 from kenji.adapters.speech import (
     CartesiaTextToSpeech,
-    SileroSmartTurnDetection,
+    SonioxEndpointTurnDetection,
     SonioxSpeechToText,
 )
 from kenji.adapters.storage import CallRecord, JsonContactStore, JsonUsageLedger
@@ -104,7 +104,7 @@ def _voice(settings: Settings, script: Script, account: Account) -> VoiceService
             settings.cartesia_voice_id,
         ),
         talker=TALKERS[settings.talker_provider](settings),
-        turn_detection=SileroSmartTurnDetection(),
+        turn_detection=SonioxEndpointTurnDetection(),
     )
 
 

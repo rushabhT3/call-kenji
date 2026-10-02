@@ -41,6 +41,26 @@ DEFAULT_URGENT_PHRASES = (
 )
 DEFAULT_HALF_SCORE_CHARACTERS = 4
 _ELONGATION_MARKS = str.maketrans("", "", "ー〜～")
+# Japanese marks a finished turn at its very end (です, ます, か). Speech that stops on a topic or
+# case particle, a pause comma or a filler is still mid-sentence. Conjunctive endings such as
+# けど, から and ので are left out on purpose: callers often end a turn on them and imply the rest.
+UNFINISHED_ENDINGS = (
+    "、",
+    "は",
+    "を",
+    "が",
+    "に",
+    "で",
+    "へ",
+    "と",
+    "も",
+    "えっと",
+    "あの",
+    "その",
+)
+FINISHED_DESPITE_ENDING = ("こんにちは", "こんばんは", "ですが", "ますが", "ので", "んで")
+UNFINISHED_PHRASE_GRACE_SECS = 2.0
+_CLOSING_MARKS = "。．. "
 
 
 class TurnVerdict(StrEnum):
@@ -81,6 +101,15 @@ def decide(utterance: str, score: float, policy: TurnPolicy) -> TurnDecision:
 
 def _normalize(utterance: str) -> str:
     return spoken_characters(to_hiragana(utterance).translate(_ELONGATION_MARKS))
+
+
+def sounds_unfinished(transcript: str) -> bool:
+    """Whether a caller who has gone quiet stopped mid-sentence, as in 「生年月日は、」."""
+    # The speech service closes every finalised segment with 。, even mid-sentence.
+    words = transcript.strip().rstrip(_CLOSING_MARKS)
+    if not words or words.endswith(FINISHED_DESPITE_ENDING):
+        return False
+    return words.endswith(UNFINISHED_ENDINGS)
 
 
 def is_composed_of(text: str, words: frozenset[str]) -> bool:

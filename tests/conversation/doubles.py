@@ -31,11 +31,11 @@ from pipecat.services.settings import LLMSettings, TTSSettings
 from pipecat.services.tts_service import TTSService
 from pipecat.transports.base_transport import BaseTransport
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
-from pipecat.turns.user_stop import ExternalUserTurnStopStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.utils.time import time_now_iso8601
 
 from kenji.app.events import CallEvent
+from kenji.app.turns import UnfinishedPhraseHold
 from kenji.domain.audit import AuditEntry, AuditRecord, append_entry
 from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
 from kenji.domain.contact import ContactPreferences, StopContactRequest, record_stop_contact
@@ -214,7 +214,7 @@ class TextTurnDetection:
     def user_params(self, start: BaseUserTurnStartStrategy) -> LLMUserAggregatorParams:
         return LLMUserAggregatorParams(
             user_turn_strategies=UserTurnStrategies(
-                start=[start], stop=[ExternalUserTurnStopStrategy(timeout=0.05)]
+                start=[start], stop=[UnfinishedPhraseHold(timeout=0.05, grace_secs=0.3)]
             )
         )
 

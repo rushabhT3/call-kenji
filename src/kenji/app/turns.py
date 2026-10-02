@@ -1,26 +1,46 @@
-"""Turn start strategy: speech over Kenji only interrupts when it is more than aizuchi.
+"""When a caller's turn starts and ends.
 
-Pipecat's word-count strategy splits on spaces, which Japanese does not have, so this
-strategy asks the domain's BackchannelClassifier instead, with the current node's policy.
+Start: speech over Kenji only interrupts when it is more than aizuchi. Pipecat's word-count
+strategy splits on spaces, which Japanese does not have, so the domain's BackchannelClassifier
+decides instead, with the current node's policy.
+
+End: the speech service proposes where a turn ends, and a phrase left hanging on a particle is
+held open a little longer before Kenji answers it.
 """
 
+import asyncio
 import time
 from collections.abc import Callable
+from typing import Any
 
 from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
     BotStoppedSpeakingFrame,
     Frame,
     InterimTranscriptionFrame,
+    ProposedUserStartedSpeakingFrame,
     TranscriptionFrame,
     VADUserStartedSpeakingFrame,
 )
 from pipecat.turns.types import ProcessFrameResult
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
+from pipecat.turns.user_stop import ExternalUserTurnStopStrategy
 
-from kenji.domain.turn import BackchannelClassifier, TurnDecision, TurnPolicy, TurnVerdict
+from kenji.domain.turn import (
+    UNFINISHED_PHRASE_GRACE_SECS,
+    BackchannelClassifier,
+    TurnDecision,
+    TurnPolicy,
+    TurnVerdict,
+    sounds_unfinished,
+)
 
 type DecisionListener = Callable[[str, TurnDecision, float], None]
+_SPEECH_RESUMED = (
+    VADUserStartedSpeakingFrame,
+    ProposedUserStartedSpeakingFrame,
+    InterimTranscriptionFrame,
+)
 
 
 def _monotonic_ms() -> float:
@@ -84,3 +104,68 @@ class BackchannelTurnStartStrategy(BaseUserTurnStartStrategy):  # type: ignore[n
         started = self._overlap_started_ms
         overlap_ms = 0.0 if started is None else max(0.0, self._clock_ms() - started)
         self._on_decision(text, decision, overlap_ms)
+
+
+class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-untyped-call]
+    """Ends the turn where the speech service proposes, unless the words stop mid-phrase.
+
+    「生年月日は、」 followed by a breath is not a finished turn. It is held open for a grace
+    period: if the caller carries on, their words join the same turn; if not, it closes.
+    """
+
+    def __init__(
+        self,
+        *,
+        grace_secs: float = UNFINISHED_PHRASE_GRACE_SECS,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self._grace_secs = grace_secs
+        self._heard = ""
+        self._hold: asyncio.Task[None] | None = None
+
+    async def handle_user_turn_started(self) -> None:
+        await super().handle_user_turn_started()  # type: ignore[no-untyped-call]
+        self._start_listening_afresh()
+
+    async def handle_user_turn_stopped(self) -> None:
+        await super().handle_user_turn_stopped()  # type: ignore[no-untyped-call]
+        self._start_listening_afresh()
+
+    async def process_frame(self, frame: Frame) -> ProcessFrameResult:
+        if isinstance(frame, TranscriptionFrame):
+            self._heard += frame.text
+        elif isinstance(frame, _SPEECH_RESUMED):
+            self._release_hold()
+        result: ProcessFrameResult = await super().process_frame(frame)
+        return result
+
+    async def trigger_user_turn_stopped(
+        self, *, enable_user_speaking_frames: bool | None = None
+    ) -> None:
+        if self._hold is not None:
+            return
+        if sounds_unfinished(self._heard):
+            self._hold = self.create_task(
+                self._close_after_grace(enable_user_speaking_frames), f"{self}::hold"
+            )
+            return
+        await super().trigger_user_turn_stopped(
+            enable_user_speaking_frames=enable_user_speaking_frames
+        )
+
+    async def _close_after_grace(self, enable_user_speaking_frames: bool | None) -> None:
+        await asyncio.sleep(self._grace_secs)
+        self._hold = None
+        await super().trigger_user_turn_stopped(
+            enable_user_speaking_frames=enable_user_speaking_frames
+        )
+
+    def _start_listening_afresh(self) -> None:
+        self._release_hold()
+        self._heard = ""
+
+    def _release_hold(self) -> None:
+        if self._hold is not None:
+            self._hold.cancel()
+            self._hold = None

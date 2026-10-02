@@ -1,4 +1,4 @@
-"""Soniox for Japanese speech-to-text, Cartesia for Japanese speech with kana readings."""
+"""Soniox for Japanese speech-to-text and turn ends, Cartesia for speech with kana readings."""
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.processors.aggregators.llm_response_universal import LLMUserAggregatorParams
@@ -9,7 +9,12 @@ from pipecat.transcriptions.language import Language
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 
+from kenji.app.turns import UnfinishedPhraseHold
 from kenji.domain.kana import to_speech_kana
+
+# Soniox's documented range is 500-3000 ms. 1.5 s is its voice-agent recommendation; the
+# default sensitivity is kept, since cutting callers off is the failure that costs most.
+MAX_ENDPOINT_DELAY_MS = 1500
 
 
 async def kana_for_speech(text: str, _aggregation_type: str) -> str:
@@ -25,11 +30,13 @@ class SonioxSpeechToText:
     def create(self) -> FrameProcessor:
         return SonioxSTTService(
             api_key=self._api_key,
+            vad_force_turn_endpoint=False,
             settings=SonioxSTTService.Settings(
                 model=self._model,
                 language_hints=[Language.JA],
                 language_hints_strict=True,
                 context=SonioxContextObject(terms=self._vocabulary),
+                max_endpoint_delay_ms=MAX_ENDPOINT_DELAY_MS,
             ),
         )
 
@@ -50,10 +57,16 @@ class CartesiaTextToSpeech:
         )
 
 
-class SileroSmartTurnDetection:
-    """Silero VAD for speech onset; Pipecat's default smart-turn model decides turn ends."""
+class SonioxEndpointTurnDetection:
+    """Silero VAD hears speech start at once; Soniox's semantic endpointing proposes turn ends.
+
+    A silence timer cut callers off at the pause in 「生年月日は、」. Soniox judges the end from
+    the words, rhythm and intonation together, and UnfinishedPhraseHold waits longer when the
+    words still stop on a particle.
+    """
 
     def user_params(self, start: BaseUserTurnStartStrategy) -> LLMUserAggregatorParams:
         return LLMUserAggregatorParams(
-            vad_analyzer=SileroVADAnalyzer(), user_turn_strategies=UserTurnStrategies(start=[start])
+            vad_analyzer=SileroVADAnalyzer(),
+            user_turn_strategies=UserTurnStrategies(start=[start], stop=[UnfinishedPhraseHold()]),
         )

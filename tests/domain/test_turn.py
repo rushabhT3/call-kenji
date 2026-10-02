@@ -6,6 +6,7 @@ from kenji.domain.turn import (
     TurnVerdict,
     decide,
     is_composed_of,
+    sounds_unfinished,
 )
 
 READING_TERMS = TurnPolicy(min_interruption_score=0.85)
@@ -112,3 +113,35 @@ def test_corrections_over_the_read_back_interrupt(
     classifier: LexiconBackchannelClassifier, correction: str
 ) -> None:
     assert classifier.classify(correction, READING_TERMS).verdict is TurnVerdict.INTERRUPTION
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "佐藤ゆうきです。生年月日は。",
+        "金額は、",
+        "毎月の支払いを",
+        "えっと",
+        "今月はちょっと",
+        "それで",
+    ],
+)
+def test_speech_that_stops_on_a_particle_or_filler_is_unfinished(speech: str) -> None:
+    assert sounds_unfinished(speech)
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "佐藤ゆうきです。",
+        "平成2年7月14日です。",
+        "6000円でお願いします。",
+        "どうなるんですか？",
+        "こんにちは。",
+        "今月は厳しいので。",
+        "払いたいのですが",
+        "",
+    ],
+)
+def test_speech_that_ends_like_a_turn_is_finished(speech: str) -> None:
+    assert not sounds_unfinished(speech)
