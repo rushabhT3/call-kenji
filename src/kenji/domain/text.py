@@ -1,11 +1,13 @@
 """Character-level helpers for Japanese text, which has no word spaces."""
 
+import re
 import unicodedata
 
 _KATAKANA_FIRST = ord("ァ")
 _KATAKANA_LAST = ord("ヶ")
 _KATAKANA_TO_HIRAGANA_OFFSET = ord("ァ") - ord("ぁ")
 _FULLWIDTH_TO_ASCII = str.maketrans("０１２３４５６７８９，￥／－", "0123456789,¥/-")
+_REPEATED_SENTENCE_END = re.compile(r"([。！？])\1+")
 
 
 def to_hiragana(text: str) -> str:
@@ -33,3 +35,7 @@ def count_spoken_characters(text: str) -> int:
 
 def ascii_digits(text: str) -> str:
     return text.translate(_FULLWIDTH_TO_ASCII)
+
+
+def without_repeated_sentence_ends(text: str) -> str:
+    return _REPEATED_SENTENCE_END.sub(r"\1", text)

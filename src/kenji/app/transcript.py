@@ -8,7 +8,7 @@ from loguru import logger
 from kenji.app.events import Subtitle, TranscriptLine
 from kenji.app.ports import Clock, EventSink, Translator
 from kenji.app.script import Line
-from kenji.domain.text import spoken_characters
+from kenji.domain.text import spoken_characters, without_repeated_sentence_ends
 
 TRANSLATION_TIMEOUT_SECS = 6.0
 
@@ -47,12 +47,15 @@ class TranscriptFeed:
         self._publish(line_id, "caller", japanese, is_final=True, is_backchannel=True)
 
     def kenji_said(self, japanese: str) -> Line | None:
+        """Publish what Kenji said; the speech service's word timing can repeat a final 。."""
         line_id = self._next_id("kenji")
-        self._publish(line_id, "kenji", japanese, is_final=True)
         scripted = self._scripted.get(_key(japanese))
         if scripted is None:
-            self._translate_later(line_id, japanese)
+            spoken = without_repeated_sentence_ends(japanese)
+            self._publish(line_id, "kenji", spoken, is_final=True)
+            self._translate_later(line_id, spoken)
         else:
+            self._publish(line_id, "kenji", scripted.ja, is_final=True)
             self._sink.publish(Subtitle(line_id=line_id, en=scripted.en))
         return scripted
 
