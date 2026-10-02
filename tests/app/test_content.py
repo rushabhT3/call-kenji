@@ -62,10 +62,13 @@ def test_every_template_fills(script: Script, account: Account) -> None:
 
 
 def test_neutral_lines_never_name_the_debt(script: Script) -> None:
+    lines = script.lines
     neutral = [
-        script.lines.greeting,
-        script.lines.third_party_callback,
-        script.lines.identity_locked,
+        lines.greeting,
+        lines.link_prompt,
+        lines.ask_identity,
+        lines.third_party_callback,
+        lines.identity_locked,
     ]
     for line in neutral:
         for word in ("債権", "回収", "返済", "支払", "延滞", "滞納", "円"):
