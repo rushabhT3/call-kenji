@@ -15,22 +15,30 @@ Last updated: 2026-10-02
 
 ## Current phase
 
-Phase 3 code complete and tested in text mode; its real-call check waits for API keys in `.env`. Phase 5 (live page) in progress meanwhile.
+Every phase's code is built and tested without paid services. Real-call checks wait for API keys
+(Phases 3 and 4), a phone number (Phase 6) and approval to deploy (Phase 7).
 
 ## Done
 
-- Phase 2: 100% line and branch coverage of `domain/`, all required cases, gate review findings fixed (CI green on 365d72d).
-- Phase 3 (code): FastAPI server, Flows talker, strategist, backchannel strategy, kana TTS transform, guardrails, live event feed; text-mode harness runs the real call assembly (CI green on e1c2525).
-- Phase 4 (fake-LLM part): normal, spouse, ¥3,000 bargainer, human handoff and stop-contact scenarios pass in text mode.
-- Phase 1: versions pinned (`docs/VERSIONS.md`), design references measured (`docs/DESIGN.md`), hexagonal skeleton, Makefile, `.env.example`, CI (Python lint + tests, web lint + unit + e2e). CI green on the first push.
+- Phase 1: versions pinned (`docs/VERSIONS.md`), design references measured (`docs/DESIGN.md`), hexagonal skeleton, Makefile, `.env.example`, CI. CI green on the first push.
+- Phase 2: 100% line and branch coverage of `domain/`, all required cases, gate review findings fixed.
+- Phase 3 (code): FastAPI server, Flows talker, strategist, backchannel strategy, kana TTS transform, guardrails, live event feed, per-call ICE servers. The text-mode harness runs the real call assembly.
+- Phase 4 (fake-LLM part): normal, spouse, ¥3,000 bargainer, human handoff and stop-contact scenarios pass in text mode. The real-model smoke suite (`pytest -m real_llm`) is ready and skips without a key.
+- Phase 5 (provisional): live page per `docs/DESIGN.md`, demo replay with no backend, 22 Playwright tests at 1440 and 390, screenshots in `docs/screenshots/`, design review applied (`docs/DESIGN-REVIEW.md`). The demo recording is a scripted text-mode run until a real call replaces it.
+- Phase 6 (code): signed Twilio webhook, single-use stream tokens, keypad linking to one tab, all tested with simulated Twilio messages.
+- Phase 7 (prepared): Dockerfile (built in CI), Cloudflare Worker, manual Deploy workflow, `docs/DEPLOY.md`, `scripts/smoke.py`.
+- Phase 8 (draft): README with pitch, diagram, real vs simulated, cost, run steps, recording script and launch post.
 
 ## Next
 
-- Phase 3 real-call check (normal / spouse / human paths, p50 latency) once keys are in `.env`.
-- Phase 4 real-LLM smoke run, 3 in a row (Muse Spark contributor).
-- Phase 5 live page per `docs/DESIGN.md` with `?demo=1` replay.
+1. Real browser calls once `LLM_API_KEY`, `SONIOX_API_KEY` and `CARTESIA_API_KEY` are in `.env`: normal, spouse and human paths, plus p50 latency. Then record the demo replay from a real call.
+2. `pytest -m real_llm` three times in a row.
+3. Buy the Twilio number (owner approval: a US local number, $1.15 a month) and make the real phone-call check.
+4. Deploy (owner approval), run the smoke test, one phone call and one browser call.
+5. Fresh-clone check of the README and the hiring-manager review.
 
 ## Blockers
 
-- Real calls need `LLM_API_KEY` (Meta Muse Spark), `SONIOX_API_KEY` and `CARTESIA_API_KEY` in `.env`; owner approved test spend up to $5.
-- Local Windows: pnpm 10's switch to the pinned pnpm 12 fails; run `npx pnpm@12.8.1` or `make PNPM="npx -y pnpm@12.8.1"`.
+- API keys are not in `.env` yet. Spend is approved up to $5 for test calls.
+- Number purchase and public deploy need the owner's go-ahead.
+- Local Windows: pnpm 10 cannot switch itself to the pinned pnpm 12, so use `npx pnpm@12.8.1` or `make PNPM="npx -y pnpm@12.8.1"`.
