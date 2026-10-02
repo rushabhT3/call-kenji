@@ -159,7 +159,25 @@ recognition, both models and speech synthesis all run for real. It costs a few c
 uv run python scripts/voice_check.py    # or name some of: promise spouse handoff
 ```
 
+**Try the phone line** without buying a number. A browser softphone calls Kenji through
+Twilio's network, so the signed webhook, the Media Stream at 8 kHz and keypad linking all run
+for real. It costs about $0.008 a minute of Twilio credit:
+
+1. In the Twilio Console, create an API key (Standard), then a TwiML App with any voice URL.
+   The script below points it at your machine each time it runs.
+2. In `.env`, set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_API_KEY_SID`,
+   `TWILIO_API_KEY_SECRET`, `TWILIO_TWIML_APP_SID` and `PUBLIC_BASE_URL=http://127.0.0.1:7860`.
+3. Install [cloudflared][cloudflared] for a free quick tunnel. No Cloudflare account is needed.
+4. Run `uv run python scripts/phone_dev.py` and, in another terminal, `cd web && pnpm dev`.
+5. Open http://localhost:5173 for the live view, then http://127.0.0.1:7860/dev/softphone.
+   Press **Call Kenji**, and type the page's four-digit code on the keypad when he asks.
+
+The softphone only answers a browser on the same machine, never a request through the tunnel.
+Kenji answers between 08:00 and 21:00 Japan time, as on the real line.
+
 The phone line and deployment are covered step by step in [docs/DEPLOY.md](docs/DEPLOY.md).
+
+[cloudflared]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
 
 ## Where to look
 

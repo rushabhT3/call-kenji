@@ -22,7 +22,7 @@ from kenji.adapters.speech import (
 )
 from kenji.adapters.storage import CallRecord, JsonContactStore, JsonUsageLedger
 from kenji.adapters.turn import CloudflareTurn, StunOnly
-from kenji.adapters.twilio import TwilioWebhooks
+from kenji.adapters.twilio import SoftphoneCredentials, SoftphoneTokens, TwilioWebhooks
 from kenji.app.call_parts import CallKit, VoiceServices
 from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting, TransportKind
@@ -55,6 +55,7 @@ class Services:
     ice: IceServerSource
     phone: PhoneLine | None = None
     proxy_secret: str | None = None
+    softphone: SoftphoneTokens | None = None
 
 
 def chat_endpoint(settings: LanguageModelSettings) -> ChatEndpoint:
@@ -163,6 +164,20 @@ def build_phone_line(settings: Settings, clock: Clock) -> PhoneLine | None:
     )
 
 
+def build_softphone(settings: Settings) -> SoftphoneTokens | None:
+    account_sid, key_sid, key_secret, app_sid = (
+        settings.twilio_account_sid,
+        settings.twilio_api_key_sid,
+        settings.twilio_api_key_secret,
+        settings.twilio_twiml_app_sid,
+    )
+    if account_sid is None or key_sid is None or key_secret is None or app_sid is None:
+        return None
+    return SoftphoneTokens(
+        SoftphoneCredentials(account_sid, key_sid, key_secret.get_secret_value(), app_sid)
+    )
+
+
 def build_services(settings: Settings, kit: CallKit | None = None) -> Services:
     kit = kit or build_kit(settings)
     routing = CallRouting(hub=EventHub(), links=LinkRegistry(kit.clock))
@@ -187,4 +202,5 @@ def build_services(settings: Settings, kit: CallKit | None = None) -> Services:
             if settings.proxy_shared_secret
             else None
         ),
+        softphone=build_softphone(settings),
     )

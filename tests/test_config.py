@@ -69,6 +69,38 @@ def test_complete_twilio_settings_enable_the_phone_line(monkeypatch: pytest.Monk
     assert Settings().is_phone_enabled
 
 
+PHONE_LINE = {
+    "TWILIO_ACCOUNT_SID": "AC123",
+    "TWILIO_AUTH_TOKEN": "token",
+    "PUBLIC_BASE_URL": "https://kenji.example",
+}
+SOFTPHONE = {
+    "TWILIO_API_KEY_SID": "SK123",
+    "TWILIO_API_KEY_SECRET": "secret",
+    "TWILIO_TWIML_APP_SID": "AP123",
+}
+
+
+def test_softphone_settings_must_be_complete(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {**REQUIRED_KEYS, **PHONE_LINE, "TWILIO_API_KEY_SID": "SK123"})
+
+    with pytest.raises(ValidationError, match="TWILIO_TWIML_APP_SID must be set together"):
+        Settings()
+
+
+def test_the_softphone_needs_the_phone_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {**REQUIRED_KEYS, **SOFTPHONE})
+
+    with pytest.raises(ValidationError, match="TWILIO_ACCOUNT_SID is needed"):
+        Settings()
+
+
+def test_complete_softphone_settings_are_accepted(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {**REQUIRED_KEYS, **PHONE_LINE, **SOFTPHONE})
+
+    assert Settings().twilio_twiml_app_sid == "AP123"
+
+
 def test_guardrails_must_be_positive(monkeypatch: pytest.MonkeyPatch) -> None:
     _set(monkeypatch, {**REQUIRED_KEYS, "MAX_CALL_SECONDS": "0"})
 

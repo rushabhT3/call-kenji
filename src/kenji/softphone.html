@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kenji softphone</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@twilio/voice-sdk@2.18.5/dist/twilio.min.js"
+      integrity="sha384-LUG7DmzDPWNKRYoqyGpV4d/IByMLiya/oUhMSc/4/6hi0wbzO/8PffM4lzeFEYS8"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      /* Values from web/src/styles/tokens.css; this page is served by the voice server alone. */
+      :root {
+        color-scheme: light;
+        --color-bg: #fef9ed;
+        --color-surface: #f7f1e3;
+        --color-surface-action: #f7ecd9;
+        --color-surface-action-hover: #f1e3cb;
+        --color-text: #574c45;
+        --color-text-strong: #3b322c;
+        --color-text-muted: #6f6259;
+        --color-text-on-ink: #fef9ed;
+        --color-border-subtle: #e9e0ce;
+        --color-border-strong: #958779;
+        --color-accent: #a8461f;
+        --color-danger-text: #922f1e;
+        --color-success-text: #2e5a34;
+        --font-serif: "Newsreader", "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+        --font-mono: "Red Hat Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --radius-md: 10px;
+        --radius-pill: 999px;
+        --duration-fast: 120ms;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: var(--space-4);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-serif);
+      }
+      main {
+        width: min(100%, 360px);
+        display: grid;
+        gap: var(--space-6);
+        padding: var(--space-8) var(--space-6);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-subtle);
+        border-radius: var(--radius-md);
+      }
+      h1 {
+        margin: 0;
+        color: var(--color-text-strong);
+        font-size: 1.75rem;
+        font-weight: 500;
+      }
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+      .note {
+        color: var(--color-text-muted);
+        font-size: 0.95rem;
+      }
+      .status {
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+      }
+      body[data-state="connected"] .status {
+        color: var(--color-success-text);
+      }
+      body[data-state="failed"] .status {
+        color: var(--color-danger-text);
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        transition: background-color var(--duration-fast) ease;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+      .call {
+        padding: var(--space-3) var(--space-4);
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: var(--color-accent);
+        color: var(--color-text-on-ink);
+        font-size: 1.1rem;
+      }
+      .keypad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-2);
+      }
+      .keypad button {
+        padding: var(--space-3) 0;
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-action);
+        color: var(--color-text-strong);
+        font-family: var(--font-mono);
+        font-size: 1.25rem;
+      }
+      .keypad button:not(:disabled):hover {
+        background: var(--color-surface-action-hover);
+      }
+      .typed {
+        min-height: 1.5em;
+        font-family: var(--font-mono);
+        letter-spacing: 0.3em;
+        color: var(--color-text-strong);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body data-state="idle">
+    <main>
+      <h1>Kenji softphone</h1>
+      <p class="note">
+        Calls the phone line through Twilio, the way a phone would. Open the X-ray page first, and
+        type its four-digit code on the keypad when Kenji asks.
+      </p>
+      <p class="status" id="status" role="status" aria-live="polite">Ready</p>
+      <button class="call" id="call" type="button">Call Kenji</button>
+      <div class="keypad" role="group" aria-label="Keypad">
+        <button type="button" data-key="1" disabled>1</button>
+        <button type="button" data-key="2" disabled>2</button>
+        <button type="button" data-key="3" disabled>3</button>
+        <button type="button" data-key="4" disabled>4</button>
+        <button type="button" data-key="5" disabled>5</button>
+        <button type="button" data-key="6" disabled>6</button>
+        <button type="button" data-key="7" disabled>7</button>
+        <button type="button" data-key="8" disabled>8</button>
+        <button type="button" data-key="9" disabled>9</button>
+        <button type="button" data-key="*" disabled>*</button>
+        <button type="button" data-key="0" disabled>0</button>
+        <button type="button" data-key="#" disabled>#</button>
+      </div>
+      <p class="typed" id="typed" aria-label="Digits sent"></p>
+    </main>
+    <script>
+      const statusText = document.getElementById("status");
+      const callButton = document.getElementById("call");
+      const typedDigits = document.getElementById("typed");
+      const keys = document.querySelectorAll("[data-key]");
+      let device = null;
+      let call = null;
+      let failure = null;
+
+      function show(state, message) {
+        document.body.dataset.state = state;
+        statusText.textContent = message;
+        callButton.textContent = state === "idle" || state === "failed" ? "Call Kenji" : "Hang up";
+        callButton.disabled = state === "connecting" && call === null;
+        for (const key of keys) key.disabled = state !== "connected";
+      }
+
+      function finish(message) {
+        call = null;
+        device?.destroy();
+        device = null;
+        show(failure ? "failed" : "idle", failure ?? message);
+      }
+
+      async function fetchToken() {
+        const response = await fetch("/dev/softphone/token", { method: "POST" });
+        if (!response.ok) throw new Error(`The voice server refused a token (HTTP ${response.status}).`);
+        return (await response.json()).token;
+      }
+
+      async function startCall() {
+        failure = null;
+        typedDigits.textContent = "";
+        show("connecting", "Connecting through Twilio…");
+        try {
+          device = new Twilio.Device(await fetchToken(), { codecPreferences: ["opus", "pcmu"] });
+          device.on("error", (error) => {
+            failure = `Twilio error ${error.code}: ${error.message}`;
+          });
+          call = await device.connect();
+          show("connecting", "Ringing…");
+          call.on("accept", () => show("connected", "On the call"));
+          call.on("error", (error) => {
+            failure = `Twilio error ${error.code}: ${error.message}`;
+          });
+          call.on("disconnect", () => finish("Call ended"));
+          call.on("cancel", () => finish("Call cancelled"));
+        } catch (error) {
+          failure = error instanceof Error ? error.message : String(error);
+          finish(failure);
+        }
+      }
+
+      function press(key) {
+        if (call === null) return;
+        call.sendDigits(key);
+        typedDigits.textContent += key;
+      }
+
+      callButton.addEventListener("click", () => (call ? call.disconnect() : startCall()));
+      for (const key of keys) key.addEventListener("click", () => press(key.dataset.key));
+      document.addEventListener("keydown", (event) => {
+        if (document.body.dataset.state === "connected" && /^[0-9*#]$/.test(event.key)) {
+          press(event.key);
+        }
+      });
+    </script>
+  </body>
+</html>

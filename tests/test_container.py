@@ -65,3 +65,23 @@ def test_phone_and_turn_settings_switch_both_on(tmp_path: Path) -> None:
     assert services.phone is not None
     assert services.phone.public_base_url == "https://kenji.example"
     assert isinstance(services.ice, CloudflareTurn)
+
+
+def test_softphone_settings_switch_the_softphone_on(tmp_path: Path) -> None:
+    services = build_services(
+        _settings(
+            tmp_path,
+            twilio_account_sid="AC-dummy",
+            twilio_auth_token=SecretStr("dummy-twilio-token"),
+            public_base_url="https://kenji.example",
+            twilio_api_key_sid="SK-dummy",
+            twilio_api_key_secret=SecretStr("dummy-key-secret"),
+            twilio_twiml_app_sid="AP-dummy",
+        )
+    )
+
+    assert services.softphone is not None
+
+
+def test_without_softphone_settings_there_is_no_softphone(tmp_path: Path) -> None:
+    assert build_services(_settings(tmp_path)).softphone is None

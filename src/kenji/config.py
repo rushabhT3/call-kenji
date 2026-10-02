@@ -49,6 +49,9 @@ class Settings(LanguageModelSettings):
     twilio_account_sid: str | None = None
     twilio_auth_token: SecretStr | None = None
     public_base_url: str | None = None
+    twilio_api_key_sid: str | None = None
+    twilio_api_key_secret: SecretStr | None = None
+    twilio_twiml_app_sid: str | None = None
     proxy_shared_secret: SecretStr | None = None
 
     max_call_seconds: int = Field(default=300, gt=0)
@@ -85,6 +88,22 @@ class Settings(LanguageModelSettings):
             raise ValueError(
                 "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and PUBLIC_BASE_URL must be set together"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _require_complete_softphone(self) -> Self:
+        softphone_parts = (
+            self.twilio_api_key_sid,
+            self.twilio_api_key_secret,
+            self.twilio_twiml_app_sid,
+        )
+        if any(softphone_parts) and not all(softphone_parts):
+            raise ValueError(
+                "TWILIO_API_KEY_SID, TWILIO_API_KEY_SECRET and TWILIO_TWIML_APP_SID must be set"
+                " together"
+            )
+        if any(softphone_parts) and not self.is_phone_enabled:
+            raise ValueError("the softphone calls the phone line, so TWILIO_ACCOUNT_SID is needed")
         return self
 
     @property
