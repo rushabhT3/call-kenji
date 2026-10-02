@@ -104,17 +104,21 @@ def _audit_chain_holds(feed: ViewerFeed) -> list[str]:
     return [] if audit and audit[-1]["is_chain_valid"] else ["audit chain missing or invalid"]
 
 
-def _at_identity_check(line: str) -> dict[str, tuple[str, ...]]:
-    """The opening ends by asking who is speaking, so the answer may come before the step moves."""
-    return {"greeting": (line,), "verify_identity": (line,)}
+IDENTITY_STEPS = ("greeting", "verify_identity")
+LISTENING_STEPS = ("state_balance", "listen")
+
+
+def _answers(steps: tuple[str, ...], *lines: str) -> dict[str, tuple[str, ...]]:
+    """A step Kenji ends by speaking moves on when the caller replies, so a reply covers both."""
+    return dict.fromkeys(steps, lines)
 
 
 SCENARIOS = {
     "promise": Scenario(
         name="promise",
         replies={
-            **_at_identity_check(IDENTITY),
-            "listen": ("今月はちょっと厳しくて、月3000円なら払えます。",),
+            **_answers(IDENTITY_STEPS, IDENTITY),
+            **_answers(LISTENING_STEPS, "今月はちょっと厳しくて、月3000円なら払えます。"),
             "negotiate": (
                 "わかりました。では、月6000円でお願いします。",
                 "はい、それで大丈夫です。",
@@ -126,15 +130,15 @@ SCENARIOS = {
     ),
     "spouse": Scenario(
         name="spouse",
-        replies=_at_identity_check("佐藤の妻です。主人はいま出かけています。"),
+        replies=_answers(IDENTITY_STEPS, "佐藤の妻です。主人はいま出かけています。"),
         expected_outcome="callback_requested",
         checks=(_says_nothing_about_the_debt, _gave_the_disclosure),
     ),
     "handoff": Scenario(
         name="handoff",
         replies={
-            **_at_identity_check(IDENTITY),
-            "listen": ("すみません、人間の担当者の方と直接お話ししたいです。",),
+            **_answers(IDENTITY_STEPS, IDENTITY),
+            **_answers(LISTENING_STEPS, "すみません、人間の担当者の方と直接お話ししたいです。"),
             "negotiate": ("やはり、人間の担当者の方と話したいです。",),
         },
         expected_outcome="human_handoff",

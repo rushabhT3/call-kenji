@@ -7,7 +7,7 @@ import {
   openMidCall,
   routeViewerFeed,
   sendViewerReady,
-  serveMeasuredRecording,
+  serveRecordingWithHandoff,
 } from "./support.ts";
 
 const WCAG_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
@@ -52,7 +52,6 @@ test.describe("WCAG 2.1 AA scan", () => {
 
   test("live view during a call", async ({ page }) => {
     await blockBackend(page);
-    await serveMeasuredRecording(page);
     await openMidCall(page);
 
     await expectNoAxeViolations(page);
@@ -60,7 +59,6 @@ test.describe("WCAG 2.1 AA scan", () => {
 
   test("after the call", async ({ page }) => {
     await blockBackend(page);
-    await serveMeasuredRecording(page);
     await openAfterCall(page);
     await expect(page.locator("#latency .metric__value")).toBeVisible();
 
@@ -107,7 +105,7 @@ test.describe("accessibility rules", () => {
 
   test("numbers during and after a call use tabular figures", async ({ page }) => {
     await blockBackend(page);
-    await serveMeasuredRecording(page);
+    await serveRecordingWithHandoff(page);
     await openAfterCall(page);
     await expect(page.locator("#latency .metric__value")).toBeVisible();
 

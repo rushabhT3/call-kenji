@@ -1,12 +1,5 @@
 import { expect, test } from "@playwright/test";
-import {
-  DEMO_URL,
-  WIDTHS,
-  blockBackend,
-  openAfterCall,
-  openMidCall,
-  serveMeasuredRecording,
-} from "./support.ts";
+import { DEMO_URL, WIDTHS, blockBackend, openAfterCall, openMidCall } from "./support.ts";
 
 const SIDEWAYS_SCROLL_TIMEOUT_MS = 120_000;
 
@@ -59,7 +52,6 @@ test.describe("demo replay", () => {
   test("never scrolls sideways at any supported width", async ({ page }) => {
     test.setTimeout(SIDEWAYS_SCROLL_TIMEOUT_MS);
     await blockBackend(page);
-    await serveMeasuredRecording(page);
     const states = [
       {
         name: "landing",

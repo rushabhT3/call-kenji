@@ -41,73 +41,38 @@ interface Recording {
   events: { offset_ms: number; event: { type: string } }[];
 }
 
-const MEASURED_EVENTS = [
-  {
-    type: "turn",
-    node: "read_back",
-    utterance: "はい",
-    overlap_ms: 420,
-    characters: 2,
-    score: 0,
-    threshold: 0.85,
-    verdict: "backchannel",
-  },
-  {
-    type: "latency",
-    turn: 1,
-    end_of_turn_ms: 310,
-    llm_first_token_ms: 640,
-    tts_first_audio_ms: 180,
-    total_ms: 1130,
-    p50_ms: 1130,
-    p95_ms: 1130,
-    budget_ms: 1500,
-  },
-  {
-    type: "latency",
-    turn: 2,
-    end_of_turn_ms: 350,
-    llm_first_token_ms: 980,
-    tts_first_audio_ms: 240,
-    total_ms: 1570,
-    p50_ms: 1350,
-    p95_ms: 1548,
-    budget_ms: 1500,
-  },
-  {
-    type: "handoff",
-    reason: "担当者と話したい",
-    summary: "Verified caller asked to speak to a person about the plan.",
-    identity_status: "verified",
-    node: "negotiate",
-    requested_at: "2026-10-02T15:03:10+09:00",
-  },
-];
+const HANDOFF_EVENT = {
+  type: "handoff",
+  reason: "担当者と話したい",
+  summary: "Verified caller asked to speak to a person about the plan.",
+  identity_status: "verified",
+  node: "negotiate",
+  requested_at: "2026-10-03T15:02:10+09:00",
+};
 
-function withMeasurements(recording: Recording): Recording {
+function withHandoff(recording: Recording): Recording {
   const endIndex = recording.events.findIndex(({ event }) => event.type === "call_ended");
   const offsetMs = recording.events[endIndex - 1]?.offset_ms ?? 0;
-  const added = MEASURED_EVENTS.map((event) => ({ offset_ms: offsetMs, event }));
   const events = [...recording.events];
-  events.splice(endIndex, 0, ...added);
+  events.splice(endIndex, 0, { offset_ms: offsetMs, event: HANDOFF_EVENT });
   return { ...recording, events };
 }
 
 /**
- * The scripted demo recording has no audio, so it carries no turn, latency or handoff events.
- * Serve it with a few added so the cards that show those numbers render populated.
+ * The demo replays a real call that ended in a promise, so it has no handoff. Serve it with one
+ * added so the handoff card's time can be checked too.
  */
-export async function serveMeasuredRecording(page: Page): Promise<void> {
+export async function serveRecordingWithHandoff(page: Page): Promise<void> {
   await page.route("**/demo/call.json", async (route) => {
     const response = await route.fetch();
     const recording = (await response.json()) as Recording;
-    await route.fulfill({ response, json: withMeasurements(recording) });
+    await route.fulfill({ response, json: withHandoff(recording) });
   });
 }
 
-/** A replay slow enough to inspect while it is still running. */
-export const MID_CALL_URL = "/?demo=1&speed=0.25";
-export const DEMO_URL = "/?demo=1&speed=4";
+/** The recorded call lasts about 140 s: speed 4 leaves time to inspect it mid-call. */
+export const MID_CALL_URL = "/?demo=1&speed=4";
+export const DEMO_URL = "/?demo=1&speed=40";
 export const WIDTHS = [1440, 1024, 768, 390] as const;
 const REPLAY_TIMEOUT_MS = 20_000;
 const LINES_BEFORE_INSPECTING = 4;

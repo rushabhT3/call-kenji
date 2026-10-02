@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { blockBackend } from "./support.ts";
+import { DEMO_URL, blockBackend, openMidCall } from "./support.ts";
 
 const SCREENSHOT_DIR = path.resolve(import.meta.dirname, "../../docs/screenshots");
 
@@ -23,10 +23,10 @@ test.describe("screenshots", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await shot("before-call");
 
-    await page.goto("/?demo=1&speed=0.25");
-    await expect(page.getByRole("log").getByRole("listitem").nth(3)).toBeVisible();
+    await openMidCall(page);
     await shot("live");
 
+    await page.goto(DEMO_URL);
     await expect(page.getByRole("heading", { name: /What happened/ })).toBeVisible({
       timeout: 20_000,
     });
