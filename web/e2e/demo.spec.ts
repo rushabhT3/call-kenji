@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { DEMO_URL, WIDTHS, blockBackend } from "./support.ts";
+import {
+  DEMO_URL,
+  WIDTHS,
+  blockBackend,
+  openAfterCall,
+  openMidCall,
+  serveMeasuredRecording,
+} from "./support.ts";
+
+const SIDEWAYS_SCROLL_TIMEOUT_MS = 120_000;
 
 test.describe("demo replay", () => {
   test("replays a whole call with no backend at all", async ({ page }) => {
@@ -48,16 +57,28 @@ test.describe("demo replay", () => {
   });
 
   test("never scrolls sideways at any supported width", async ({ page }) => {
+    test.setTimeout(SIDEWAYS_SCROLL_TIMEOUT_MS);
     await blockBackend(page);
+    await serveMeasuredRecording(page);
+    const states = [
+      {
+        name: "landing",
+        open: async () => {
+          await page.goto("/");
+          await page.waitForLoadState("networkidle");
+        },
+      },
+      { name: "live view mid-call", open: () => openMidCall(page) },
+      { name: "after the call", open: () => openAfterCall(page) },
+    ];
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height: 900 });
-      for (const url of ["/", DEMO_URL]) {
-        await page.goto(url);
-        await page.waitForLoadState("networkidle");
+      for (const state of states) {
+        await state.open();
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - window.innerWidth,
         );
-        expect(overflow, `${url} at ${String(width)}px`).toBeLessThanOrEqual(0);
+        expect(overflow, `${state.name} at ${String(width)}px`).toBeLessThanOrEqual(0);
       }
     }
   });

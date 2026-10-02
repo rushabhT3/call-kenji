@@ -111,6 +111,7 @@
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums lining-nums;
   white-space: nowrap;
   transition:
     background-color var(--duration-base) var(--ease-out),
@@ -264,6 +265,7 @@
 .budget__marker-label {
   text-align: right;
   text-transform: none;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 @media (min-width: 1024px) {

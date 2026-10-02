@@ -83,17 +83,19 @@ export function Transcript({ view }: { view: CallView }) {
           view.lines.length + Object.keys(view.subtitles).length + (view.partial?.ja.length ?? 0)
         }
       >
-        <ol className="transcript__log" role="log" aria-live="polite" aria-relevant="additions">
-          {view.lines.map((line) => (
-            <TranscriptLine
-              key={line.lineId}
-              line={line}
-              offsetMs={startedAt ? elapsedMs(startedAt, line.at) : 0}
-              subtitle={view.subtitles[line.lineId]}
-              isCurrent={line.lineId === currentId}
-            />
-          ))}
-        </ol>
+        <div role="log" aria-live="polite" aria-relevant="additions">
+          <ol className="transcript__log">
+            {view.lines.map((line) => (
+              <TranscriptLine
+                key={line.lineId}
+                line={line}
+                offsetMs={startedAt ? elapsedMs(startedAt, line.at) : 0}
+                subtitle={view.subtitles[line.lineId]}
+                isCurrent={line.lineId === currentId}
+              />
+            ))}
+          </ol>
+        </div>
         {view.status === "live" ? <ListeningRow text={view.partial?.ja ?? null} /> : null}
       </ScrollRegion>
     </section>
