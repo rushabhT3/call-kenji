@@ -3,7 +3,7 @@
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from kenji.app.agreement import format_date_en, format_yen
+from kenji.app.agreement import describe_plan_en, format_date_en, format_yen
 from kenji.app.events import StrategistUpdated
 from kenji.app.flows import CallFlow
 from kenji.app.latency import LatencyTracker
@@ -25,7 +25,7 @@ from kenji.app.strategist import Advice, Strategist, StrategistInjector, render_
 from kenji.app.tools import CallTools
 from kenji.app.transcript import TranscriptFeed
 from kenji.domain.account import Account
-from kenji.domain.terms import smallest_acceptable_monthly
+from kenji.domain.terms import smallest_acceptable_monthly, suggested_plans
 from kenji.domain.turn import BackchannelClassifier
 
 
@@ -80,6 +80,9 @@ def _persona_fields(kit: CallKit, context: CallContext) -> dict[str, str]:
         "overdue_since_en": format_date_en(account.overdue_since),
         "today": format_date_en(context.negotiation.today),
         "smallest_monthly": format_yen(smallest_acceptable_monthly(context.negotiation)),
+        "suggested_plans": "; ".join(
+            describe_plan_en(plan) for plan in suggested_plans(context.negotiation)
+        ),
         "minimum_monthly": format_yen(terms.minimum_monthly_yen),
         "maximum_installments": str(terms.maximum_installments),
         "first_payment_within_days": str(terms.first_payment_within_days),

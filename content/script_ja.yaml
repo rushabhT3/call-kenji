@@ -49,11 +49,20 @@ lines:
   read_back:
     ja: >-
       それでは、お約束の内容を確認させていただきます。
-      初回のお支払いは{first_due}、毎月{monthly_yen}円を{installments}回、最終回は{final_yen}円で、合計{total_yen}円です。
+      初回のお支払いは{first_due}、毎月{monthly_yen}円を{regular_installments}回、そのあと最終回に{final_yen}円で、全{installments}回、合計{total_yen}円です。
       この内容でよろしいでしょうか。
     en: >-
       Let me read back what we've agreed.
-      The first payment is on {first_due_en}, then ¥{monthly_yen} a month for {installments} payments, with a final payment of ¥{final_yen}, ¥{total_yen} in total.
+      Starting on {first_due_en}, ¥{monthly_yen} a month for {regular_installments} payments, then a final payment of ¥{final_yen}: {installments} payments and ¥{total_yen} in total.
+      Is that correct?
+  read_back_even:
+    ja: >-
+      それでは、お約束の内容を確認させていただきます。
+      初回のお支払いは{first_due}、毎月{monthly_yen}円を{installments}回で、合計{total_yen}円です。
+      この内容でよろしいでしょうか。
+    en: >-
+      Let me read back what we've agreed.
+      Starting on {first_due_en}, ¥{monthly_yen} a month for {installments} payments, ¥{total_yen} in total.
       Is that correct?
   read_back_single:
     ja: >-
@@ -120,6 +129,7 @@ prompts:
     - 相手の気持ちに寄り添い、責めたり急かしたりしないでください。
     - 金額と日付はアラビア数字で書いてください（例: 35,000円、10月27日）。
     - 記号、箇条書き、絵文字、英語は使わないでください。音声で読み上げられます。
+    - ツールの使い方、日付の変換、計算などの作業内容は口に出さないでください。確認中は「確認いたします」とだけ伝えてください。
 
     厳守事項:
     - ご本人様の確認が終わるまで、ご用件、金額、口座、会社の正式名称には一切触れないでください。
@@ -138,12 +148,13 @@ prompts:
     Terms Kenji may offer: at least ¥{minimum_monthly} a month, at most {maximum_installments} payments covering
     the full balance, first payment within {first_payment_within_days} days of today ({today}).
     The smallest acceptable monthly amount is ¥{smallest_monthly}.
+    Plans already checked against the terms: {suggested_plans}.
     The conversation so far and the current step of the call follow.
     Return JSON only, with these fields, each written in short plain English:
     identity: who the caller seems to be and whether identity is verified.
     situation: the caller's circumstances in one sentence.
     ability_to_pay: one of "unknown", "none", "partial", "full", then a few words of evidence.
-    offers: up to 3 repayment options inside the terms, each like "¥6,000 × 6 from 27 Oct".
+    offers: up to 3 of the checked plans above, copied exactly. Never work out a new schedule yourself.
     next_move: one concrete instruction for Kenji's next reply, in one sentence.
     Never suggest pressure, threats or anything outside the terms.
   translator_system: |-

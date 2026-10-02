@@ -34,13 +34,33 @@ def agreement_fields(decision: TermsDecision) -> dict[str, str]:
         "first_due_en": format_date_en(first.due_on),
         "monthly_yen": format_yen(first.amount_yen),
         "installments": str(len(schedule)),
+        "regular_installments": str(len(schedule) - 1),
         "final_yen": format_yen(final.amount_yen),
         "total_yen": format_yen(sum(installment.amount_yen for installment in schedule)),
     }
 
 
+def describe_plan_en(decision: TermsDecision) -> str:
+    schedule = decision.schedule
+    first, final = schedule[0], schedule[-1]
+    start = format_date_en(first.due_on)
+    if len(schedule) == 1:
+        return f"¥{format_yen(final.amount_yen)} in one payment on {start}"
+    if final.amount_yen == first.amount_yen:
+        return f"¥{format_yen(first.amount_yen)} × {len(schedule)} from {start}"
+    regular = f"¥{format_yen(first.amount_yen)} × {len(schedule) - 1}"
+    last = f"¥{format_yen(final.amount_yen)}"
+    return f"{regular} then {last} from {start} ({len(schedule)} payments)"
+
+
 def describe_read_back(lines: Lines, decision: TermsDecision) -> Line:
-    template = lines.read_back_single if len(decision.schedule) == 1 else lines.read_back
+    schedule = decision.schedule
+    if len(schedule) == 1:
+        template = lines.read_back_single
+    elif schedule[-1].amount_yen == schedule[0].amount_yen:
+        template = lines.read_back_even
+    else:
+        template = lines.read_back
     return template.fill(agreement_fields(decision))
 
 

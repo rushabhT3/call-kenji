@@ -44,6 +44,7 @@ def test_every_template_fills(script: Script, account: Account) -> None:
     negotiation = Negotiation(balance_yen=account.balance_yen, today=date(2026, 10, 2))
     plan = check_terms(PaymentProposal(6_000, date(2026, 10, 27)), negotiation)
     lump_sum = check_terms(PaymentProposal(35_000, date(2026, 10, 27)), negotiation)
+    even = check_terms(PaymentProposal(7_000, date(2026, 10, 27)), negotiation)
     summary = AccountSummary(account.account_suffix, account.balance_yen, account.overdue_since)
 
     filled = [
@@ -53,10 +54,12 @@ def test_every_template_fills(script: Script, account: Account) -> None:
         describe_promise_sms(script.sms, plan, account.debtor),
         describe_promise_sms(script.sms, lump_sum, account.debtor),
         describe_handoff_sms(script.sms, account.debtor),
+        describe_read_back(script.lines, even),
     ]
 
     assert all("{" not in line.ja and "{" not in line.en for line in filled)
-    assert "毎月6,000円を6回" in filled[0].ja
+    assert "毎月6,000円を5回、そのあと最終回に5,000円で、全6回" in filled[0].ja
+    assert "毎月7,000円を5回で、合計35,000円" in filled[-1].ja
     assert "35,000円を一括" in filled[1].ja
     assert filled[3].ja.startswith("【みなと債権回収】佐藤様")
 

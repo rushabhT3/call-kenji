@@ -12,6 +12,7 @@ from kenji.domain.terms import (
     default_first_payment_date,
     latest_first_payment_date,
     smallest_acceptable_monthly,
+    suggested_plans,
 )
 
 TODAY = date(2026, 10, 2)
@@ -100,3 +101,20 @@ def test_default_first_payment_is_two_weeks_out_and_inside_terms() -> None:
 
     assert first_payment == date(2026, 10, 16)
     assert first_payment <= latest_first_payment_date(NEGOTIATION)
+
+
+def test_suggested_plans_start_at_the_smallest_acceptable_amount_and_all_pass() -> None:
+    negotiation = Negotiation(balance_yen=35_000, today=date(2026, 10, 2))
+
+    plans = suggested_plans(negotiation)
+
+    assert [plan.proposal.monthly_yen for plan in plans] == [6_000, 7_000, 8_000]
+    assert all(plan.is_accepted for plan in plans)
+    assert all(sum(i.amount_yen for i in plan.schedule) == 35_000 for plan in plans)
+    assert {plan.proposal.first_payment_on for plan in plans} == {date(2026, 10, 16)}
+
+
+def test_a_balance_at_the_minimum_suggests_one_full_payment() -> None:
+    plans = suggested_plans(Negotiation(balance_yen=5_000, today=date(2026, 10, 2)))
+
+    assert [len(plan.schedule) for plan in plans] == [1]

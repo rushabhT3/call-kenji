@@ -8,6 +8,7 @@ from enum import StrEnum
 
 COUNTER_OFFER_STEP_YEN = 1_000
 DEFAULT_FIRST_PAYMENT_AFTER_DAYS = 14
+SUGGESTED_PLAN_COUNT = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,6 +116,18 @@ def smallest_acceptable_monthly(negotiation: Negotiation) -> int:
     )
     rounded = math.ceil(floor / COUNTER_OFFER_STEP_YEN) * COUNTER_OFFER_STEP_YEN
     return min(rounded, negotiation.balance_yen)
+
+
+def suggested_plans(negotiation: Negotiation) -> tuple[TermsDecision, ...]:
+    """The smallest acceptable monthly amount and the next steps up, each one inside the terms."""
+    first_payment_on = default_first_payment_date(negotiation)
+    smallest = smallest_acceptable_monthly(negotiation)
+    steps = range(smallest, negotiation.balance_yen + 1, COUNTER_OFFER_STEP_YEN)
+    decisions = (
+        check_terms(PaymentProposal(monthly, first_payment_on), negotiation) for monthly in steps
+    )
+    accepted = [decision for decision in decisions if decision.is_accepted]
+    return tuple(accepted[:SUGGESTED_PLAN_COUNT])
 
 
 def default_first_payment_date(negotiation: Negotiation) -> date:
