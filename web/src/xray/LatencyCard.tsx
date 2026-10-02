@@ -1,4 +1,4 @@
-import type { LatencyMeasured } from "../contract/events.ts";
+import type { LatencyMeasured, Opening } from "../contract/events.ts";
 import { formatCount } from "../format.ts";
 import { BudgetBar } from "../ui/BudgetBar.tsx";
 import { Card } from "../ui/Card.tsx";
@@ -6,6 +6,11 @@ import { Pill } from "../ui/Pill.tsx";
 import { LatencyHistory } from "./LatencyHistory.tsx";
 
 const SCALE_MS = 2000;
+
+const OPENING_NOTES: Partial<Record<Opening, string>> = {
+  rules: "Answered from the rules, with no wait on the model.",
+  acknowledgement: "Kenji said はい at once; the model's answer followed.",
+};
 
 function Stages({ latest, scale }: { latest: LatencyMeasured; scale: number }) {
   const stages = [
@@ -83,6 +88,9 @@ export function LatencyCard({ turns }: { turns: readonly LatencyMeasured[] }) {
   return (
     <Card id="latency" title="Latency" titleJa="応答時間" summary={summary(latest)}>
       <Headline latest={latest} />
+      {latest.opened_with && OPENING_NOTES[latest.opened_with] ? (
+        <p className="caption latency__opening">{OPENING_NOTES[latest.opened_with]}</p>
+      ) : null}
       <Stages latest={latest} scale={Math.max(SCALE_MS, latest.total_ms)} />
       <p className="metric-sm latency__percentiles">
         P50 {formatCount(latest.p50_ms)} ms · P95 {formatCount(latest.p95_ms)} ms · {latest.turn}{" "}

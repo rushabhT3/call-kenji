@@ -75,6 +75,9 @@ export interface ComplianceUpdated {
   recording_notice: CheckStatus;
 }
 
+/** How Kenji opened a reply: rules alone, an instant 「はい、」 while the model worked, or the model. */
+export type Opening = "rules" | "acknowledgement" | "model";
+
 export interface LatencyMeasured {
   type: "latency";
   turn: number;
@@ -85,6 +88,7 @@ export interface LatencyMeasured {
   p50_ms: number;
   p95_ms: number;
   budget_ms: number;
+  opened_with?: Opening;
 }
 
 export interface HandoffRecorded {

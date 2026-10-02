@@ -50,23 +50,35 @@ const HANDOFF_EVENT = {
   requested_at: "2026-10-03T15:02:10+09:00",
 };
 
-function withHandoff(recording: Recording): Recording {
+const TURN_EVENT = {
+  type: "turn",
+  node: "read_back",
+  utterance: "はい",
+  overlap_ms: 420,
+  characters: 2,
+  score: 0,
+  threshold: 0.85,
+  verdict: "backchannel",
+};
+
+function withEveryCard(recording: Recording): Recording {
   const endIndex = recording.events.findIndex(({ event }) => event.type === "call_ended");
   const offsetMs = recording.events[endIndex - 1]?.offset_ms ?? 0;
   const events = [...recording.events];
-  events.splice(endIndex, 0, { offset_ms: offsetMs, event: HANDOFF_EVENT });
+  const added = [HANDOFF_EVENT, TURN_EVENT].map((event) => ({ offset_ms: offsetMs, event }));
+  events.splice(endIndex, 0, ...added);
   return { ...recording, events };
 }
 
 /**
- * The demo replays a real call that ended in a promise, so it has no handoff. Serve it with one
- * added so the handoff card's time can be checked too.
+ * The demo replays a real call that ended in a promise with nobody talking over Kenji, so it has
+ * no handoff and no turn decision. Serve it with one of each so every card's numbers can be checked.
  */
-export async function serveRecordingWithHandoff(page: Page): Promise<void> {
+export async function serveRecordingWithEveryCard(page: Page): Promise<void> {
   await page.route("**/demo/call.json", async (route) => {
     const response = await route.fetch();
     const recording = (await response.json()) as Recording;
-    await route.fulfill({ response, json: withHandoff(recording) });
+    await route.fulfill({ response, json: withEveryCard(recording) });
   });
 }
 

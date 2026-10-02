@@ -7,7 +7,7 @@ import {
   openMidCall,
   routeViewerFeed,
   sendViewerReady,
-  serveRecordingWithHandoff,
+  serveRecordingWithEveryCard,
 } from "./support.ts";
 
 const WCAG_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
@@ -111,7 +111,7 @@ test.describe("accessibility rules", () => {
 
   test("numbers during and after a call use tabular figures", async ({ page }) => {
     await blockBackend(page);
-    await serveRecordingWithHandoff(page);
+    await serveRecordingWithEveryCard(page);
     await openAfterCall(page);
     await expect(page.locator("#latency .metric__value")).toBeVisible();
 
