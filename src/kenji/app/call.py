@@ -167,6 +167,7 @@ class Call:
                 overlap_ms=overlap_ms,
                 characters=decision.characters,
                 score=decision.score,
+                threshold=self._parts.flow.turn_policy().min_interruption_score,
                 verdict=decision.verdict,
             )
         )

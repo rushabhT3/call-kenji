@@ -1,0 +1,586 @@
+{
+  "source": "scripted text-mode run (development only)",
+  "recorded_on": "2026-10-02",
+  "events": [
+    {
+      "offset_ms": 0,
+      "event": {
+        "type": "call_started",
+        "call_id": "text-call",
+        "transport": "browser",
+        "started_at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 0,
+      "event": {
+        "type": "compliance",
+        "calling_hours": "pass",
+        "identity_gate": "pending",
+        "offer_within_terms": "pending",
+        "ai_disclosure": "pending",
+        "recording_notice": "pending"
+      }
+    },
+    {
+      "offset_ms": 16,
+      "event": {
+        "type": "flow_node",
+        "node": "greeting"
+      }
+    },
+    {
+      "offset_ms": 31,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-1",
+        "speaker": "kenji",
+        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。実在する方の個人情報は、おっしゃらないでください。ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 31,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-1",
+        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. Please don't share any real person's personal information. To confirm who I'm speaking with, may I have your full name and date of birth?"
+      }
+    },
+    {
+      "offset_ms": 31,
+      "event": {
+        "type": "compliance",
+        "calling_hours": "pass",
+        "identity_gate": "pending",
+        "offer_within_terms": "pending",
+        "ai_disclosure": "pass",
+        "recording_notice": "pass"
+      }
+    },
+    {
+      "offset_ms": 109,
+      "event": {
+        "type": "flow_node",
+        "node": "verify_identity"
+      }
+    },
+    {
+      "offset_ms": 375,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-2",
+        "speaker": "caller",
+        "ja": "佐藤ゆうきです。平成2年7月14日生まれです。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 375,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Yuki Sato.",
+        "situation": "Short of money this month.",
+        "ability_to_pay": "partial: can pay a little each month",
+        "offers": ["¥6,000 × 6 from 16 Oct"],
+        "next_move": "Offer ¥6,000 × 6 from 16 Oct."
+      }
+    },
+    {
+      "offset_ms": 375,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-2",
+        "en": "[en] 佐藤ゆうきです。平成2年7月14日生まれです。"
+      }
+    },
+    {
+      "offset_ms": 391,
+      "event": {
+        "type": "compliance",
+        "calling_hours": "pass",
+        "identity_gate": "pass",
+        "offer_within_terms": "pending",
+        "ai_disclosure": "pass",
+        "recording_notice": "pass"
+      }
+    },
+    {
+      "offset_ms": 391,
+      "event": {
+        "type": "flow_node",
+        "node": "state_balance"
+      }
+    },
+    {
+      "offset_ms": 469,
+      "event": {
+        "type": "flow_node",
+        "node": "listen"
+      }
+    },
+    {
+      "offset_ms": 703,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-3",
+        "speaker": "kenji",
+        "ja": "ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。口座番号の末尾7731のご契約について、9月30日が期日のお支払い、35,000円が、まだ確認できておりません。本日は、お支払いについてご相談させていただけますでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 703,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-3",
+        "en": "Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer. On the account ending 7731, the payment of ¥35,000 due on 30 Sep hasn't reached us yet. Could we talk about how to settle it today?"
+      }
+    },
+    {
+      "offset_ms": 750,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-4",
+        "speaker": "caller",
+        "ja": "今月は仕事が減ってしまって、少し厳しいです。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 750,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Yuki Sato.",
+        "situation": "Short of money this month.",
+        "ability_to_pay": "partial: can pay a little each month",
+        "offers": ["¥6,000 × 6 from 16 Oct"],
+        "next_move": "Offer ¥6,000 × 6 from 16 Oct."
+      }
+    },
+    {
+      "offset_ms": 750,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-4",
+        "en": "[en] 今月は仕事が減ってしまって、少し厳しいです。"
+      }
+    },
+    {
+      "offset_ms": 813,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-5",
+        "speaker": "kenji",
+        "ja": "それはご心配ですね。 毎月どのくらいでしたらお支払いいただけそうでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 828,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-5",
+        "en": "[en] それはご心配ですね。 毎月どのくらいでしたらお支払いいただけそうでしょうか。"
+      }
+    },
+    {
+      "offset_ms": 969,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-6",
+        "speaker": "caller",
+        "ja": "3,000円なら払えると思います。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 969,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Yuki Sato.",
+        "situation": "Short of money this month.",
+        "ability_to_pay": "partial: can pay a little each month",
+        "offers": ["¥6,000 × 6 from 16 Oct"],
+        "next_move": "Offer ¥6,000 × 6 from 16 Oct."
+      }
+    },
+    {
+      "offset_ms": 969,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-6",
+        "en": "[en] 3,000円なら払えると思います。"
+      }
+    },
+    {
+      "offset_ms": 969,
+      "event": {
+        "type": "compliance",
+        "calling_hours": "pass",
+        "identity_gate": "pass",
+        "offer_within_terms": "blocked",
+        "ai_disclosure": "pass",
+        "recording_notice": "pass"
+      }
+    },
+    {
+      "offset_ms": 969,
+      "event": {
+        "type": "flow_node",
+        "node": "negotiate"
+      }
+    },
+    {
+      "offset_ms": 984,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-7",
+        "speaker": "kenji",
+        "ja": "3,000円ですと、6回では完済に届きません。 毎月6,000円ではいかがでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 984,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-7",
+        "en": "[en] 3,000円ですと、6回では完済に届きません。 毎月6,000円ではいかがでしょうか。"
+      }
+    },
+    {
+      "offset_ms": 1250,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-8",
+        "speaker": "caller",
+        "ja": "わかりました。6,000円でお願いします。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 1250,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Yuki Sato.",
+        "situation": "Short of money this month.",
+        "ability_to_pay": "partial: can pay a little each month",
+        "offers": ["¥6,000 × 6 from 16 Oct"],
+        "next_move": "Offer ¥6,000 × 6 from 16 Oct."
+      }
+    },
+    {
+      "offset_ms": 1250,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-8",
+        "en": "[en] わかりました。6,000円でお願いします。"
+      }
+    },
+    {
+      "offset_ms": 1250,
+      "event": {
+        "type": "compliance",
+        "calling_hours": "pass",
+        "identity_gate": "pass",
+        "offer_within_terms": "pass",
+        "ai_disclosure": "pass",
+        "recording_notice": "pass"
+      }
+    },
+    {
+      "offset_ms": 1250,
+      "event": {
+        "type": "flow_node",
+        "node": "read_back"
+      }
+    },
+    {
+      "offset_ms": 1469,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-9",
+        "speaker": "kenji",
+        "ja": "それでは、お約束の内容を確認させていただきます。初回のお支払いは10月16日、毎月6,000円を6回、最終回は5,000円で、合計35,000円です。この内容でよろしいでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 1469,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-9",
+        "en": "Let me read back what we've agreed. The first payment is on 16 Oct, then ¥6,000 a month for 6 payments, with a final payment of ¥5,000, ¥35,000 in total. Is that correct?"
+      }
+    },
+    {
+      "offset_ms": 1531,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-10",
+        "speaker": "caller",
+        "ja": "はい、大丈夫です。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 1531,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Yuki Sato.",
+        "situation": "Short of money this month.",
+        "ability_to_pay": "partial: can pay a little each month",
+        "offers": ["¥6,000 × 6 from 16 Oct"],
+        "next_move": "Offer ¥6,000 × 6 from 16 Oct."
+      }
+    },
+    {
+      "offset_ms": 1531,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-10",
+        "en": "[en] はい、大丈夫です。"
+      }
+    },
+    {
+      "offset_ms": 1531,
+      "event": {
+        "type": "flow_node",
+        "node": "close"
+      }
+    },
+    {
+      "offset_ms": 1547,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-11",
+        "speaker": "kenji",
+        "ja": "ありがとうございます。お約束を承りました。確認のメッセージの内容は、画面でご覧いただけます。本日はお時間をいただき、ありがとうございました。失礼いたします。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 1547,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-11",
+        "en": "Thank you, your promise is recorded. You can see the confirmation message on the screen. Thank you for your time today. Goodbye."
+      }
+    },
+    {
+      "offset_ms": 1563,
+      "event": {
+        "type": "call_ended",
+        "outcome": "promise_to_pay",
+        "ended_at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 1563,
+      "event": {
+        "type": "sms_preview",
+        "ja": "【みなと債権回収】佐藤様　お支払いのお約束を承りました。初回10月16日　6,000円、全6回（最終回5,000円、合計35,000円）。ご不明な点は本メッセージにご返信ください。",
+        "en": "[Minato Servicer] Dear Sato-sama, we've recorded your payment promise: first payment 16 Oct, ¥6,000 × 6 (final ¥5,000, ¥35,000 in total). Reply to this message with any questions.",
+        "is_sent": false
+      }
+    },
+    {
+      "offset_ms": 1578,
+      "event": {
+        "type": "audit",
+        "is_chain_valid": true,
+        "head_hash": "8f91c7215c3024efe4ffd4c43fd4806195eedc098685421e46b6c74288165516",
+        "records": [
+          {
+            "sequence": 0,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "greeting"
+            },
+            "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+            "hash": "e46ede53c99d844688622f866db52563e047ee8dc2ae3e83ec585b8887b56aa8"
+          },
+          {
+            "sequence": 1,
+            "kind": "disclosure_given",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "ai": true,
+              "demo": true,
+              "transcript_notice": true
+            },
+            "previous_hash": "e46ede53c99d844688622f866db52563e047ee8dc2ae3e83ec585b8887b56aa8",
+            "hash": "cfd6086d92e22b55584d76bbd00698d2bfdcb20a46c3fbf5a84643a1eef0d532"
+          },
+          {
+            "sequence": 2,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "verify_identity"
+            },
+            "previous_hash": "cfd6086d92e22b55584d76bbd00698d2bfdcb20a46c3fbf5a84643a1eef0d532",
+            "hash": "b42d113183699b15977bf12315ef53385b72dc87a728f75d901e4fd28e03453a"
+          },
+          {
+            "sequence": 3,
+            "kind": "identity_checked",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "status": "verified",
+              "failed_attempts": 0
+            },
+            "previous_hash": "b42d113183699b15977bf12315ef53385b72dc87a728f75d901e4fd28e03453a",
+            "hash": "829ef6f8cb847b2fd7f82c6682656db95f382eb9a101efed990982fa0108e6fa"
+          },
+          {
+            "sequence": 4,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "state_balance"
+            },
+            "previous_hash": "829ef6f8cb847b2fd7f82c6682656db95f382eb9a101efed990982fa0108e6fa",
+            "hash": "5777065d0cf7e25da99b4b7bbb951fec740814ff033ff70056e1c11f76d2afc6"
+          },
+          {
+            "sequence": 5,
+            "kind": "account_summary_requested",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "locked": false
+            },
+            "previous_hash": "5777065d0cf7e25da99b4b7bbb951fec740814ff033ff70056e1c11f76d2afc6",
+            "hash": "5c8250992c3f5014861300b6c7996a424b7fe220487dc562931d72f5d175916b"
+          },
+          {
+            "sequence": 6,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "listen"
+            },
+            "previous_hash": "5c8250992c3f5014861300b6c7996a424b7fe220487dc562931d72f5d175916b",
+            "hash": "f41967dce9d34398434e835b6a139076c4944f84061964fcfddd05a37f6e0201"
+          },
+          {
+            "sequence": 7,
+            "kind": "terms_checked",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "monthly_yen": 3000,
+              "first_payment_on": "2026-10-16",
+              "installments": 12,
+              "accepted": false,
+              "violations": ["below_minimum_monthly", "too_many_installments"]
+            },
+            "previous_hash": "f41967dce9d34398434e835b6a139076c4944f84061964fcfddd05a37f6e0201",
+            "hash": "c0054637df17f3d46c397ecc6a2feae14f2df488ee8cfa61fba7e90e3c27739d"
+          },
+          {
+            "sequence": 8,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "negotiate"
+            },
+            "previous_hash": "c0054637df17f3d46c397ecc6a2feae14f2df488ee8cfa61fba7e90e3c27739d",
+            "hash": "4f53bc877d583d1fade1479c81c23758ec6390e5a89b8b2a5a5ffbaef09c5cce"
+          },
+          {
+            "sequence": 9,
+            "kind": "terms_checked",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "monthly_yen": 6000,
+              "first_payment_on": "2026-10-16",
+              "installments": 6,
+              "accepted": true,
+              "violations": []
+            },
+            "previous_hash": "4f53bc877d583d1fade1479c81c23758ec6390e5a89b8b2a5a5ffbaef09c5cce",
+            "hash": "32b3529715458530189e9128ad05b3fe00db95d6dd2013a376e0dd7893180bc8"
+          },
+          {
+            "sequence": 10,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "read_back"
+            },
+            "previous_hash": "32b3529715458530189e9128ad05b3fe00db95d6dd2013a376e0dd7893180bc8",
+            "hash": "fb8003316e97ec001e443f9bc5c75e3366d24579d31e84de03ac994adc20c927"
+          },
+          {
+            "sequence": 11,
+            "kind": "promise_recorded",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "monthly_yen": 6000,
+              "first_payment_on": "2026-10-16",
+              "installments": 6,
+              "accepted": true,
+              "violations": []
+            },
+            "previous_hash": "fb8003316e97ec001e443f9bc5c75e3366d24579d31e84de03ac994adc20c927",
+            "hash": "f5c09da767c8ad3b32664e14be868378e079eea41dfe11d6c0b00ffa4b480669"
+          },
+          {
+            "sequence": 12,
+            "kind": "outcome_decided",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "outcome": "promise_to_pay"
+            },
+            "previous_hash": "f5c09da767c8ad3b32664e14be868378e079eea41dfe11d6c0b00ffa4b480669",
+            "hash": "23918d6382cc935b55f825fdf0924149f9306f034ac10552f5a5cabb1ea06f8c"
+          },
+          {
+            "sequence": 13,
+            "kind": "node_entered",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "node": "close"
+            },
+            "previous_hash": "23918d6382cc935b55f825fdf0924149f9306f034ac10552f5a5cabb1ea06f8c",
+            "hash": "583bbd37d44b52b4813d2c2420de45bb326d360f44317fc5872ff6301a451511"
+          },
+          {
+            "sequence": 14,
+            "kind": "call_ended",
+            "recorded_at": "2026-10-02T15:00:00+09:00",
+            "payload": {
+              "outcome": "promise_to_pay"
+            },
+            "previous_hash": "583bbd37d44b52b4813d2c2420de45bb326d360f44317fc5872ff6301a451511",
+            "hash": "8f91c7215c3024efe4ffd4c43fd4806195eedc098685421e46b6c74288165516"
+          }
+        ]
+      }
+    }
+  ]
+}

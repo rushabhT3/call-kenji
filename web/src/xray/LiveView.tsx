@@ -1,0 +1,87 @@
+import { PostCall } from "../aftercall/PostCall.tsx";
+import type { CallView } from "../call/callView.ts";
+import type { BrowserCall } from "../call/useBrowserCall.ts";
+import { Button } from "../ui/Button.tsx";
+import { ComplianceCard } from "./ComplianceCard.tsx";
+import { LatencyCard } from "./LatencyCard.tsx";
+import { LiveHeader } from "./LiveHeader.tsx";
+import { NowStrip } from "./NowStrip.tsx";
+import { StrategistCard } from "./StrategistCard.tsx";
+import { SummaryChips } from "./SummaryChips.tsx";
+import { Transcript } from "./Transcript.tsx";
+import { TurnCard } from "./TurnCard.tsx";
+import { useCallTimer } from "./useCallTimer.ts";
+
+interface LiveViewProps {
+  view: CallView;
+  isDemo: boolean;
+  call: BrowserCall | null;
+  isFeedLost: boolean;
+  startedAtMs: number | null;
+  endedAtMs: number | null;
+}
+
+function liveClasses(status: CallView["status"], hasCallBar: boolean): string {
+  const classes = [
+    "container",
+    "live",
+    hasCallBar ? "live--with-bar" : "",
+    status === "ended" ? "live--ended" : "",
+  ];
+  return classes.filter(Boolean).join(" ");
+}
+
+function Rail({ view }: { view: CallView }) {
+  return (
+    <div className="rail">
+      <TurnCard turn={view.turn} />
+      <StrategistCard
+        advice={view.strategist}
+        identityGate={view.compliance?.identity_gate ?? null}
+      />
+      <ComplianceCard compliance={view.compliance} />
+      <LatencyCard turns={view.latency} />
+    </div>
+  );
+}
+
+function MobileCallBar({ call }: { call: BrowserCall }) {
+  return (
+    <div className="call-bar">
+      <Button icon="mic" aria-pressed={call.isMuted} onClick={call.toggleMute}>
+        {call.isMuted ? "Unmute" : "Mute"}
+      </Button>
+      <Button variant="danger" icon="end" onClick={() => void call.end()}>
+        End call
+      </Button>
+    </div>
+  );
+}
+
+export function LiveView(props: LiveViewProps) {
+  const { view, isDemo, call, isFeedLost } = props;
+  const elapsedMs = useCallTimer(props.startedAtMs, props.endedAtMs);
+  const hasCallBar = call?.state === "connected" && view.status === "live";
+  return (
+    <>
+      <LiveHeader view={view} elapsedMs={elapsedMs} isDemo={isDemo} call={call} />
+      <main className={liveClasses(view.status, hasCallBar)}>
+        {isFeedLost ? (
+          <p className="banner" role="alert">
+            Connection lost. The call may still be running. Reload to reconnect.
+          </p>
+        ) : null}
+        <div className="live__grid">
+          <div className="live__main">
+            <NowStrip view={view} />
+            <SummaryChips view={view} />
+            <Transcript view={view} />
+          </div>
+          <Rail view={view} />
+        </div>
+        {view.status === "ended" ? <PostCall view={view} /> : null}
+      </main>
+      {hasCallBar ? <MobileCallBar call={call} /> : null}
+    </>
+  );
+}

@@ -36,6 +36,8 @@ def services() -> Services:
 @pytest.fixture
 def client(services: Services, tmp_path: Path) -> TestClient:
     settings = Settings(
+        _env_file=None,
+        enable_dev_client=False,
         llm_api_key=SecretStr("test"),
         soniox_api_key=SecretStr("test"),
         cartesia_api_key=SecretStr("test"),

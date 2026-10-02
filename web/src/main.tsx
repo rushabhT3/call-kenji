@@ -1,3 +1,8 @@
+import "./styles/base.css";
+import "./ui/ui.css";
+import "./landing/landing.css";
+import "./xray/xray.css";
+import "./aftercall/aftercall.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";

@@ -1,0 +1,206 @@
+/* Design tokens. Source of truth: docs/DESIGN.md section 8. */
+:root {
+  color-scheme: light;
+
+  /* Colour: base (microsoft.ai palette) */
+  --color-bg: #fef9ed;
+  --color-surface: #f7f1e3;
+  --color-surface-sunken: #fbf0dc;
+  --color-surface-action: #f7ecd9;
+  --color-surface-action-hover: #f1e3cb;
+  --color-surface-code: #f3ead8;
+  --color-tint-peach: #fbd3be;
+
+  --color-ink: #5d524b;
+  --color-text: #574c45;
+  --color-text-strong: #3b322c;
+  --color-text-muted: #6f6259;
+  --color-text-on-ink: #fef9ed;
+
+  --color-border-subtle: #e9e0ce;
+  --color-border-strong: #958779;
+
+  --color-accent: #a8461f;
+  --color-focus: #a8461f;
+
+  /* Colour: states */
+  --color-success-text: #2e5a34;
+  --color-success-bg: #e3efdd;
+  --color-success-fill: #46704a;
+  --color-warning-text: #6e4d0c;
+  --color-warning-bg: #f6ebc6;
+  --color-warning-fill: #94650c;
+  --color-danger-text: #922f1e;
+  --color-danger-bg: #fbe1d3;
+  --color-danger-fill: #b3432c;
+  --color-info-text: #2f5558;
+  --color-info-bg: #e6efee;
+  --color-track: #ede3d0;
+  --color-selection: #fbd3be;
+
+  /* Typography: faces */
+  --font-serif:
+    "Newsreader Variable", "Newsreader", "Noto Serif JP Variable", "Noto Serif JP",
+    "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-mono:
+    "Red Hat Mono Variable", "Red Hat Mono", "Noto Sans JP Variable", "Noto Sans JP", ui-monospace,
+    "SF Mono", Menlo, Consolas, monospace;
+
+  /* Typography: weights */
+  --weight-regular: 400;
+  --weight-book: 450;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Typography: sizes, fluid from 390px to 1440px */
+  --text-display: clamp(2.75rem, 1.6357rem + 4.5714vw, 5.75rem); /* 44 -> 92 */
+  --text-h1: clamp(2.125rem, 1.6607rem + 1.9048vw, 3.375rem); /* 34 -> 54 */
+  --text-h2: clamp(1.75rem, 1.5411rem + 0.8571vw, 2.3125rem); /* 28 -> 37 */
+  --text-h3: clamp(1.375rem, 1.2821rem + 0.381vw, 1.625rem); /* 22 -> 26 */
+  --text-lead: clamp(1.1875rem, 1.1179rem + 0.2857vw, 1.375rem); /* 19 -> 22 */
+  --text-body: clamp(1.0625rem, 1.0393rem + 0.0952vw, 1.125rem); /* 17 -> 18 */
+  --text-small: 0.9375rem; /* 15 */
+  --text-caption: clamp(0.75rem, 0.7268rem + 0.0952vw, 0.8125rem); /* 12 -> 13 */
+  --text-line-current: clamp(1.375rem, 1.2821rem + 0.381vw, 1.625rem); /* 22 -> 26 */
+  --text-line: clamp(1.0625rem, 1.0161rem + 0.1905vw, 1.1875rem); /* 17 -> 19 */
+  --text-subtitle: clamp(0.9375rem, 0.9143rem + 0.0952vw, 1rem); /* 15 -> 16 */
+  --text-metric: clamp(2rem, 1.8143rem + 0.7619vw, 2.5rem); /* 32 -> 40 */
+  --text-metric-sm: clamp(0.9375rem, 0.9143rem + 0.0952vw, 1rem); /* 15 -> 16 */
+  --text-code: 0.8125rem; /* 13 */
+  --text-digit: 2.5rem; /* 40 */
+
+  /* Typography: line height */
+  --leading-display: 1;
+  --leading-heading: 1.15;
+  --leading-snug: 1.3;
+  --leading-subtitle: 1.5;
+  --leading-body: 1.6;
+  --leading-label: 1.4;
+  --leading-ja: 1.8;
+  --leading-ja-large: 1.7;
+
+  /* Typography: tracking */
+  --tracking-display: -0.04em;
+  --tracking-heading: -0.02em;
+  --tracking-tight: -0.01em;
+  --tracking-label: 0.06em;
+  --tracking-button: 0.02em;
+  --tracking-ja: 0.02em;
+
+  /* Spacing: 4px base */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.25rem; /* 20 */
+  --space-6: 1.5rem; /* 24 */
+  --space-7: 2rem; /* 32 */
+  --space-8: 2.5rem; /* 40 */
+  --space-9: 3rem; /* 48 */
+  --space-10: 4rem; /* 64 */
+  --space-11: 5rem; /* 80 */
+  --space-12: 6rem; /* 96 */
+  --space-13: 7.5rem; /* 120 */
+  --space-14: 10rem; /* 160 */
+
+  /* Layout */
+  --container-max: 85rem; /* 1360 */
+  --gutter: var(--space-4); /* 16 at 390 */
+  --column-gap: var(--space-4);
+  --section-gap: var(--space-10); /* 64 at 390 */
+  --header-height: 3.5rem; /* 56 */
+  --rail-width: clamp(21.25rem, 33vw, 30rem); /* 340 -> 480 */
+  --measure-ja: 36em;
+  --measure-en: 34em;
+  --tap-target: 2.75rem; /* 44 */
+  --button-height-lg: 3.5rem; /* 56 */
+  --button-height-md: 2.75rem; /* 44 */
+  --button-height-sm: 2rem; /* 32 */
+  --pill-height: 1.5rem; /* 24 */
+  --bar-height: 0.375rem; /* 6 */
+  --marker-size: 0.375rem; /* 6, card-header square */
+  --code-cell-width: 3.5rem; /* 56 */
+  --code-cell-height: 4.5rem; /* 72 */
+  --cursor-width: 0.5em;
+  --rule-width: 2px;
+
+  /* Radius */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 10px;
+  --radius-lg: 15px;
+  --radius-pill: 999px;
+
+  /* Borders and focus */
+  --border-hairline: 1px solid var(--color-border-subtle);
+  --border-control: 1px solid var(--color-border-strong);
+  --focus-ring: 2px solid var(--color-focus);
+  --focus-offset: 3px;
+
+  /* Elevation */
+  --shadow-float: 0 4px 40px rgba(93, 82, 75, 0.3);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-editorial: cubic-bezier(0.43, 0.195, 0.02, 1);
+  --duration-fast: 200ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+  --duration-reveal: 1300ms;
+  --duration-pulse: 2000ms;
+  --duration-blink: 1000ms;
+  --distance-enter: 8px;
+  --distance-reveal: 16px;
+  --stagger-reveal: 120ms;
+
+  /* Budgets shown in the UI */
+  --latency-budget-ms: 1500;
+  --latency-scale-ms: 2000;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--space-6); /* 24 */
+    --section-gap: var(--space-11); /* 80 */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: var(--space-7); /* 32 */
+    --column-gap: var(--space-7);
+    --section-gap: var(--space-13); /* 120 */
+    --header-height: 4rem; /* 64 */
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --gutter: var(--space-8); /* 40 */
+    --column-gap: var(--space-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-reveal: 0ms;
+    --duration-pulse: 0ms;
+    --duration-blink: 0ms;
+    --distance-enter: 0px;
+    --distance-reveal: 0px;
+    --stagger-reveal: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

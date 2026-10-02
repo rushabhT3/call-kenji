@@ -51,6 +51,7 @@ class TurnAssessed(_Event):
     overlap_ms: float
     characters: int
     score: float
+    threshold: float
     verdict: TurnVerdict
 
 

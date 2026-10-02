@@ -25,8 +25,9 @@ def test_call_record_writes_text_only_and_a_verifiable_chain(tmp_path: Path) -> 
 
     call_dir = tmp_path / "calls" / "2026-10-02" / "call-1"
     assert sorted(path.name for path in call_dir.iterdir()) == ["audit.jsonl", "events.jsonl"]
-    event = json.loads((call_dir / "events.jsonl").read_text(encoding="utf-8"))
-    assert event == {"type": "flow_node", "node": "greeting"}
+    line = json.loads((call_dir / "events.jsonl").read_text(encoding="utf-8"))
+    assert line["event"] == {"type": "flow_node", "node": "greeting"}
+    assert line["offset_ms"] >= 0
     assert verify_chain(read_audit(call_dir / "audit.jsonl")).is_valid
 
 

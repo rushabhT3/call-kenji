@@ -19,7 +19,9 @@ class Line(_Content):
     @field_validator("ja")
     @classmethod
     def _join_japanese_lines(cls, value: str) -> str:
-        return re.sub(r"\s+", "", value)
+        # Folded YAML joins lines with ASCII spaces; Japanese needs none. A full-width
+        # space (U+3000) written in the script is intentional and kept.
+        return re.sub(r"[ \t\n]+", "", value)
 
     def fill(self, fields: Mapping[str, str]) -> "Line":
         return Line(ja=self.ja.format_map(fields), en=self.en.format_map(fields))

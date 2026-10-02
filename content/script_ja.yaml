@@ -95,13 +95,13 @@ lines:
 
 sms:
   promise:
-    ja: 【みなと債権回収】{honorific_ja} お支払いのお約束を承りました。初回{first_due} {monthly_yen}円、全{installments}回（最終回{final_yen}円、合計{total_yen}円）。ご不明な点は本メッセージにご返信ください。
+    ja: 【みなと債権回収】{honorific_ja}　お支払いのお約束を承りました。初回{first_due}　{monthly_yen}円、全{installments}回（最終回{final_yen}円、合計{total_yen}円）。ご不明な点は本メッセージにご返信ください。
     en: "[Minato Servicer] Dear {honorific_en}, we've recorded your payment promise: first payment {first_due_en}, ¥{monthly_yen} × {installments} (final ¥{final_yen}, ¥{total_yen} in total). Reply to this message with any questions."
   promise_single:
-    ja: 【みなと債権回収】{honorific_ja} お支払いのお約束を承りました。{first_due}に{total_yen}円を一括でお支払いください。ご不明な点は本メッセージにご返信ください。
+    ja: 【みなと債権回収】{honorific_ja}　お支払いのお約束を承りました。{first_due}に{total_yen}円を一括でお支払いください。ご不明な点は本メッセージにご返信ください。
     en: "[Minato Servicer] Dear {honorific_en}, we've recorded your payment promise: ¥{total_yen} in full on {first_due_en}. Reply to this message with any questions."
   handoff:
-    ja: 【みなと債権回収】{honorific_ja} 担当者への引き継ぎを承りました。担当者より改めてご連絡いたします。
+    ja: 【みなと債権回収】{honorific_ja}　担当者への引き継ぎを承りました。担当者より改めてご連絡いたします。
     en: "[Minato Servicer] Dear {honorific_en}, your request to speak with a staff member is noted. A staff member will contact you."
 
 prompts:

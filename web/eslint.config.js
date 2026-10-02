@@ -29,4 +29,8 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ["**/*.test.ts", "e2e/**/*.ts"],
+    rules: { "max-lines-per-function": "off" },
+  },
 );

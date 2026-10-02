@@ -1,7 +1,7 @@
 """Files on disk: per-call events and audit chain (text only, never audio), contacts, usage.
 
 Layout under DATA_DIR:
-    calls/<date>/<call_id>/events.jsonl   live-page events
+    calls/<date>/<call_id>/events.jsonl   live-page events with their offset into the call
     calls/<date>/<call_id>/audit.jsonl    hash-chained audit records
     contacts.json                         stop-contact requests
     usage/<date>-<pool>.json              daily guardrail counters per transport
@@ -9,6 +9,7 @@ Layout under DATA_DIR:
 
 import json
 import shutil
+import time
 from datetime import date
 from pathlib import Path
 
@@ -36,9 +37,15 @@ class CallRecord:
         self._directory = data_dir / "calls" / call_date.isoformat() / call_id
         self._last: AuditRecord | None = None
         self._records: list[AuditRecord] = []
+        self._opened_at = time.monotonic()
 
     def publish(self, event: CallEvent) -> None:
-        _append_line(self._directory / "events.jsonl", _EVENT.dump_json(event).decode("utf-8"))
+        offset_ms = round((time.monotonic() - self._opened_at) * 1000)
+        line = json.dumps(
+            {"offset_ms": offset_ms, "event": _EVENT.dump_python(event, mode="json")},
+            ensure_ascii=False,
+        )
+        _append_line(self._directory / "events.jsonl", line)
 
     def append(self, entry: AuditEntry) -> AuditRecord:
         record = append_entry(self._last, entry)
