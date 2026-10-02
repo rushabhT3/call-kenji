@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CallView } from "../call/callView.ts";
 import { nowSentence } from "../call/copy.ts";
+import { useStickyClearance } from "./useStickyClearance.ts";
 
 export function NowStrip({ view }: { view: CallView }) {
   const [isJapaneseShown, setIsJapaneseShown] = useState(false);
   const sentence = nowSentence(view.status, view.node);
+  const strip = useRef<HTMLElement>(null);
+  useStickyClearance(strip);
   return (
-    <section className="now" aria-labelledby="now-title" aria-live="polite">
+    <section ref={strip} className="now" aria-labelledby="now-title" aria-live="polite">
       <div className="now__head">
         <h2 id="now-title" className="caption">
           Now · <span lang="ja">いま</span>

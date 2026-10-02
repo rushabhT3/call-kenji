@@ -1,3 +1,4 @@
+import type { DeviceErrorReason } from "@pipecat-ai/client-js";
 import type { CallOutcome, CheckStatus, ComplianceUpdated } from "../contract/events.ts";
 import type { CallStatus } from "./callView.ts";
 
@@ -60,6 +61,24 @@ const ENDINGS: Readonly<Record<CallOutcome, Bilingual>> = {
 
 export function outcomeLabel(outcome: CallOutcome): Bilingual {
   return ENDINGS[outcome];
+}
+
+export const LINE_UNREACHABLE =
+  "Kenji's line can't be reached right now. Please try again in a minute.";
+
+const MICROPHONE_PROBLEMS: Readonly<Record<DeviceErrorReason, string>> = {
+  blocked:
+    "Your browser blocked the microphone, so Kenji couldn't hear you. Allow the microphone for this page, then call again.",
+  "already-in-use": "Another app is using your microphone. Close it, then call again.",
+  "not-found": "No microphone was found. Connect one, then call again.",
+  "invalid-constraints": "Your microphone couldn't be started. Try another one, then call again.",
+  "not-supported":
+    "This browser can't use a microphone on this page. Try a current Chrome, Edge, Firefox or Safari.",
+  unknown: "Your microphone couldn't be started. Check that this page may use it, then call again.",
+};
+
+export function microphoneProblem(reason: DeviceErrorReason): string {
+  return MICROPHONE_PROBLEMS[reason];
 }
 
 export function nodeLabel(node: string): Bilingual {

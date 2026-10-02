@@ -40,3 +40,36 @@ test("a refreshed link code replaces the old one and keeps the call button ready
     "false",
   );
 });
+
+test("a call Kenji could not hear is never placed", async ({ page }) => {
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = () =>
+      Promise.reject(new DOMException("Permission denied", "NotAllowedError"));
+  });
+  const feed = await routeViewerFeed(page);
+  const offers: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/offer")) {
+      offers.push(request.url());
+    }
+  });
+  await page.goto("/");
+  sendViewerReady(await feed.connected, "4821");
+
+  await page.getByRole("button", { name: "Call from browser" }).click();
+
+  await expect(page.locator(".call-panel__error")).toContainText("blocked the microphone");
+  expect(offers).toEqual([]);
+});
+
+test("an unreachable line is explained in plain words", async ({ page }) => {
+  const feed = await routeViewerFeed(page);
+  await page.goto("/");
+  sendViewerReady(await feed.connected, "4821");
+
+  await page.getByRole("button", { name: "Call from browser" }).click();
+
+  await expect(page.locator(".call-panel__error")).toHaveText(
+    "Kenji's line can't be reached right now. Please try again in a minute.",
+  );
+});

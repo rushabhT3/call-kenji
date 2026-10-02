@@ -23,11 +23,11 @@ from collections import Counter
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, replace
-from datetime import datetime
 from pathlib import Path
 
 import httpx
 import uvicorn
+from afternoon_clock import AfternoonInTokyoClock
 from loguru import logger
 from synthetic_caller import (
     CALL_TIMEOUT_SECS,
@@ -42,24 +42,11 @@ from synthetic_caller import (
 
 from kenji.config import Settings
 from kenji.container import build_kit, build_services
-from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
 from kenji.domain.compliance import CheckStatus
 from kenji.server import create_app, load_settings
 
-AFTERNOON_HOUR = 15
 DEBT_WORDS = ("債権", "回収", "返済", "支払", "延滞", "滞納", "円", "7731", "35,000", "万")
 IDENTITY = "佐藤ゆうきです。生年月日は、平成2年7月14日です。"
-
-
-class AfternoonInTokyoClock:
-    """Real time, moved so the run starts at 15:00 Japan time today."""
-
-    def __init__(self) -> None:
-        real = datetime.now(JAPAN_STANDARD_TIME)
-        self._offset = real.replace(hour=AFTERNOON_HOUR, minute=0, second=0, microsecond=0) - real
-
-    def now(self) -> datetime:
-        return datetime.now(JAPAN_STANDARD_TIME) + self._offset
 
 
 type Check = Callable[[ViewerFeed], list[str]]

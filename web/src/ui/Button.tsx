@@ -1,12 +1,10 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { buttonClassName, type ButtonSize, type ButtonVariant } from "./buttonClassName.ts";
 import { Icon, type IconName } from "./Icon.tsx";
 
-type Variant = "primary" | "secondary" | "quiet" | "danger";
-type Size = "lg" | "md" | "sm";
-
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
-  variant?: Variant;
-  size?: Size;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   icon?: IconName;
   isBusy?: boolean;
   isWide?: boolean;
@@ -23,9 +21,13 @@ export function Button({
   type = "button",
   ...rest
 }: ButtonProps) {
-  const classes = ["button", `button--${variant}`, `button--${size}`, isWide ? "button--wide" : ""];
   return (
-    <button {...rest} type={type} className={classes.join(" ").trim()} aria-busy={isBusy}>
+    <button
+      {...rest}
+      type={type}
+      className={buttonClassName(variant, size, isWide)}
+      aria-busy={isBusy}
+    >
       {icon ? <Icon name={icon} /> : null}
       <span>{children}</span>
     </button>

@@ -34,6 +34,37 @@ test.describe("demo replay", () => {
     await expect(page.locator("#audit")).toContainText("Hash chain verified");
   });
 
+  test("offers a call of your own once the replay ends", async ({ page }) => {
+    await blockBackend(page);
+    await openAfterCall(page);
+
+    await expect(page.getByRole("link", { name: "Call Kenji yourself" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
+
+  test("a summary chip lands its card below the sticky bars", async ({ page }) => {
+    await blockBackend(page);
+    await openAfterCall(page);
+    const chip = page.getByRole("link", { name: /^Compliance/ });
+    test.skip(!(await chip.isVisible()), "summary chips are shown on narrow screens only");
+
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+    await chip.click();
+
+    const title = page.locator("#compliance .card__title");
+    await expect(title).toBeInViewport();
+    const isUncovered = await title.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const topmost = document.elementFromPoint(box.left + 1, box.top + box.height / 2);
+      return topmost !== null && element.contains(topmost);
+    });
+    expect(isUncovered).toBe(true);
+  });
+
   test("copies the audit record as valid JSON", async ({ page, context, browserName }) => {
     test.skip(browserName !== "chromium", "clipboard permissions are Chromium-only here");
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);

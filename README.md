@@ -146,6 +146,10 @@ cd web && pnpm dev    # then open http://localhost:5173/?demo=1
 3. Run `make dev` and open http://localhost:5173.
 4. Press **Call from browser**.
 
+Kenji answers between 08:00 and 21:00 Japan time. To try him at any other hour, run
+`uv run python scripts/dev_server.py --afternoon-in-tokyo` in place of `make dev-server`: its
+clock reads 15:00 in Tokyo. It is for testing only; the deployed server never moves its clock.
+
 The real-model smoke run drives the five test conversations through your provider:
 
 ```bash
@@ -168,12 +172,12 @@ for real. It costs about $0.008 a minute of Twilio credit:
 2. In `.env`, set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_API_KEY_SID`,
    `TWILIO_API_KEY_SECRET`, `TWILIO_TWIML_APP_SID` and `PUBLIC_BASE_URL=http://127.0.0.1:7860`.
 3. Install [cloudflared][cloudflared] for a free quick tunnel. No Cloudflare account is needed.
-4. Run `uv run python scripts/phone_dev.py` and, in another terminal, `cd web && pnpm dev`.
+4. Run `uv run python scripts/dev_server.py --phone` and, in another terminal,
+   `cd web && pnpm dev`. Add `--afternoon-in-tokyo` to call outside Japanese calling hours.
 5. Open http://localhost:5173 for the live view, then http://127.0.0.1:7860/dev/softphone.
    Press **Call Kenji**, and type the page's four-digit code on the keypad when he asks.
 
 The softphone only answers a browser on the same machine, never a request through the tunnel.
-Kenji answers between 08:00 and 21:00 Japan time, as on the real line.
 
 The phone line and deployment are covered step by step in [docs/DEPLOY.md](docs/DEPLOY.md).
 

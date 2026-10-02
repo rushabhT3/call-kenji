@@ -80,7 +80,7 @@ export function LiveView(props: LiveViewProps) {
           </div>
           <Rail view={view} />
         </div>
-        {view.status === "ended" ? <PostCall view={view} /> : null}
+        {view.status === "ended" ? <PostCall view={view} isDemo={isDemo} /> : null}
       </main>
       {hasCallBar ? <MobileCallBar call={call} /> : null}
     </>
