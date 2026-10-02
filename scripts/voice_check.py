@@ -147,16 +147,26 @@ SCENARIOS = {
 }
 
 
-def _turn_is_ours(call: LiveCall, since: float) -> Callable[[], bool]:
-    return lambda: call.feed.outcome is not None or call.kenji_has_finished(since)
+def _turn_is_ours(call: LiveCall, since: float, answers_before: int) -> Callable[[], bool]:
+    """Kenji has answered (not just said 「はい、」) and gone quiet, or the call is over."""
+    acknowledgement = call.acknowledgement
+    return lambda: (
+        call.feed.outcome is not None
+        or (
+            call.feed.kenji_answers(acknowledgement) > answers_before
+            and call.kenji_has_finished(since)
+        )
+    )
 
 
 async def _converse(call: LiveCall, scenario: Scenario, voice: CallerVoice) -> None:
     turns_at: Counter[str] = Counter()
     last_line_ended = 0.0
+    answers_before = 0
     deadline = time.monotonic() + CALL_TIMEOUT_SECS
     while call.feed.outcome is None and time.monotonic() < deadline:
-        is_ready = await until(_turn_is_ours(call, last_line_ended), deadline - time.monotonic())
+        answered = _turn_is_ours(call, last_line_ended, answers_before)
+        is_ready = await until(answered, deadline - time.monotonic())
         replies = scenario.replies.get(call.feed.node, ())
         if not is_ready or call.feed.outcome is not None or not replies:
             await asyncio.sleep(POLL_SECS)
@@ -164,7 +174,12 @@ async def _converse(call: LiveCall, scenario: Scenario, voice: CallerVoice) -> N
         line = replies[min(turns_at[call.feed.node], len(replies) - 1)]
         turns_at[call.feed.node] += 1
         print(f"  caller ({call.feed.node}): {line}")
+        answers_before = call.feed.kenji_answers(call.acknowledgement)
+        if last_line_ended:
+            call.note_reply_time(last_line_ended)
         last_line_ended = await call.say(await voice.pcm(line))
+    if last_line_ended:
+        await until(lambda: call.kenji.first_onset_after(last_line_ended) is not None, 10)
         call.note_reply_time(last_line_ended)
 
 
@@ -174,6 +189,7 @@ async def _run_scenario(base: str, scenario: Scenario, voice: CallerVoice) -> Ca
     await asyncio.wait_for(ready.wait(), 10)
     async with httpx.AsyncClient(timeout=30) as http:
         call = await dial(base, feed, http)
+    call.acknowledgement = voice.acknowledgement
     try:
         await _converse(call, scenario, voice)
     finally:

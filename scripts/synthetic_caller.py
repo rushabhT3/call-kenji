@@ -19,6 +19,7 @@ from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.mediastreams import MediaStreamError
 from av import AudioFrame
 
+from kenji.adapters.content import load_script
 from kenji.config import Settings
 
 CALLER_VOICE_ID = "498e7f37-7fa3-4e2c-b8e2-8b6e9276f956"  # Aiko: a Japanese voice unlike Kenji's
@@ -28,7 +29,7 @@ FRAME_SAMPLES = SAMPLE_RATE // 50
 FRAME_BYTES = FRAME_SAMPLES * 2
 VOICE_RMS = 300.0
 NEW_UTTERANCE_GAP_SECS = 0.6
-KENJI_DONE_SILENCE_SECS = 2.5
+KENJI_DONE_SILENCE_SECS = 4.0  # Muse pauses 3-6 s mid-answer while a tool runs
 CALL_TIMEOUT_SECS = 240.0
 POLL_SECS = 0.05
 
@@ -122,6 +123,10 @@ class ViewerFeed:
         ended = self.of_type("call_ended")
         return str(ended[-1]["outcome"]) if ended else None
 
+    def kenji_answers(self, acknowledgement: str) -> int:
+        """Kenji's lines so far, leaving out the instant 「はい、」 that precedes a model answer."""
+        return sum(1 for line in self.kenji_lines() if line != acknowledgement)
+
     def kenji_lines(self) -> list[str]:
         lines = self.of_type("transcript")
         return [
@@ -134,6 +139,8 @@ class CallerVoice:
 
     def __init__(self, settings: Settings, http: httpx.AsyncClient) -> None:
         self._api_key = settings.cartesia_api_key.get_secret_value()
+        script = load_script(settings.content_dir / "script_ja.yaml")
+        self.acknowledgement = script.lines.acknowledgement.ja
         self._model = settings.cartesia_model
         self._http = http
         self._spoken: dict[str, bytes] = {}
@@ -170,9 +177,10 @@ class LiveCall:
     feed: ViewerFeed
     peer: RTCPeerConnection
     mouth_to_ear_ms: list[float] = field(default_factory=list)
+    acknowledgement: str = ""
 
     def kenji_has_finished(self, since: float) -> bool:
-        has_spoken = self.kenji.first_onset_after(since) is not None
+        has_spoken = self.kenji.last_voice_at > since
         quiet_for = time.monotonic() - self.kenji.last_voice_at
         return has_spoken and quiet_for >= KENJI_DONE_SILENCE_SECS
 
