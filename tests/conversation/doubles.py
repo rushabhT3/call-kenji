@@ -230,6 +230,7 @@ class FixedClock:
 class MemoryRecorder:
     def __init__(self) -> None:
         self.events: list[CallEvent] = []
+        self.is_closed = False
         self._records: list[AuditRecord] = []
 
     def publish(self, event: CallEvent) -> None:
@@ -242,6 +243,9 @@ class MemoryRecorder:
 
     def records(self) -> list[AuditRecord]:
         return list(self._records)
+
+    async def close(self) -> None:
+        self.is_closed = True
 
     def of_type(self, kind: str) -> list[CallEvent]:
         return [event for event in self.events if event.type == kind]

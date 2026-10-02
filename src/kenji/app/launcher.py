@@ -1,7 +1,9 @@
 """Start a call: apply the guardrails, link the viewer, run the call and count its minutes."""
 
+import asyncio
 import uuid
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import date
 from typing import Literal
@@ -17,8 +19,9 @@ from kenji.app.hub import EventHub
 from kenji.app.linking import LinkRegistry
 from kenji.app.ports import CallRecorder, EventSink, UsageLedger
 from kenji.app.refusal import publish_refusal, refusal_line, refusal_outcome, speak_and_hang_up
+from kenji.app.script import Line
 from kenji.app.session import CallContext
-from kenji.domain.guardrails import Admission, CallLimits, admit_call, usage_day
+from kenji.domain.guardrails import Admission, CallLimits, Refusal, admit_call, usage_day
 from kenji.domain.outcome import CallOutcome
 from kenji.domain.terms import Negotiation
 
@@ -51,6 +54,17 @@ class CallAccounting:
     limits: dict[TransportKind, CallLimits]
 
 
+@dataclass(frozen=True, slots=True)
+class _Attempt:
+    request: CallRequest
+    context: CallContext
+    io: CallIO
+
+    @property
+    def day(self) -> date:
+        return usage_day(self.context.started_at)
+
+
 class _FanOut:
     def __init__(self, sinks: list[EventSink]) -> None:
         self._sinks = sinks
@@ -67,28 +81,54 @@ class CallLauncher:
         self._accounting = accounting
 
     async def run(self, transport: BaseTransport, request: CallRequest) -> CallOutcome:
+        async with self._recording(request) as attempt:
+            if request.viewer_id is not None:
+                self._routing.hub.link(attempt.context.call_id, request.viewer_id)
+            admission = await self._admit(attempt)
+            if admission.refusal is not None:
+                return await self._refuse_on_the_line(transport, admission.refusal, attempt)
+            return await self._run_admitted(transport, admission, attempt)
+
+    async def screen(self, request: CallRequest) -> Line | None:
+        """Refuse a phone call before answering it, so a refused call opens no media stream.
+
+        Returns the line to say instead of answering, or None when the call is admitted.
+        """
+        async with self._recording(request) as attempt:
+            admission = await self._admit(attempt)
+            if admission.refusal is None:
+                return None
+            line = self._record_refusal(admission.refusal, attempt)
+            self._end_refused(admission.refusal, attempt)
+            return line
+
+    @asynccontextmanager
+    async def _recording(self, request: CallRequest) -> AsyncIterator[_Attempt]:
         context = self._context(request)
-        day = usage_day(context.started_at)
-        io = self._io(context.call_id, day)
-        if request.viewer_id is not None:
-            self._routing.hub.link(context.call_id, request.viewer_id)
-        admission = self._admit(request, day, context)
-        if not admission.is_admitted:
-            return await self._refuse(transport, admission, context, io)
-        usage = self._accounting.usage
-        usage.record_call(request.transport, request.caller_ref, day)
+        call_id = context.call_id
+        recorder = self._accounting.recorder(call_id, usage_day(context.started_at))
+        hub = self._routing.hub
+        io = CallIO(sink=_FanOut([hub.channel(call_id), recorder]), audit=recorder)
         try:
-            setup = CallSetup(
-                context, io, admission.call_seconds_allowed, self._input_processors(context)
-            )
+            yield _Attempt(request=request, context=context, io=io)
+        finally:
+            await recorder.close()
+            hub.forget(call_id)
+
+    async def _run_admitted(
+        self, transport: BaseTransport, admission: Admission, attempt: _Attempt
+    ) -> CallOutcome:
+        request, context, usage = attempt.request, attempt.context, self._accounting.usage
+        await asyncio.to_thread(
+            usage.record_call, request.transport, request.caller_ref, attempt.day
+        )
+        try:
+            processors = self._input_processors(context)
+            setup = CallSetup(context, attempt.io, admission.call_seconds_allowed, processors)
             return await Call(self._kit, setup, transport).run()
         finally:
-            elapsed = self._kit.clock.now() - context.started_at
-            usage.record_seconds(request.transport, day, int(elapsed.total_seconds()))
-
-    def _io(self, call_id: str, day: date) -> CallIO:
-        recorder = self._accounting.recorder(call_id, day)
-        return CallIO(sink=_FanOut([self._routing.hub.channel(call_id), recorder]), audit=recorder)
+            seconds = int((self._kit.clock.now() - context.started_at).total_seconds())
+            await asyncio.to_thread(usage.record_seconds, request.transport, attempt.day, seconds)
 
     def _input_processors(self, context: CallContext) -> tuple[FrameProcessor, ...]:
         if context.transport != "phone":
@@ -108,18 +148,27 @@ class CallLauncher:
             negotiation=Negotiation(balance_yen=account.balance_yen, today=usage_day(started_at)),
         )
 
-    def _admit(self, request: CallRequest, day: date, context: CallContext) -> Admission:
-        usage = self._accounting.usage.usage_today(request.transport, request.caller_ref, day)
-        return admit_call(context.started_at, usage, self._accounting.limits[request.transport])
+    async def _admit(self, attempt: _Attempt) -> Admission:
+        request = attempt.request
+        usage = await asyncio.to_thread(
+            self._accounting.usage.usage_today, request.transport, request.caller_ref, attempt.day
+        )
+        limits = self._accounting.limits[request.transport]
+        return admit_call(attempt.context.started_at, usage, limits)
 
-    async def _refuse(
-        self, transport: BaseTransport, admission: Admission, context: CallContext, io: CallIO
+    def _record_refusal(self, refusal: Refusal, attempt: _Attempt) -> Line:
+        line = refusal_line(self._kit.script.lines, refusal)
+        publish_refusal(attempt.io, attempt.context, line, self._kit.clock)
+        return line
+
+    async def _refuse_on_the_line(
+        self, transport: BaseTransport, refusal: Refusal, attempt: _Attempt
     ) -> CallOutcome:
-        if admission.refusal is None:
-            raise ValueError("only a refused admission can be refused")
-        line = refusal_line(self._kit.script.lines, admission.refusal)
-        outcome = refusal_outcome(admission.refusal)
-        publish_refusal(io, context, line, self._kit.clock)
+        line = self._record_refusal(refusal, attempt)
         await speak_and_hang_up(transport, line, self._kit.voice.text_to_speech)
-        io.sink.publish(CallEnded(outcome=outcome, ended_at=self._kit.clock.now()))
+        return self._end_refused(refusal, attempt)
+
+    def _end_refused(self, refusal: Refusal, attempt: _Attempt) -> CallOutcome:
+        outcome = refusal_outcome(refusal)
+        attempt.io.sink.publish(CallEnded(outcome=outcome, ended_at=self._kit.clock.now()))
         return outcome

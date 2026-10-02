@@ -7,12 +7,17 @@ Layout under DATA_DIR:
     usage/<date>-<pool>.json              daily guardrail counters per transport
 """
 
+import asyncio
 import json
 import shutil
+import threading
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
+from typing import TextIO
 
+from loguru import logger
 from pydantic import BaseModel, Field, TypeAdapter
 
 from kenji.app.events import CallEvent
@@ -24,17 +29,53 @@ from kenji.domain.retention import is_expired
 _EVENT = TypeAdapter[CallEvent](CallEvent)
 
 
-def _append_line(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as file:
-        file.write(text + "\n")
+class _LineFiles:
+    """Appends lines from one background thread and keeps each file open until the call ends.
+
+    The call's audio runs on the event loop, so no write may block it. On the Cloud Storage
+    volume every open-append-close re-uploads the whole object, so each file is opened once
+    and uploaded once, when it is closed.
+    """
+
+    def __init__(self, directory: Path) -> None:
+        self._directory = directory
+        self._files: dict[str, TextIO] = {}
+        self._writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="call-record")
+
+    def append(self, name: str, line: str) -> None:
+        self._writer.submit(self._write, name, line).add_done_callback(self._report_failure)
+
+    async def close(self) -> None:
+        await asyncio.wrap_future(self._writer.submit(self._close_all))
+        self._writer.shutdown()
+
+    def _write(self, name: str, line: str) -> None:
+        file = self._files.get(name)
+        if file is None:
+            self._directory.mkdir(parents=True, exist_ok=True)
+            file = self._files[name] = (self._directory / name).open("a", encoding="utf-8")
+        file.write(line + "\n")
+
+    def _close_all(self) -> None:
+        for file in self._files.values():
+            file.close()
+        self._files.clear()
+
+    def _report_failure(self, done: Future[None]) -> None:
+        error = done.exception()
+        if error is not None:
+            logger.error(
+                "could not write a call record line",
+                directory=str(self._directory),
+                error=str(error),
+            )
 
 
 class CallRecord:
     """Writes one call's events and audit chain as JSON lines."""
 
     def __init__(self, data_dir: Path, call_date: date, call_id: str) -> None:
-        self._directory = data_dir / "calls" / call_date.isoformat() / call_id
+        self._files = _LineFiles(data_dir / "calls" / call_date.isoformat() / call_id)
         self._last: AuditRecord | None = None
         self._records: list[AuditRecord] = []
         self._opened_at = time.monotonic()
@@ -45,18 +86,21 @@ class CallRecord:
             {"offset_ms": offset_ms, "event": _EVENT.dump_python(event, mode="json")},
             ensure_ascii=False,
         )
-        _append_line(self._directory / "events.jsonl", line)
+        self._files.append("events.jsonl", line)
 
     def append(self, entry: AuditEntry) -> AuditRecord:
         record = append_entry(self._last, entry)
         line = json.dumps(record.to_json(), ensure_ascii=False, sort_keys=True)
-        _append_line(self._directory / "audit.jsonl", line)
+        self._files.append("audit.jsonl", line)
         self._last = record
         self._records.append(record)
         return record
 
     def records(self) -> list[AuditRecord]:
         return list(self._records)
+
+    async def close(self) -> None:
+        await self._files.close()
 
 
 def read_audit(path: Path) -> list[AuditRecord]:
@@ -101,10 +145,14 @@ class _DailyUsage(BaseModel):
 
 
 class JsonUsageLedger:
-    """Daily counters for the budget guardrails, one small JSON file per Japan-time day."""
+    """Daily counters for the budget guardrails, one small JSON file per Japan-time day.
+
+    Safe to call from worker threads: each read-modify-write holds a lock.
+    """
 
     def __init__(self, usage_dir: Path) -> None:
         self._usage_dir = usage_dir
+        self._lock = threading.Lock()
 
     def usage_today(self, pool: str, caller_ref: str, day: date) -> UsageToday:
         usage = self._read(pool, day)
@@ -113,14 +161,16 @@ class JsonUsageLedger:
         )
 
     def record_call(self, pool: str, caller_ref: str, day: date) -> None:
-        usage = self._read(pool, day)
-        usage.calls[caller_ref] = usage.calls.get(caller_ref, 0) + 1
-        self._write(pool, day, usage)
+        with self._lock:
+            usage = self._read(pool, day)
+            usage.calls[caller_ref] = usage.calls.get(caller_ref, 0) + 1
+            self._write(pool, day, usage)
 
     def record_seconds(self, pool: str, day: date, seconds: int) -> None:
-        usage = self._read(pool, day)
-        usage.seconds += seconds
-        self._write(pool, day, usage)
+        with self._lock:
+            usage = self._read(pool, day)
+            usage.seconds += seconds
+            self._write(pool, day, usage)
 
     def _path(self, pool: str, day: date) -> Path:
         return self._usage_dir / f"{day.isoformat()}-{pool}.json"

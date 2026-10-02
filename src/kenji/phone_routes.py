@@ -5,7 +5,7 @@ from fastapi.responses import Response
 from loguru import logger
 from pipecat.runner.utils import parse_telephony_websocket
 
-from kenji.adapters.twilio import stream_twiml, twilio_transport
+from kenji.adapters.twilio import refusal_twiml, stream_twiml, twilio_transport
 from kenji.app.launcher import CallRequest
 from kenji.app.privacy import caller_ref
 from kenji.container import PhoneLine, Services
@@ -22,6 +22,10 @@ def _stream_url(public_base_url: str) -> str:
     )
 
 
+def _twiml(document: str) -> Response:
+    return Response(content=document, media_type="application/xml")
+
+
 def add_phone_routes(app: FastAPI, services: Services, phone: PhoneLine) -> None:
     @app.post(VOICE_PATH)
     async def voice(http: Request) -> Response:
@@ -29,9 +33,13 @@ def add_phone_routes(app: FastAPI, services: Services, phone: PhoneLine) -> None
         signature = http.headers.get("X-Twilio-Signature", "")
         if not phone.webhooks.is_signed(phone.public_base_url + VOICE_PATH, form, signature):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="unsigned request")
-        token = phone.tokens.issue(caller_ref(form.get("From", "unknown"), services.salt))
-        twiml = stream_twiml(_stream_url(phone.public_base_url), token)
-        return Response(content=twiml, media_type="application/xml")
+        caller = caller_ref(form.get("From", "unknown"), services.salt)
+        request = CallRequest(transport="phone", caller_ref=caller, call_id=form.get("CallSid", ""))
+        refusal = await services.launcher.screen(request)
+        if refusal is not None:
+            return _twiml(refusal_twiml(refusal.ja, refusal.en))
+        token = phone.tokens.issue(caller)
+        return _twiml(stream_twiml(_stream_url(phone.public_base_url), token))
 
     @app.websocket(STREAM_PATH)
     async def media_stream(websocket: WebSocket) -> None:

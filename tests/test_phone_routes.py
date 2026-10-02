@@ -1,6 +1,7 @@
 """The public phone endpoints only answer Twilio, and only for the call it announced."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ from kenji.app.stream_tokens import StreamTokens
 from kenji.config import Settings
 from kenji.container import PhoneLine, Services
 from kenji.server import create_app
+from tests.app.test_launcher import LATE, MemoryUsage, launcher_for
 from tests.conversation.harness import FixedClock
 
 AUTH_TOKEN = "twilio-test-token"
@@ -41,6 +43,10 @@ def phone_services(services: Services) -> Services:
 
 @pytest.fixture
 def client(phone_services: Services, tmp_path: Path) -> TestClient:
+    return _client(phone_services, tmp_path)
+
+
+def _client(services: Services, tmp_path: Path) -> TestClient:
     settings = Settings(
         _env_file=None,
         llm_api_key=SecretStr("test"),
@@ -48,7 +54,7 @@ def client(phone_services: Services, tmp_path: Path) -> TestClient:
         cartesia_api_key=SecretStr("test"),
         data_dir=tmp_path,
     )
-    return TestClient(create_app(settings, phone_services))
+    return TestClient(create_app(settings, services))
 
 
 def _signature(form: dict[str, str]) -> str:
@@ -72,6 +78,24 @@ def test_signed_webhook_streams_with_a_one_time_token(client: TestClient) -> Non
     assert '<Stream url="wss://kenji.example/twilio/ws">' in response.text
     assert '<Parameter name="token" value="' in response.text
     assert FORM["From"] not in response.text
+
+
+def test_signed_webhook_outside_calling_hours_says_why_and_hangs_up(
+    phone_services: Services, tmp_path: Path
+) -> None:
+    late_launcher = launcher_for(FixedClock(LATE), MemoryUsage()).launcher
+    client = _client(replace(phone_services, launcher=late_launcher), tmp_path)
+
+    with client:
+        response = client.post(
+            "/twilio/voice", data=FORM, headers={"X-Twilio-Signature": _signature(FORM)}
+        )
+
+    assert response.status_code == 200
+    assert '<Say voice="Polly.Takumi" language="ja-JP">' in response.text
+    assert "受付時間外" in response.text
+    assert response.text.endswith("<Hangup/></Response>")
+    assert "<Stream" not in response.text
 
 
 def test_media_stream_without_a_valid_token_is_closed(client: TestClient) -> None:

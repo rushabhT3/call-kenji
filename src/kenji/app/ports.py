@@ -73,6 +73,9 @@ class UsageLedger(Protocol):
 class CallRecorder(EventSink, AuditLog, Protocol):
     """Keeps one call's events and audit chain."""
 
+    async def close(self) -> None:
+        """Finish writing; nothing is published after this."""
+
 
 class SpeechToTextFactory(Protocol):
     def create(self) -> FrameProcessor: ...

@@ -2,6 +2,8 @@ import json
 from datetime import date, datetime
 from pathlib import Path
 
+from loguru import logger
+
 from kenji.adapters.storage import (
     CallRecord,
     JsonContactStore,
@@ -17,11 +19,12 @@ from kenji.domain.contact import StopContactRequest
 TODAY = date(2026, 10, 2)
 
 
-def test_call_record_writes_text_only_and_a_verifiable_chain(tmp_path: Path) -> None:
+async def test_call_record_writes_text_only_and_a_verifiable_chain(tmp_path: Path) -> None:
     record = CallRecord(tmp_path, TODAY, "call-1")
     record.publish(FlowNodeEntered(node="greeting"))
     for kind in ("call_started", "identity_checked"):
         record.append(AuditEntry(kind=kind, recorded_at="2026-10-02T15:00:00+09:00", payload={}))
+    await record.close()
 
     call_dir = tmp_path / "calls" / "2026-10-02" / "call-1"
     assert sorted(path.name for path in call_dir.iterdir()) == ["audit.jsonl", "events.jsonl"]
@@ -29,6 +32,34 @@ def test_call_record_writes_text_only_and_a_verifiable_chain(tmp_path: Path) -> 
     assert line["event"] == {"type": "flow_node", "node": "greeting"}
     assert line["offset_ms"] >= 0
     assert verify_chain(read_audit(call_dir / "audit.jsonl")).is_valid
+
+
+async def test_call_record_keeps_event_order_across_many_writes(tmp_path: Path) -> None:
+    record = CallRecord(tmp_path, TODAY, "call-1")
+    nodes = [f"node-{index}" for index in range(200)]
+    for node in nodes:
+        record.publish(FlowNodeEntered(node=node))
+    await record.close()
+
+    events_path = tmp_path / "calls" / "2026-10-02" / "call-1" / "events.jsonl"
+    lines = events_path.read_text(encoding="utf-8").splitlines()
+    assert [json.loads(line)["event"]["node"] for line in lines] == nodes
+
+
+async def test_call_record_that_cannot_write_logs_and_keeps_the_call_going(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "calls").write_text("a file where the calls directory should be", encoding="utf-8")
+    record = CallRecord(tmp_path, TODAY, "call-1")
+    messages: list[str] = []
+    sink = logger.add(lambda message: messages.append(str(message)), level="ERROR")
+    try:
+        record.publish(FlowNodeEntered(node="greeting"))
+        await record.close()
+    finally:
+        logger.remove(sink)
+
+    assert any("could not write a call record line" in message for message in messages)
 
 
 def test_purge_deletes_days_older_than_retention(tmp_path: Path) -> None:

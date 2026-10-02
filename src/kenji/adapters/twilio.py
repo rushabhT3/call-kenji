@@ -1,7 +1,7 @@
 """Twilio Programmable Voice: signed webhooks in, Media Streams over a WebSocket."""
 
 from collections.abc import Mapping
-from xml.sax.saxutils import quoteattr
+from xml.sax.saxutils import escape, quoteattr
 
 from fastapi import WebSocket
 from pipecat.serializers.twilio import TwilioFrameSerializer
@@ -16,6 +16,22 @@ class TwilioWebhooks:
 
     def is_signed(self, url: str, form: Mapping[str, str], signature: str) -> bool:
         return bool(signature) and bool(self._validator.validate(url, dict(form), signature))
+
+
+JAPANESE_VOICE = "Polly.Takumi"
+ENGLISH_VOICE = "Polly.Matthew"
+
+
+def refusal_twiml(japanese: str, english: str) -> str:
+    """Say why the call cannot go ahead, then hang up, without opening a media stream."""
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        "<Response>"
+        f'<Say voice="{JAPANESE_VOICE}" language="ja-JP">{escape(japanese)}</Say>'
+        f'<Say voice="{ENGLISH_VOICE}" language="en-US">{escape(english)}</Say>'
+        "<Hangup/>"
+        "</Response>"
+    )
 
 
 def stream_twiml(stream_url: str, token: str) -> str:
