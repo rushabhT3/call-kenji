@@ -134,9 +134,11 @@ class CallFlow:
         summary = self._session.account_summary()
         if isinstance(summary, AccountLocked):
             raise RuntimeError("the balance can only be stated after identity is verified")
+        # The step after the balance begins when the caller replies, while the model may already
+        # be answering; Pipecat re-syncs tool handlers per request, so both steps offer the same.
         return self._node(
             NodeName.STATE_BALANCE,
-            functions=[self._account_summary_tool()],
+            functions=[self._account_summary_tool(), self._terms_tool("check_terms")],
             respond=respond,
             say=describe_balance(self._script.lines, summary),
             then=NodeName.LISTEN,
