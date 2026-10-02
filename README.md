@@ -20,7 +20,9 @@ Voice agents for collections live or die on three things a demo usually hides: *
 - **Turn-taking in Japanese.** Callers say はい and ええ constantly while the other person talks.
   Word-count interruption rules split on spaces, and Japanese has none. Kenji counts characters,
   knows the aizuchi lexicon, and is stricter while reading the agreement back. はい keeps him
-  going; ちょっと待ってください stops him.
+  going; ちょっと待ってください stops him. A pause is not the end of a turn either: Soniox judges
+  the end from the words and intonation, and a phrase left on a particle, like 「生年月日は、」,
+  is held open so the date that follows joins the same turn.
 - **Compliance as code.** Calling hours (08:00 to 21:00 Japan time), an identity gate before
   any account detail, repayment terms (at least ¥5,000 a month, at most 6 payments, first one
   within 45 days) and stop-contact are pure, fully tested functions. The model can only reach them

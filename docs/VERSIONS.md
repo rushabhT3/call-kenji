@@ -196,7 +196,7 @@ Some features need no extra:
 - **System prompt.** Putting the system prompt in a `"system"` message at the start of `LLMContext` was deprecated in 1.9.0 and stops working in 2.0.0. Pass `system_instruction=` to the LLM service instead. To change it at runtime, push `LLMUpdateSettingsFrame(LLMSettings(system_instruction=...))`.
 - **Soniox STT.**
   - The default model is `stt-rt-v5`. Set the model through `settings=SonioxSTTService.Settings(model=...)`, because the `model=` constructor argument is deprecated.
-  - `vad_force_turn_endpoint` defaults to `True`, which uses Pipecat's local VAD and smart-turn rather than Soniox endpointing.
+  - `vad_force_turn_endpoint` defaults to `True`, which uses Pipecat's local VAD and smart-turn rather than Soniox endpointing. The project sets it to `False` with `max_endpoint_delay_ms=1500` (DECISIONS #24), so Soniox's semantic endpointing proposes turn ends and an `ExternalUserTurnStopStrategy` subclass resolves them. Smart-turn is then unused, which also avoids [its reported failure on 8 kHz telephony audio](https://github.com/pipecat-ai/pipecat/issues/3844).
 - **Cartesia TTS.** The default model is `sonic-3.6`. The `cartesia_version` argument was deprecated in 1.8.0.
 - **OpenAI LLM.** The default model is `gpt-4.1`. Set the model explicitly from config.
 - **Twilio serializer.** `TwilioFrameSerializer` has `auto_hang_up=True` by default. That setting requires `call_sid`, `account_sid` and `auth_token`, and construction raises `ValueError` if any is missing.
