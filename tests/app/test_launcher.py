@@ -6,7 +6,8 @@ from typing import cast
 
 from kenji.app.events import CallEnded, TranscriptLine
 from kenji.app.hub import EventHub
-from kenji.app.launcher import CallLauncher, CallRequest
+from kenji.app.launcher import CallAccounting, CallLauncher, CallRequest, CallRouting
+from kenji.app.linking import LinkRegistry
 from kenji.app.ports import CallRecorder
 from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
 from kenji.domain.guardrails import CallLimits, UsageToday
@@ -46,7 +47,9 @@ async def _refused_call(
         return recorder
 
     launcher = CallLauncher(
-        text.kit, EventHub(), usage, make_recorder, {"phone": LIMITS, "browser": LIMITS}
+        text.kit,
+        CallRouting(hub=EventHub(), links=LinkRegistry(text.kit.clock)),
+        CallAccounting(usage, make_recorder, {"phone": LIMITS, "browser": LIMITS}),
     )
     transport = TextTransport()
     task = asyncio.create_task(launcher.run(transport, CallRequest("phone", "caller-a")))

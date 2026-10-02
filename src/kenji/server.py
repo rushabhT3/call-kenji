@@ -32,6 +32,7 @@ from kenji.app.privacy import caller_ref
 from kenji.config import Settings
 from kenji.container import Services, build_services
 from kenji.domain.guardrails import usage_day
+from kenji.phone_routes import add_phone_routes
 
 PURGE_INTERVAL_SECS = 6 * 60 * 60
 _EVENT = TypeAdapter[CallEvent](CallEvent)
@@ -79,6 +80,8 @@ def create_app(settings: Settings, services: Services | None = None) -> FastAPI:
     app = FastAPI(lifespan=lifespan, title="Call Kenji")
     _add_browser_call_routes(app, services, webrtc, background)
     _add_viewer_route(app, services)
+    if services.phone is not None:
+        add_phone_routes(app, services, services.phone)
     if settings.enable_dev_client:
         _add_dev_client(app, services, webrtc, background)
     return app

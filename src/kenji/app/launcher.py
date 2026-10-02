@@ -6,12 +6,15 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
+from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.transports.base_transport import BaseTransport
 
 from kenji.app.call import Call, CallSetup
 from kenji.app.call_parts import CallIO, CallKit
+from kenji.app.dtmf import DtmfLinker
 from kenji.app.events import CallEnded, CallEvent
 from kenji.app.hub import EventHub
+from kenji.app.linking import LinkRegistry
 from kenji.app.ports import CallRecorder, EventSink, UsageLedger
 from kenji.app.refusal import publish_refusal, refusal_line, refusal_outcome, speak_and_hang_up
 from kenji.app.session import CallContext
@@ -31,6 +34,23 @@ class CallRequest:
     call_id: str = ""
 
 
+@dataclass(frozen=True, slots=True)
+class CallRouting:
+    """Where a call's events go: the hub, and the codes that link phone calls to tabs."""
+
+    hub: EventHub
+    links: LinkRegistry
+
+
+@dataclass(frozen=True, slots=True)
+class CallAccounting:
+    """What a call costs: daily usage, per-call records and the limits per transport."""
+
+    usage: UsageLedger
+    recorder: RecorderFactory
+    limits: dict[TransportKind, CallLimits]
+
+
 class _FanOut:
     def __init__(self, sinks: list[EventSink]) -> None:
         self._sinks = sinks
@@ -41,40 +61,40 @@ class _FanOut:
 
 
 class CallLauncher:
-    def __init__(
-        self,
-        kit: CallKit,
-        hub: EventHub,
-        usage: UsageLedger,
-        recorder: RecorderFactory,
-        limits: dict[TransportKind, CallLimits],
-    ) -> None:
+    def __init__(self, kit: CallKit, routing: CallRouting, accounting: CallAccounting) -> None:
         self._kit = kit
-        self._hub = hub
-        self._usage = usage
-        self._recorder = recorder
-        self._limits = limits
+        self._routing = routing
+        self._accounting = accounting
 
     async def run(self, transport: BaseTransport, request: CallRequest) -> CallOutcome:
         context = self._context(request)
         day = usage_day(context.started_at)
-        recorder = self._recorder(context.call_id, day)
-        io = CallIO(sink=_FanOut([self._hub.channel(context.call_id), recorder]), audit=recorder)
+        io = self._io(context.call_id, day)
         if request.viewer_id is not None:
-            self._hub.link(context.call_id, request.viewer_id)
+            self._routing.hub.link(context.call_id, request.viewer_id)
         admission = self._admit(request, day, context)
         if not admission.is_admitted:
             return await self._refuse(transport, admission, context, io)
-        self._usage.record_call(request.transport, request.caller_ref, day)
+        usage = self._accounting.usage
+        usage.record_call(request.transport, request.caller_ref, day)
         try:
-            setup = CallSetup(context, io, admission.call_seconds_allowed)
+            setup = CallSetup(
+                context, io, admission.call_seconds_allowed, self._input_processors(context)
+            )
             return await Call(self._kit, setup, transport).run()
         finally:
             elapsed = self._kit.clock.now() - context.started_at
-            self._usage.record_seconds(request.transport, day, int(elapsed.total_seconds()))
+            usage.record_seconds(request.transport, day, int(elapsed.total_seconds()))
 
-    def link(self, call_id: str, viewer_id: str) -> bool:
-        return self._hub.link(call_id, viewer_id)
+    def _io(self, call_id: str, day: date) -> CallIO:
+        recorder = self._accounting.recorder(call_id, day)
+        return CallIO(sink=_FanOut([self._routing.hub.channel(call_id), recorder]), audit=recorder)
+
+    def _input_processors(self, context: CallContext) -> tuple[FrameProcessor, ...]:
+        if context.transport != "phone":
+            return ()
+        routing = self._routing
+        return (DtmfLinker(context.call_id, routing.links.redeem, routing.hub.link),)
 
     def _context(self, request: CallRequest) -> CallContext:
         started_at = self._kit.clock.now()
@@ -89,8 +109,8 @@ class CallLauncher:
         )
 
     def _admit(self, request: CallRequest, day: date, context: CallContext) -> Admission:
-        usage = self._usage.usage_today(request.transport, request.caller_ref, day)
-        return admit_call(context.started_at, usage, self._limits[request.transport])
+        usage = self._accounting.usage.usage_today(request.transport, request.caller_ref, day)
+        return admit_call(context.started_at, usage, self._accounting.limits[request.transport])
 
     async def _refuse(
         self, transport: BaseTransport, admission: Admission, context: CallContext, io: CallIO

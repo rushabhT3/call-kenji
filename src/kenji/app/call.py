@@ -43,6 +43,7 @@ class CallSetup:
     context: CallContext
     io: CallIO
     max_seconds: int
+    input_processors: tuple[FrameProcessor, ...] = ()
 
 
 class Call:
@@ -50,6 +51,7 @@ class Call:
         self._kit = kit
         self._transport = transport
         self._max_seconds = setup.max_seconds
+        self._input_processors = setup.input_processors
         self._parts: CallParts = build_call_parts(kit, setup.context, setup.io)
         self._talker = kit.voice.talker.create(self._parts.talker_instruction)
         self._context = LLMContext()
@@ -97,6 +99,7 @@ class Call:
         voice = self._kit.voice
         processors: list[FrameProcessor] = [
             self._transport.input(),
+            *self._input_processors,
             voice.speech_to_text.create(),
             self._pair.user(),
             self._parts.injector,

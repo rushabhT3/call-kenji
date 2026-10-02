@@ -35,6 +35,8 @@ class Persona(_Content):
 
 class Lines(_Content):
     greeting: Line
+    link_prompt: Line
+    ask_identity: Line
     identity_locked: Line
     balance_statement: Line
     third_party_callback: Line

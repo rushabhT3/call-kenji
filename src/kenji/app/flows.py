@@ -88,11 +88,14 @@ class CallFlow:
         return build(respond) if build else self._ending(name)
 
     def _greeting(self, respond: bool) -> NodeConfig:
+        lines = self._script.lines
+        is_phone = self._session.context.transport == "phone"
+        opening = [lines.greeting, *([lines.link_prompt] if is_phone else []), lines.ask_identity]
         return self._node(
             NodeName.GREETING,
             functions=[self._verify_identity_tool(), self._third_party_tool()],
             respond=respond,
-            say=self._script.lines.greeting,
+            say=opening,
             then=NodeName.VERIFY_IDENTITY,
         )
 
@@ -173,7 +176,7 @@ class CallFlow:
         *,
         functions: list[FlowsFunctionSchema],
         respond: bool,
-        say: Line | None = None,
+        say: Line | list[Line] | None = None,
         then: NodeName | None = None,
     ) -> NodeConfig:
         task = getattr(self._script.nodes, name).task
@@ -181,11 +184,13 @@ class CallFlow:
             name=name,
             task_messages=[{"role": "developer", "content": task}],
             functions=list(functions),
-            respond_immediately=respond and say is None,
+            respond_immediately=respond and not say,
         )
-        if say is not None:
-            self._on_line(say)
-            config["pre_actions"] = [ActionConfig(type="tts_say", text=say.ja)]
+        spoken = [say] if isinstance(say, Line) else (say or [])
+        for line in spoken:
+            self._on_line(line)
+        if spoken:
+            config["pre_actions"] = [ActionConfig(type="tts_say", text=line.ja) for line in spoken]
         if then is not None:
             config["post_actions"] = [ActionConfig(type="function", handler=self._advance_to(then))]
         return config

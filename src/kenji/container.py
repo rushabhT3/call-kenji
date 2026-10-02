@@ -21,12 +21,14 @@ from kenji.adapters.speech import (
     SonioxSpeechToText,
 )
 from kenji.adapters.storage import CallRecord, JsonContactStore, JsonUsageLedger
+from kenji.adapters.twilio import TwilioWebhooks
 from kenji.app.call_parts import CallKit, VoiceServices
 from kenji.app.hub import EventHub
-from kenji.app.launcher import CallLauncher, TransportKind
+from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting, TransportKind
 from kenji.app.linking import LinkRegistry
-from kenji.app.ports import CallRecorder, TalkerFactory
+from kenji.app.ports import CallRecorder, Clock, TalkerFactory
 from kenji.app.script import Script
+from kenji.app.stream_tokens import StreamTokens
 from kenji.config import Settings
 from kenji.domain.account import Account
 from kenji.domain.guardrails import CallLimits
@@ -36,11 +38,20 @@ SALT_BYTES = 32
 
 
 @dataclass(frozen=True, slots=True)
+class PhoneLine:
+    webhooks: TwilioWebhooks
+    tokens: StreamTokens
+    credentials: tuple[str, str]
+    public_base_url: str
+
+
+@dataclass(frozen=True, slots=True)
 class Services:
     launcher: CallLauncher
     hub: EventHub
     links: LinkRegistry
     salt: bytes
+    phone: PhoneLine | None = None
 
 
 def chat_endpoint(settings: Settings) -> ChatEndpoint:
@@ -126,19 +137,38 @@ def _limits(settings: Settings) -> dict[TransportKind, CallLimits]:
     }
 
 
+def build_phone_line(settings: Settings, clock: Clock) -> PhoneLine | None:
+    sid, token, base_url = (
+        settings.twilio_account_sid,
+        settings.twilio_auth_token,
+        settings.public_base_url,
+    )
+    if sid is None or token is None or base_url is None:
+        return None
+    return PhoneLine(
+        webhooks=TwilioWebhooks(token.get_secret_value()),
+        tokens=StreamTokens(clock),
+        credentials=(sid, token.get_secret_value()),
+        public_base_url=base_url.rstrip("/"),
+    )
+
+
 def build_services(settings: Settings) -> Services:
     kit = build_kit(settings)
-    hub = EventHub()
+    routing = CallRouting(hub=EventHub(), links=LinkRegistry(kit.clock))
 
     def recorder(call_id: str, call_date: date) -> CallRecorder:
         return CallRecord(settings.data_dir, call_date, call_id)
 
-    launcher = CallLauncher(
-        kit, hub, JsonUsageLedger(settings.data_dir / "usage"), recorder, _limits(settings)
+    accounting = CallAccounting(
+        usage=JsonUsageLedger(settings.data_dir / "usage"),
+        recorder=recorder,
+        limits=_limits(settings),
     )
     return Services(
-        launcher=launcher,
-        hub=hub,
-        links=LinkRegistry(kit.clock),
+        launcher=CallLauncher(kit, routing, accounting),
+        hub=routing.hub,
+        links=routing.links,
         salt=load_or_create_salt(settings.data_dir / "caller-salt.bin"),
+        phone=build_phone_line(settings, kit.clock),
     )

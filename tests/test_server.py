@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -6,31 +5,9 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from kenji.app.events import FlowNodeEntered
-from kenji.app.hub import EventHub
-from kenji.app.launcher import CallLauncher
-from kenji.app.linking import LinkRegistry
-from kenji.app.ports import CallRecorder
 from kenji.config import Settings
 from kenji.container import Services
-from kenji.domain.guardrails import CallLimits
 from kenji.server import create_app
-from tests.app.test_launcher import MemoryUsage
-from tests.conversation.harness import MemoryRecorder, build_text_kit
-
-
-@pytest.fixture
-def services() -> Services:
-    text = build_text_kit([])
-    limits = CallLimits()
-
-    def recorder(_call_id: str, _day: date) -> CallRecorder:
-        return MemoryRecorder()
-
-    hub = EventHub()
-    launcher = CallLauncher(
-        text.kit, hub, MemoryUsage(), recorder, {"phone": limits, "browser": limits}
-    )
-    return Services(launcher=launcher, hub=hub, links=LinkRegistry(text.kit.clock), salt=b"salt")
 
 
 @pytest.fixture

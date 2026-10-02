@@ -15,12 +15,16 @@ lines:
       お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。
       こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。
       実在する方の個人情報は、おっしゃらないでください。
-      ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。
     en: >-
       Thank you for calling. I'm Kenji, an AI assistant at Minato.
       This is a demo call. The conversation is kept as text and deleted after 30 days.
       Please don't share any real person's personal information.
-      To confirm who I'm speaking with, may I have your full name and date of birth?
+  link_prompt:
+    ja: 画面に表示されている4桁のコードを、電話のキーパッドで入力してください。入力しなくても、このままお話しいただけます。
+    en: Please type the 4-digit code shown on your screen on your phone keypad. You can also just carry on talking.
+  ask_identity:
+    ja: ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。
+    en: To confirm who I'm speaking with, may I have your full name and date of birth?
   identity_locked:
     ja: 申し訳ございません。ご本人様の確認ができませんでしたので、本日はこちらで失礼いたします。
     en: I'm sorry, I wasn't able to confirm your identity, so I'll end the call here.
