@@ -77,6 +77,10 @@ class CallFlow:
         target = self._step_after_speech
         return None if target is None else self._enter(target, respond=False)
 
+    def enter(self, name: NodeName) -> NodeConfig:
+        """Move to a step without asking the model to speak; the step's own lines still play."""
+        return self._enter(name, respond=False)
+
     def initial_node(self) -> NodeConfig:
         return self._enter(NodeName.GREETING, respond=False)
 

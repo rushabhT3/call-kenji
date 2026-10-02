@@ -5,6 +5,7 @@ from pipecat.frames.frames import (
     Frame,
     InterimTranscriptionFrame,
     InterruptionFrame,
+    LLMFullResponseEndFrame,
     ProposedUserStartedSpeakingFrame,
     ProposedUserStoppedSpeakingFrame,
     TranscriptionFrame,
@@ -22,7 +23,12 @@ from pipecat.turns.user_stop import ExternalUserTurnStopStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.utils.time import time_now_iso8601
 
-from kenji.app.turns import BackchannelTurnStartStrategy, UnfinishedPhraseHold
+from kenji.app.turns import (
+    AnswerWatch,
+    BackchannelTurnStartStrategy,
+    Floor,
+    UnfinishedPhraseHold,
+)
 from kenji.domain.turn import LexiconBackchannelClassifier, TurnDecision, TurnPolicy, TurnVerdict
 
 READ_BACK = TurnPolicy(min_interruption_score=0.85)
@@ -157,3 +163,96 @@ async def test_speech_after_the_pause_joins_the_same_turn() -> None:
     assert len(turns) == 1
     assert "生年月日は" in turns[0]
     assert "平成2年7月14日です" in turns[0]
+
+
+async def _speak_while_kenji_holds_the_floor(utterance: str) -> tuple[list[str], Floor]:
+    floor = Floor()
+    floor.hold()
+    strategy = BackchannelTurnStartStrategy(
+        classifier=LexiconBackchannelClassifier(),
+        policy=lambda: READ_BACK,
+        on_decision=lambda *_: None,
+        floor=floor,
+    )
+    aggregator = LLMUserAggregator(
+        LLMContext(),
+        params=LLMUserAggregatorParams(
+            user_turn_strategies=UserTurnStrategies(
+                start=[strategy], stop=[ExternalUserTurnStopStrategy(timeout=0.05)]
+            )
+        ),
+    )
+    downstream, _ = await run_test(
+        aggregator,
+        frames_to_send=[
+            VADUserStartedSpeakingFrame(),
+            _text(utterance, final=True),
+            SleepFrame(sleep=0.2),
+        ],
+    )
+    return [type(frame).__name__ for frame in downstream], floor
+
+
+async def test_aizuchi_after_kenjis_acknowledgement_does_not_take_the_turn() -> None:
+    frames, floor = await _speak_while_kenji_holds_the_floor("はい")
+
+    assert UserStartedSpeakingFrame.__name__ not in frames
+    assert floor.is_held
+
+
+async def test_a_real_interruption_after_the_acknowledgement_takes_the_turn() -> None:
+    frames, floor = await _speak_while_kenji_holds_the_floor("ちょっと待ってください")
+
+    assert UserStartedSpeakingFrame.__name__ in frames
+    assert not floor.is_held
+
+
+def test_the_floor_is_kept_through_the_gap_and_released_when_the_answer_starts() -> None:
+    floor = Floor()
+    floor.hold()
+
+    floor.kenji_started_speaking()
+    assert floor.is_held
+    floor.kenji_stopped_speaking()
+    assert floor.is_held
+    floor.kenji_started_speaking()
+    assert not floor.is_held
+
+
+def test_speech_unrelated_to_a_held_floor_changes_nothing() -> None:
+    floor = Floor()
+
+    floor.kenji_stopped_speaking()
+    floor.kenji_started_speaking()
+
+    assert not floor.is_held
+
+
+def test_the_floor_is_released_when_kenji_stops_after_the_model_has_answered() -> None:
+    floor = Floor()
+    floor.hold()
+
+    floor.answer_ready()
+    assert floor.is_held
+    floor.kenji_stopped_speaking()
+    assert not floor.is_held
+
+
+def test_an_answer_with_no_floor_held_is_ignored() -> None:
+    floor = Floor()
+
+    floor.answer_ready()
+    floor.hold()
+    floor.kenji_stopped_speaking()
+
+    assert floor.is_held
+
+
+async def test_the_answer_watch_marks_the_end_of_the_models_answer() -> None:
+    floor = Floor()
+    floor.hold()
+
+    await run_test(AnswerWatch(floor), frames_to_send=[LLMFullResponseEndFrame()])
+    floor.kenji_stopped_speaking()
+
+    assert not floor.is_held

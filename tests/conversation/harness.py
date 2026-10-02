@@ -69,6 +69,7 @@ class TextCall:
     advice: CannedAdvice
     task: "asyncio.Task[CallOutcome]"
     wait_secs: float = WAIT_SECS
+    acknowledgement: str = ""
 
     def nodes(self) -> list[str]:
         return [event.node for event in self.recorder.of_type("flow_node")]  # type: ignore[union-attr]
@@ -105,12 +106,15 @@ class TextCall:
             if isinstance(line, TranscriptLine) and line.speaker == "kenji"
         ]
 
+    def kenji_answers(self) -> list[str]:
+        return [line for line in self.kenji_lines() if line != self.acknowledgement]
+
     async def reply(self, text: str) -> None:
-        """Say a line, then wait for Kenji to answer it or for the call to end."""
-        heard = len(self.kenji_lines())
+        """Say a line, then wait for Kenji's answer to it (not his 「はい、」) or the call's end."""
+        heard = len(self.kenji_answers())
         await self.caller_says(text)
         await wait_until(
-            lambda: len(self.kenji_lines()) > heard or self.task.done(),
+            lambda: len(self.kenji_answers()) > heard or self.task.done(),
             f"a reply to {text!r}",
             self.wait_secs,
         )
@@ -213,4 +217,5 @@ async def launch_text_call(
         parts.advice,
         task,
         wait_secs,
+        parts.kit.script.lines.acknowledgement.ja,
     )

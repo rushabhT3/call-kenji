@@ -1,6 +1,6 @@
 """Per-turn voice-to-voice latency, split into end of turn, LLM first token and TTS first audio."""
 
-from kenji.app.events import LatencyMeasured
+from kenji.app.events import LatencyMeasured, Opening
 from kenji.app.ports import EventSink
 from kenji.domain.latency import TurnLatency, summarize_latency
 
@@ -13,12 +13,13 @@ def split_turn_latency(
     """Split a measured interval so the three stages sum exactly to the measured total.
 
     The TTS stage is what remains after end-of-turn and the LLM's first token: it covers
-    sentence aggregation and the speech service's own time to first audio.
+    sentence aggregation and the speech service's own time to first audio. A reply that did
+    not wait on the model has no LLM stage.
     """
-    if end_of_turn_secs is None or llm_first_token_secs is None:
+    if end_of_turn_secs is None:
         return None
     end_of_turn_ms = end_of_turn_secs * _MS_PER_SECOND
-    llm_ms = llm_first_token_secs * _MS_PER_SECOND
+    llm_ms = 0.0 if llm_first_token_secs is None else llm_first_token_secs * _MS_PER_SECOND
     remainder_ms = total_secs * _MS_PER_SECOND - end_of_turn_ms - llm_ms
     return TurnLatency(
         end_of_turn_ms=end_of_turn_ms,
@@ -32,7 +33,7 @@ class LatencyTracker:
         self._sink = sink
         self._turns: list[TurnLatency] = []
 
-    def record(self, latency: TurnLatency) -> None:
+    def record(self, latency: TurnLatency, opened_with: Opening = "model") -> None:
         self._turns.append(latency)
         summary = summarize_latency(self._turns)
         if summary is None:
@@ -47,5 +48,6 @@ class LatencyTracker:
                 p50_ms=summary.p50_ms,
                 p95_ms=summary.p95_ms,
                 budget_ms=summary.budget_ms,
+                opened_with=opened_with,
             )
         )

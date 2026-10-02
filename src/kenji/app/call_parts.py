@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from kenji.app.agreement import describe_plan_en, format_date_en, format_yen
 from kenji.app.events import StrategistUpdated
+from kenji.app.fast_path import FastPathParts, FastPathPlanner
 from kenji.app.flows import CallFlow
 from kenji.app.latency import LatencyTracker
 from kenji.app.ports import (
@@ -63,6 +64,7 @@ class CallParts:
     feed: TranscriptFeed
     strategist: Strategist
     injector: StrategistInjector
+    planner: FastPathPlanner
     latency: LatencyTracker
     talker_instruction: str
 
@@ -101,7 +103,19 @@ def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallPart
     fields = _persona_fields(kit, context)
     session = CallSession(context, io.sink, io.audit, kit.clock)
     feed = TranscriptFeed(io.sink, kit.translator, kit.clock)
-    flow = CallFlow(kit.script, session, CallTools(session, kit.contacts), feed.expect_scripted)
+    tools = CallTools(session, kit.contacts)
+    flow = CallFlow(kit.script, session, tools, feed.expect_scripted)
+    feed.expect_scripted(kit.script.lines.acknowledgement)
+    planner = FastPathPlanner(
+        FastPathParts(
+            flow=flow,
+            tools=tools,
+            session=session,
+            debtor=kit.account.debtor,
+            lines=kit.script.lines,
+            on_line=feed.expect_scripted,
+        )
+    )
     strategist = Strategist(
         kit.advice_model, prompts.strategist_system.format_map(fields), _publish_advice(io.sink)
     )
@@ -117,6 +131,7 @@ def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallPart
         feed=feed,
         strategist=strategist,
         injector=StrategistInjector(hint),
+        planner=planner,
         latency=LatencyTracker(io.sink),
         talker_instruction=prompts.talker_role.format_map(fields),
     )

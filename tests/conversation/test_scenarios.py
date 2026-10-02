@@ -1,4 +1,8 @@
-"""The five conversations the brief names, run through the real flows with a scripted talker."""
+"""The five conversations the brief names, run through the real flows.
+
+Turns the rules are sure of take the fast path; the rest go to a scripted talker standing in for
+the language model, after an immediate acknowledgement.
+"""
 
 from typing import cast
 
@@ -12,10 +16,11 @@ from kenji.app.events import (
 )
 from kenji.domain.compliance import CheckStatus
 from kenji.domain.outcome import CallOutcome
-from tests.conversation.harness import Say, TextCall, ToolCall, start_text_call
+from tests.conversation.harness import Say, TextCall, ToolCall, start_text_call, wait_until
 
 VERIFY = ToolCall("verify_identity", {"name_kana": "サトウユウキ", "date_of_birth": "1990-07-14"})
 IDENTITY_ANSWER = "佐藤ゆうきです。平成2年7月14日生まれです。"
+ACKNOWLEDGEMENT = "はい、"
 DEBT_WORDS = ("債権", "回収", "返済", "支払", "延滞", "滞納", "円", "7731", "35,000", "万")
 
 
@@ -29,20 +34,20 @@ def _last_compliance(call: TextCall) -> ComplianceUpdated:
 
 
 async def _verified(call: TextCall) -> None:
+    """Name and date of birth in one answer: the fast path verifies without the model."""
     await call.opening_played()
     await call.caller_says(IDENTITY_ANSWER, then_node="state_balance")
 
 
+async def _verified_by_the_model(call: TextCall) -> None:
+    """Name and date of birth in separate answers: the rules are unsure, so the model verifies."""
+    await call.opening_played()
+    await call.caller_says("佐藤ゆうきです。")
+    await call.caller_says("平成2年7月14日です。", then_node="state_balance")
+
+
 async def test_normal_path_reaches_a_promise_with_every_safeguard_passed() -> None:
-    call = await start_text_call(
-        [
-            VERIFY,
-            ToolCall("check_terms", {"monthly_yen": 6000}),
-            Say("毎月6,000円でしたら、条件の範囲内です。"),
-            ToolCall("confirm_plan", {"monthly_yen": 6000}),
-            ToolCall("record_promise"),
-        ]
-    )
+    call = await start_text_call([])
     await _verified(call)
     await call.caller_says("毎月6,000円なら払えます。", then_node="negotiate")
     await call.caller_says("それでお願いします。", then_node="read_back")
@@ -58,6 +63,7 @@ async def test_normal_path_reaches_a_promise_with_every_safeguard_passed() -> No
     assert not sms.is_sent
     audit = cast(AuditPublished, call.recorder.of_type("audit")[-1])
     assert audit.is_chain_valid
+    assert call.talker.inferences == []
 
 
 async def test_spouse_hears_nothing_about_the_debt() -> None:
@@ -73,17 +79,7 @@ async def test_spouse_hears_nothing_about_the_debt() -> None:
 
 
 async def test_hard_bargainer_offering_3000_is_held_to_the_terms() -> None:
-    call = await start_text_call(
-        [
-            VERIFY,
-            ToolCall("check_terms", {"monthly_yen": 3000}),
-            Say("3,000円ですと条件に届きません。毎月6,000円ではいかがでしょうか。"),
-            ToolCall("confirm_plan", {"monthly_yen": 3000}),
-            Say("申し訳ございません、3,000円ではお受けできません。6,000円ではいかがでしょうか。"),
-            ToolCall("confirm_plan", {"monthly_yen": 6000}),
-            ToolCall("record_promise"),
-        ]
-    )
+    call = await start_text_call([ToolCall("confirm_plan", {"monthly_yen": 6000})])
     await _verified(call)
     await call.caller_says("3,000円しか払えません。", then_node="negotiate")
     await call.caller_says("3,000円で決めてください。")
@@ -100,7 +96,7 @@ async def test_hard_bargainer_offering_3000_is_held_to_the_terms() -> None:
 
 async def test_asking_for_a_human_leaves_a_handoff_record() -> None:
     reason = {"reason": "担当者と話したい", "summary": "Caller asked for a person."}
-    call = await start_text_call([VERIFY, ToolCall("request_human", reason)])
+    call = await start_text_call([ToolCall("request_human", reason)])
     await _verified(call)
     await call.caller_says("人間の担当者と話したいです。")
 
@@ -112,7 +108,7 @@ async def test_asking_for_a_human_leaves_a_handoff_record() -> None:
 
 
 async def test_stop_contact_is_recorded_and_the_call_ends() -> None:
-    call = await start_text_call([VERIFY, ToolCall("record_stop_contact")])
+    call = await start_text_call([ToolCall("record_stop_contact")])
     await _verified(call)
     await call.caller_says("もう電話してこないでください。")
 
@@ -121,11 +117,28 @@ async def test_stop_contact_is_recorded_and_the_call_ends() -> None:
     assert not call.recorder.of_type("sms_preview")
 
 
+async def test_an_open_turn_is_acknowledged_before_the_model_answers() -> None:
+    answer = "ご事情をお聞かせいただけますか。"
+    call = await start_text_call([Say(answer)])
+    await _verified(call)
+    await call.caller_says("今月は少し厳しいです。")
+    await wait_until(lambda: answer in call.kenji_lines(), "the model's answer")
+    await call.hang_up()
+
+    lines = call.kenji_lines()
+    assert lines.index(ACKNOWLEDGEMENT) < lines.index(answer)
+
+
 async def test_strategist_advice_reaches_the_next_talker_turn_only() -> None:
     call = await start_text_call(
-        [VERIFY, Say("ご事情をお聞かせいただけますか。"), Say("承知いたしました。")]
+        [
+            Say("生年月日もお願いいたします。"),
+            VERIFY,
+            Say("ご事情をお聞かせいただけますか。"),
+            Say("承知いたしました。"),
+        ]
     )
-    await _verified(call)
+    await _verified_by_the_model(call)
     await call.caller_says("今月は少し厳しいです。")
     await call.caller_says("来月なら少し払えます。")
     await call.bot_finishes_speaking()
@@ -139,7 +152,7 @@ async def test_strategist_advice_reaches_the_next_talker_turn_only() -> None:
 
 
 async def test_caller_lines_get_english_subtitles() -> None:
-    call = await start_text_call([VERIFY, Say("ありがとうございます。")])
+    call = await start_text_call([Say("ありがとうございます。")])
     await _verified(call)
     await call.caller_says("よろしくお願いします。")
     await call.bot_finishes_speaking()

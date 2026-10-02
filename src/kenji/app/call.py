@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass, replace
 
 from loguru import logger
-from pipecat.flows import FlowManager
+from pipecat.flows import FlowManager, NodeConfig
 from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.observers.user_bot_latency_observer import LatencyBreakdown, UserBotLatencyObserver
 from pipecat.pipeline.pipeline import Pipeline
@@ -32,11 +32,12 @@ from pipecat.workers.runner import WorkerRunner
 from kenji.app.call_parts import CallIO, CallKit, CallParts, build_call_parts
 from kenji.app.debrief import publish_debrief
 from kenji.app.events import CallStarted, TurnAssessed
+from kenji.app.fast_path import Acknowledgement, FastPath
 from kenji.app.latency import split_turn_latency
 from kenji.app.observers import InterimTranscriptObserver
 from kenji.app.session import CallContext
 from kenji.app.strategist import count_caller_turns
-from kenji.app.turns import BackchannelTurnStartStrategy
+from kenji.app.turns import AnswerWatch, BackchannelTurnStartStrategy, Floor
 from kenji.domain.outcome import CallOutcome
 from kenji.domain.turn import TurnDecision, TurnVerdict
 
@@ -58,6 +59,8 @@ class Call:
         self._max_seconds = setup.max_seconds
         self._input_processors = setup.input_processors
         self._parts: CallParts = build_call_parts(kit, setup.context, setup.io)
+        self._floor = Floor()
+        self._fast_path = self._build_fast_path()
         self._talker = kit.voice.talker.create(self._parts.talker_instruction)
         self._context = LLMContext()
         self._pair = LLMContextAggregatorPair(self._context, user_params=self._user_params())
@@ -102,7 +105,16 @@ class Call:
             classifier=self._kit.classifier,
             policy=self._parts.flow.turn_policy,
             on_decision=self._publish_turn,
+            floor=self._floor,
         )
+
+    def _build_fast_path(self) -> FastPath:
+        acknowledgement = Acknowledgement(
+            self._kit.script.lines.acknowledgement.ja,
+            self._floor,
+            on_spoken=self._parts.feed.kenji_said,
+        )
+        return FastPath(self._parts.planner, acknowledgement, set_node=self._set_node)
 
     def _build_worker(self) -> PipelineWorker:
         voice = self._kit.voice
@@ -111,8 +123,10 @@ class Call:
             *self._input_processors,
             voice.speech_to_text.create(),
             self._pair.user(),
+            self._fast_path,
             self._parts.injector,
             self._talker,
+            AnswerWatch(self._floor),
             voice.text_to_speech.create(),
             self._transport.output(),
             self._pair.assistant(),
@@ -137,6 +151,9 @@ class Call:
         self._pair.assistant().add_event_handler(
             "on_assistant_turn_stopped", self._on_assistant_turn_stopped
         )
+
+    async def _set_node(self, node: NodeConfig) -> None:
+        await self._flow_manager.set_node_from_config(node)
 
     async def _on_connected(self, _transport: BaseTransport, _client: object) -> None:
         await self._flow_manager.initialize(self._parts.flow.initial_node())
@@ -170,6 +187,7 @@ class Call:
     ) -> None:
         if not message.content:
             return
+        self._floor.release()
         scripted = self._parts.feed.kenji_said(message.content)
         if scripted == self._kit.script.lines.greeting and not message.interrupted:
             self._parts.session.mark_disclosure_given()
@@ -178,14 +196,17 @@ class Call:
         started, heard_since = breakdown.user_turn_start_time, self._caller_heard_since
         if started is None or heard_since is None or started < heard_since:
             return  # timed from before the opening, when the caller was muted: not a turn
-        llm_first_token = next(
-            (ttfb.duration_secs for ttfb in breakdown.ttfb if "LLM" in ttfb.processor), None
+        opening = self._fast_path.last_opening
+        llm_first_token = (
+            next((ttfb.duration_secs for ttfb in breakdown.ttfb if "LLM" in ttfb.processor), None)
+            if opening == "model"
+            else None
         )
         latency = split_turn_latency(
             breakdown.user_turn_secs, llm_first_token, breakdown.total_secs
         )
         if latency is not None:
-            self._parts.latency.record(latency)
+            self._parts.latency.record(latency, opening)
 
     def _publish_turn(self, utterance: str, decision: TurnDecision, overlap_ms: float) -> None:
         if decision.verdict is TurnVerdict.BACKCHANNEL:

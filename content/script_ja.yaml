@@ -55,6 +55,15 @@ lines:
       Let me read back what we've agreed.
       Starting on {first_due_en}, ¥{monthly_yen} a month for {regular_installments} payments, then a final payment of ¥{final_yen}: {installments} payments and ¥{total_yen} in total.
       Is that correct?
+  acknowledgement:
+    ja: はい、
+    en: "Yes,"
+  offer_accepted:
+    ja: ありがとうございます。毎月{monthly_yen}円、初回は{first_due}のお支払いで、よろしいでしょうか。
+    en: Thank you. ¥{monthly_yen} a month, with the first payment on {first_due_en}. Shall we go ahead with that?
+  offer_below_terms:
+    ja: 申し訳ございません。毎月{offered_yen}円ですと、お受けできる条件に届きません。毎月{monthly_yen}円からでしたらお受けできますが、いかがでしょうか。
+    en: I'm sorry, ¥{offered_yen} a month is below what we can accept. We can accept from ¥{monthly_yen} a month. Would that work for you?
   read_back_even:
     ja: >-
       それでは、お約束の内容を確認させていただきます。
@@ -130,6 +139,7 @@ prompts:
     - 金額と日付はアラビア数字で書いてください（例: 35,000円、10月27日）。
     - 記号、箇条書き、絵文字、英語は使わないでください。音声で読み上げられます。
     - ツールの使い方、日付の変換、計算などの作業内容は口に出さないでください。確認中は「確認いたします」とだけ伝えてください。
+    - あなたの返答の直前に、システムが「はい、」とあいづちを入れます。返答を「はい」から始めないでください。
 
     厳守事項:
     - ご本人様の確認が終わるまで、ご用件、金額、口座、会社の正式名称には一切触れないでください。

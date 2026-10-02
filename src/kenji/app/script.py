@@ -42,6 +42,9 @@ class Lines(_Content):
     third_party_callback: Line
     read_back: Line
     read_back_even: Line
+    acknowledgement: Line
+    offer_accepted: Line
+    offer_below_terms: Line
     read_back_single: Line
     promise_close: Line
     handoff_close: Line

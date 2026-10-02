@@ -73,6 +73,11 @@ class ComplianceUpdated(_Event):
     recording_notice: CheckStatus
 
 
+# How Kenji opened his reply: scripted from the rules, with an instant 「はい、」 while the model
+# worked, or with the model's own first words (older recordings).
+type Opening = Literal["rules", "acknowledgement", "model"]
+
+
 class LatencyMeasured(_Event):
     type: Literal["latency"] = "latency"
     turn: int
@@ -83,6 +88,7 @@ class LatencyMeasured(_Event):
     p50_ms: float
     p95_ms: float
     budget_ms: float
+    opened_with: Opening = "model"
 
 
 class HandoffRecorded(_Event):

@@ -18,10 +18,12 @@ from pipecat.frames.frames import (
     BotStoppedSpeakingFrame,
     Frame,
     InterimTranscriptionFrame,
+    LLMFullResponseEndFrame,
     ProposedUserStartedSpeakingFrame,
     TranscriptionFrame,
     VADUserStartedSpeakingFrame,
 )
+from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.turns.types import ProcessFrameResult
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 from pipecat.turns.user_stop import ExternalUserTurnStopStrategy
@@ -47,6 +49,46 @@ def _monotonic_ms() -> float:
     return time.monotonic() * 1000.0
 
 
+class Floor:
+    """Kenji keeps the floor while silent between his 「はい、」 and the answer that follows it.
+
+    Speech in that gap is judged as speech over Kenji: aizuchi does not cancel the answer on its
+    way, and a bare はい cannot be taken as agreement to something he has not yet said.
+    """
+
+    def __init__(self) -> None:
+        self._is_held = False
+        self._acknowledgement_played = False
+        self._answer_ready = False
+
+    @property
+    def is_held(self) -> bool:
+        return self._is_held
+
+    def hold(self) -> None:
+        self._is_held = True
+        self._acknowledgement_played = False
+        self._answer_ready = False
+
+    def release(self) -> None:
+        self._is_held = False
+
+    def answer_ready(self) -> None:
+        if self._is_held:
+            self._answer_ready = True
+
+    def kenji_stopped_speaking(self) -> None:
+        if self._answer_ready:
+            self.release()
+        elif self._is_held:
+            self._acknowledgement_played = True
+
+    def kenji_started_speaking(self) -> None:
+        """Kenji's answer has begun, so the ordinary rules for speech over him take over."""
+        if self._acknowledgement_played:
+            self.release()
+
+
 class BackchannelTurnStartStrategy(BaseUserTurnStartStrategy):  # type: ignore[no-untyped-call]
     def __init__(
         self,
@@ -54,39 +96,47 @@ class BackchannelTurnStartStrategy(BaseUserTurnStartStrategy):  # type: ignore[n
         policy: Callable[[], TurnPolicy],
         on_decision: DecisionListener,
         clock_ms: Callable[[], float] = _monotonic_ms,
+        floor: Floor | None = None,
     ) -> None:
         super().__init__()
         self._classifier = classifier
         self._policy = policy
         self._on_decision = on_decision
         self._clock_ms = clock_ms
+        self._floor = floor or Floor()
         self._is_bot_speaking = False
         self._overlap_started_ms: float | None = None
 
     async def handle_user_turn_started(self) -> None:
         self._is_bot_speaking = False
         self._overlap_started_ms = None
+        self._floor.release()
 
     async def process_frame(self, frame: Frame) -> ProcessFrameResult:
         if isinstance(frame, BotStartedSpeakingFrame):
             self._is_bot_speaking = True
+            self._floor.kenji_started_speaking()
         elif isinstance(frame, BotStoppedSpeakingFrame):
             self._is_bot_speaking = False
+            self._floor.kenji_stopped_speaking()
         elif isinstance(frame, VADUserStartedSpeakingFrame):
             return await self._on_voice(frame)
         elif isinstance(frame, (InterimTranscriptionFrame, TranscriptionFrame)):
             return await self._on_text(frame.text, is_final=isinstance(frame, TranscriptionFrame))
         return ProcessFrameResult.CONTINUE
 
+    def _kenji_has_floor(self) -> bool:
+        return self._is_bot_speaking or self._floor.is_held
+
     async def _on_voice(self, _frame: VADUserStartedSpeakingFrame) -> ProcessFrameResult:
-        if not self._is_bot_speaking:
+        if not self._kenji_has_floor():
             await self.trigger_user_turn_started()
             return ProcessFrameResult.STOP
         self._overlap_started_ms = self._clock_ms()
         return ProcessFrameResult.CONTINUE
 
     async def _on_text(self, text: str, *, is_final: bool) -> ProcessFrameResult:
-        if not self._is_bot_speaking:
+        if not self._kenji_has_floor():
             await self.trigger_user_turn_started()
             return ProcessFrameResult.STOP
         decision = self._classifier.classify(text, self._policy())
@@ -169,3 +219,17 @@ class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-unt
         if self._hold is not None:
             self._hold.cancel()
             self._hold = None
+
+
+class AnswerWatch(FrameProcessor):
+    """Sits after the model and tells the floor when the model has finished its answer."""
+
+    def __init__(self, floor: Floor) -> None:
+        super().__init__()
+        self._floor = floor
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
+        await super().process_frame(frame, direction)
+        if isinstance(frame, LLMFullResponseEndFrame):
+            self._floor.answer_ready()
+        await self.push_frame(frame, direction)

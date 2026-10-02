@@ -53,6 +53,17 @@ def describe_plan_en(decision: TermsDecision) -> str:
     return f"{regular} then {last} from {start} ({len(schedule)} payments)"
 
 
+def describe_offer_reply(lines: Lines, decision: TermsDecision, counter_monthly_yen: int) -> Line:
+    if decision.is_accepted:
+        return lines.offer_accepted.fill(agreement_fields(decision))
+    return lines.offer_below_terms.fill(
+        {
+            "offered_yen": format_yen(decision.proposal.monthly_yen),
+            "monthly_yen": format_yen(counter_monthly_yen),
+        }
+    )
+
+
 def describe_read_back(lines: Lines, decision: TermsDecision) -> Line:
     schedule = decision.schedule
     if len(schedule) == 1:

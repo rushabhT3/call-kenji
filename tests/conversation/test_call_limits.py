@@ -12,7 +12,7 @@ from tests.conversation.harness import (
     launch_text_call,
     wait_until,
 )
-from tests.conversation.test_scenarios import IDENTITY_ANSWER, VERIFY
+from tests.conversation.test_scenarios import IDENTITY_ANSWER
 
 
 class HangingAdvice:
@@ -45,17 +45,17 @@ async def test_call_says_goodbye_and_ends_at_its_time_limit() -> None:
 
 async def test_a_strategist_that_never_answers_does_not_slow_kenji() -> None:
     advice = HangingAdvice()
-    parts = build_text_kit([VERIFY, Say("ご事情をお聞かせいただけますか。")])
+    answer = "ご事情をお聞かせいただけますか。"
+    parts = build_text_kit([Say(answer)])
     call = await launch_text_call(replace(parts, kit=replace(parts.kit, advice_model=advice)))
     await call.opening_played()
     await call.caller_says(IDENTITY_ANSWER, then_node="state_balance")
     await call.bot_finishes_speaking()
 
     loop = asyncio.get_running_loop()
-    heard = len(call.kenji_lines())
     started = loop.time()
     await call.transport.caller_says("今月は少し厳しいです。")
-    await wait_until(lambda: len(call.kenji_lines()) > heard, "Kenji's reply")
+    await wait_until(lambda: answer in call.kenji_lines(), "the model's answer")
     reply_secs = loop.time() - started
     await call.hang_up()
 
