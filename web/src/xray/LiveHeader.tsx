@@ -4,6 +4,7 @@ import { formatClock } from "../format.ts";
 import { SiteHeader } from "../landing/SiteHeader.tsx";
 import { Button } from "../ui/Button.tsx";
 import { Pill } from "../ui/Pill.tsx";
+import { HoldButton } from "./HoldButton.tsx";
 
 interface LiveHeaderProps {
   view: CallView;
@@ -34,6 +35,7 @@ function Controls({ call }: { call: BrowserCall }) {
       <Button icon="mic" aria-pressed={call.isMuted} onClick={call.toggleMute}>
         {call.isMuted ? "Unmute" : "Mute"}
       </Button>
+      <HoldButton isOnHold={call.isOnHold} onToggle={call.toggleHold} />
       <Button variant="danger" icon="end" onClick={() => void call.end()}>
         End call
       </Button>
@@ -44,7 +46,11 @@ function Controls({ call }: { call: BrowserCall }) {
 export function LiveHeader({ view, elapsedMs, isDemo, call }: LiveHeaderProps) {
   const canControl = call?.state === "connected" && view.status === "live";
   return (
-    <SiteHeader isLive centre={<Status view={view} elapsedMs={elapsedMs} />}>
+    <SiteHeader
+      isLive
+      homeHref={canControl ? undefined : "/"}
+      centre={<Status view={view} elapsedMs={elapsedMs} />}
+    >
       {isDemo ? <Pill tone="info" label="Demo replay · 再生" /> : null}
       {canControl ? <Controls call={call} /> : null}
     </SiteHeader>

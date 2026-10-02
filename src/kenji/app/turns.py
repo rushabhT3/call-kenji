@@ -5,12 +5,13 @@ strategy splits on spaces, which Japanese does not have, so the domain's Backcha
 decides instead, with the current node's policy.
 
 End: the speech service proposes where a turn ends, and a phrase left hanging on a particle is
-held open a little longer before Kenji answers it.
+held open a little longer before Kenji answers it. A caller who presses Hold keeps the turn
+open for as long as they like, and hands it over by pressing Done.
 """
 
 import asyncio
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from pipecat.frames.frames import (
@@ -169,6 +170,31 @@ class BackchannelTurnStartStrategy(BaseUserTurnStartStrategy):  # type: ignore[n
         self._on_decision(text, decision, overlap_ms)
 
 
+class CallerHold:
+    """The caller asked Kenji to wait: however long they pause, their turn stays open."""
+
+    def __init__(self) -> None:
+        self._is_on = False
+        self._listeners: list[Callable[[], Awaitable[None]]] = []
+
+    @property
+    def is_on(self) -> bool:
+        return self._is_on
+
+    def when_released(self, listener: Callable[[], Awaitable[None]]) -> None:
+        self._listeners.append(listener)
+
+    def put_on(self) -> None:
+        self._is_on = True
+
+    async def release(self) -> None:
+        if not self._is_on:
+            return
+        self._is_on = False
+        for listener in self._listeners:
+            await listener()
+
+
 class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-untyped-call]
     """Ends the turn where the speech service proposes, unless the words stop mid-phrase.
 
@@ -180,12 +206,17 @@ class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-unt
         self,
         *,
         grace_secs: float = UNFINISHED_PHRASE_GRACE_SECS,
+        caller_hold: CallerHold | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._grace_secs = grace_secs
         self._heard = ""
         self._hold: asyncio.Task[None] | None = None
+        self._caller_hold = caller_hold
+        self._closes_when_done: tuple[bool | None] | None = None
+        if caller_hold is not None:
+            caller_hold.when_released(self._close_after_done)
 
     async def handle_user_turn_started(self) -> None:
         await super().handle_user_turn_started()  # type: ignore[no-untyped-call]
@@ -206,6 +237,9 @@ class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-unt
     async def trigger_user_turn_stopped(
         self, *, enable_user_speaking_frames: bool | None = None
     ) -> None:
+        if self._caller_hold is not None and self._caller_hold.is_on:
+            self._closes_when_done = (enable_user_speaking_frames,)
+            return
         if self._hold is not None:
             return
         if sounds_unfinished(self._heard):
@@ -224,9 +258,16 @@ class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-unt
             enable_user_speaking_frames=enable_user_speaking_frames
         )
 
+    async def _close_after_done(self) -> None:
+        """The caller pressed Done: a turn that would have ended while on hold ends now."""
+        pending, self._closes_when_done = self._closes_when_done, None
+        if pending is not None:
+            await super().trigger_user_turn_stopped(enable_user_speaking_frames=pending[0])
+
     def _start_listening_afresh(self) -> None:
         self._release_hold()
         self._heard = ""
+        self._closes_when_done = None
 
     def _release_hold(self) -> None:
         if self._hold is not None:

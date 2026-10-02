@@ -9,7 +9,7 @@ from pydantic import SecretStr
 
 from kenji.adapters.openai_models import OpenAIAdviceModel, OpenAITranslator
 from kenji.adapters.turn import CloudflareTurn, StunOnly
-from kenji.app.turns import BackchannelTurnStartStrategy
+from kenji.app.turns import BackchannelTurnStartStrategy, CallerHold
 from kenji.config import Settings
 from kenji.container import build_kit, build_services
 from kenji.domain.turn import LexiconBackchannelClassifier, TurnPolicy
@@ -37,7 +37,7 @@ def test_real_speech_and_model_adapters_build_without_a_network(tmp_path: Path) 
     assert isinstance(kit.voice.speech_to_text.create(), SonioxSTTService)
     assert isinstance(kit.voice.text_to_speech.create(), CartesiaTTSService)
     assert isinstance(kit.voice.talker.create("You are Kenji."), OpenAILLMService)
-    assert kit.voice.turn_detection.user_params(strategy).vad_analyzer is not None
+    assert kit.voice.turn_detection.user_params(strategy, CallerHold()).vad_analyzer is not None
     assert isinstance(kit.advice_model, OpenAIAdviceModel)
     assert isinstance(kit.translator, OpenAITranslator)
 

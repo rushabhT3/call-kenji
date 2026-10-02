@@ -28,6 +28,15 @@ export function formatScore(score: number): string {
   return score.toFixed(2);
 }
 
+/** A calendar day such as 2026-10-17, read in Japan time, as "17 Oct". */
+export function formatDay(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00+09:00`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Tokyo",
+  });
+}
+
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", {
     hour: "2-digit",

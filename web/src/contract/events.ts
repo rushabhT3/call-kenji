@@ -39,6 +39,8 @@ export interface Subtitle {
   type: "subtitle";
   line_id: string;
   en: string;
+  /** The translation failed for good: the line keeps its Japanese only. */
+  is_unavailable?: boolean;
 }
 
 export interface FlowNodeEntered {

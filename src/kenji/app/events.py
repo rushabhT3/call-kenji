@@ -37,6 +37,7 @@ class Subtitle(_Event):
     type: Literal["subtitle"] = "subtitle"
     line_id: str
     en: str
+    is_unavailable: bool = False
 
 
 class FlowNodeEntered(_Event):

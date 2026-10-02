@@ -168,7 +168,7 @@ async def _through_fast_path(
 
     context = LLMContext(messages=[{"role": "user", "content": caller_text}])
     floor = Floor()
-    acknowledgement = Acknowledgement("はい、", floor, on_spoken=lambda _text: None)
+    acknowledgement = Acknowledgement("はい、", floor)
     processor = FastPath(parts.planner, acknowledgement, set_node=set_node)
     downstream, _ = await run_test(processor, frames_to_send=[LLMContextFrame(context=context)])
     return list(downstream), moved, floor
@@ -264,11 +264,9 @@ async def _model_stays_silent(
 ) -> tuple[list[object], Floor]:
     parts, _ = _verified()
     floor = Floor()
-    spoken: list[str] = []
     acknowledgement = Acknowledgement(
         "はい、",
         floor,
-        on_spoken=spoken.append,
         holding="少々お待ちください。",
         apology="申し訳ございません。もう一度お聞かせいただけますか。",
         deadline_secs=GUARD_SECS,

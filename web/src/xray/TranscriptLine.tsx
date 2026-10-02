@@ -4,8 +4,11 @@ import { formatClock, isoDuration } from "../format.ts";
 interface TranscriptLineProps {
   line: TranscriptEntry;
   offsetMs: number;
-  subtitle: string | undefined;
+  /** English for the line; null when its translation failed for good. */
+  subtitle: string | null | undefined;
   isCurrent: boolean;
+  /** Kenji is still saying this line: its English may follow when he finishes. */
+  isSpeaking?: boolean;
 }
 
 const SPEAKERS = {
@@ -13,13 +16,34 @@ const SPEAKERS = {
   caller: { en: "You", ja: "あなた" },
 } as const;
 
-export function TranscriptLine({ line, offsetMs, subtitle, isCurrent }: TranscriptLineProps) {
+function englishFor(
+  line: TranscriptEntry,
+  subtitle: string | null | undefined,
+  isSpeaking: boolean,
+) {
+  if (line.isBackchannel) {
+    return "Aizuchi while Kenji spoke. He kept going.";
+  }
+  if (subtitle === null) {
+    return "No English for this line: the translation did not come back.";
+  }
+  return subtitle ?? (isSpeaking ? "" : "Translating…");
+}
+
+export function TranscriptLine({
+  line,
+  offsetMs,
+  subtitle,
+  isCurrent,
+  isSpeaking = false,
+}: TranscriptLineProps) {
   const speaker = SPEAKERS[line.speaker];
   const classes = [
     "line",
     `line--${line.speaker}`,
     isCurrent ? "line--current" : "",
     line.isBackchannel ? "line--backchannel" : "",
+    isSpeaking ? "line--speaking" : "",
   ];
   return (
     <li className={classes.join(" ").trim()}>
@@ -32,11 +56,10 @@ export function TranscriptLine({ line, offsetMs, subtitle, isCurrent }: Transcri
       <div className="line__text">
         <p className="line__ja" lang="ja">
           {line.ja}
+          {isSpeaking ? <span className="cursor" aria-hidden="true" /> : null}
         </p>
         <p className="line__en" lang="en">
-          {line.isBackchannel
-            ? "Aizuchi while Kenji spoke. He kept going."
-            : (subtitle ?? "Translating…")}
+          {englishFor(line, subtitle, isSpeaking)}
         </p>
       </div>
     </li>

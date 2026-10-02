@@ -3,6 +3,8 @@ import { finishedCallMs, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
 import { Button } from "../ui/Button.tsx";
 import { ComplianceCard } from "./ComplianceCard.tsx";
+import { DemoBanner } from "./DemoBanner.tsx";
+import { HoldButton } from "./HoldButton.tsx";
 import { LatencyCard } from "./LatencyCard.tsx";
 import { LiveHeader } from "./LiveHeader.tsx";
 import { NowStrip } from "./NowStrip.tsx";
@@ -51,6 +53,7 @@ function MobileCallBar({ call }: { call: BrowserCall }) {
       <Button icon="mic" aria-pressed={call.isMuted} onClick={call.toggleMute}>
         {call.isMuted ? "Unmute" : "Mute"}
       </Button>
+      <HoldButton isOnHold={call.isOnHold} onToggle={call.toggleHold} />
       <Button variant="danger" icon="end" onClick={() => void call.end()}>
         End call
       </Button>
@@ -67,6 +70,7 @@ export function LiveView(props: LiveViewProps) {
     <>
       <LiveHeader view={view} elapsedMs={elapsedMs} isDemo={isDemo} call={call} />
       <main className={liveClasses(view.status, hasCallBar)}>
+        {isDemo ? <DemoBanner /> : null}
         {isFeedLost ? (
           <p className="banner" role="alert">
             Connection lost. The call may still be running. Reload to reconnect.
@@ -74,7 +78,7 @@ export function LiveView(props: LiveViewProps) {
         ) : null}
         <div className="live__grid">
           <div className="live__main">
-            <NowStrip view={view} />
+            <NowStrip view={view} isOnHold={hasCallBar && call.isOnHold} />
             <SummaryChips view={view} />
             <Transcript view={view} />
           </div>

@@ -35,7 +35,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.utils.time import time_now_iso8601
 
 from kenji.app.events import CallEvent
-from kenji.app.turns import UnfinishedPhraseHold
+from kenji.app.turns import CallerHold, UnfinishedPhraseHold
 from kenji.domain.audit import AuditEntry, AuditRecord, append_entry
 from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
 from kenji.domain.contact import ContactPreferences, StopContactRequest, record_stop_contact
@@ -211,11 +211,12 @@ class _Talker:
 
 
 class TextTurnDetection:
-    def user_params(self, start: BaseUserTurnStartStrategy) -> LLMUserAggregatorParams:
+    def user_params(
+        self, start: BaseUserTurnStartStrategy, caller_hold: CallerHold
+    ) -> LLMUserAggregatorParams:
+        stop = UnfinishedPhraseHold(timeout=0.05, grace_secs=0.3, caller_hold=caller_hold)
         return LLMUserAggregatorParams(
-            user_turn_strategies=UserTurnStrategies(
-                start=[start], stop=[UnfinishedPhraseHold(timeout=0.05, grace_secs=0.3)]
-            )
+            user_turn_strategies=UserTurnStrategies(start=[start], stop=[stop])
         )
 
 

@@ -105,12 +105,9 @@ def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallPart
     feed = TranscriptFeed(io.sink, kit.translator, kit.clock)
     tools = CallTools(session, kit.contacts)
     flow = CallFlow(kit.script, session, tools, feed.expect_scripted)
-    for waiting_line in (
-        kit.script.lines.acknowledgement,
-        kit.script.lines.holding,
-        kit.script.lines.answer_failed,
-    ):
-        feed.expect_scripted(waiting_line)
+    for lead in (kit.script.lines.acknowledgement, kit.script.lines.holding):
+        feed.expect_lead(lead)
+    feed.expect_scripted(kit.script.lines.answer_failed)
     planner = FastPathPlanner(
         FastPathParts(
             flow=flow,

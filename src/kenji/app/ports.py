@@ -10,6 +10,7 @@ from pipecat.services.llm_service import LLMService
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 
 from kenji.app.events import CallEvent
+from kenji.app.turns import CallerHold
 from kenji.domain.audit import AuditEntry, AuditRecord
 from kenji.domain.contact import ContactPreferences, StopContactRequest
 from kenji.domain.guardrails import UsageToday
@@ -86,7 +87,9 @@ class TextToSpeechFactory(Protocol):
 
 
 class TurnDetection(Protocol):
-    def user_params(self, start: BaseUserTurnStartStrategy) -> LLMUserAggregatorParams: ...
+    def user_params(
+        self, start: BaseUserTurnStartStrategy, caller_hold: CallerHold
+    ) -> LLMUserAggregatorParams: ...
 
 
 class TalkerFactory(Protocol):

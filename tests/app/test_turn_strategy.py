@@ -1,5 +1,7 @@
 """The turn strategies inside Pipecat's real user aggregator."""
 
+import asyncio
+
 from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
     Frame,
@@ -27,6 +29,7 @@ from pipecat.utils.time import time_now_iso8601
 from kenji.app.turns import (
     AnswerWatch,
     BackchannelTurnStartStrategy,
+    CallerHold,
     Floor,
     UnfinishedPhraseHold,
 )
@@ -93,14 +96,16 @@ async def test_chotto_matte_kudasai_stops_kenji() -> None:
     assert decisions[0].verdict is TurnVerdict.INTERRUPTION
 
 
-async def _caller_speaks(*frames: Frame) -> tuple[list[str], list[str]]:
+async def _caller_speaks(
+    *frames: Frame, caller_hold: CallerHold | None = None
+) -> tuple[list[str], list[str]]:
     context = LLMContext()
     start = BackchannelTurnStartStrategy(
         classifier=LexiconBackchannelClassifier(),
         policy=lambda: CONVERSING,
         on_decision=lambda *_: None,
     )
-    stop = UnfinishedPhraseHold(timeout=0.05, grace_secs=GRACE_SECS)
+    stop = UnfinishedPhraseHold(timeout=0.05, grace_secs=GRACE_SECS, caller_hold=caller_hold)
     aggregator = LLMUserAggregator(
         context,
         params=LLMUserAggregatorParams(
@@ -287,3 +292,49 @@ async def test_blank_model_text_is_not_an_answer() -> None:
     )
 
     assert floor.is_awaiting_model
+
+
+async def _press_done_after(caller_hold: CallerHold, secs: float) -> None:
+    await asyncio.sleep(secs)
+    await caller_hold.release()
+
+
+async def test_a_caller_on_hold_keeps_the_turn_however_long_they_pause() -> None:
+    caller_hold = CallerHold()
+    caller_hold.put_on()
+
+    frames, _ = await _caller_speaks(
+        _text("佐藤ゆうきです。", final=True),
+        ProposedUserStoppedSpeakingFrame(),
+        SleepFrame(sleep=GRACE_SECS + 0.3),
+        caller_hold=caller_hold,
+    )
+
+    assert UserStoppedSpeakingFrame.__name__ not in frames
+
+
+async def test_pressing_done_hands_the_held_turn_to_kenji_at_once() -> None:
+    caller_hold = CallerHold()
+    caller_hold.put_on()
+    done = asyncio.create_task(_press_done_after(caller_hold, 0.3))
+
+    frames, turns = await _caller_speaks(
+        _text("佐藤ゆうきです。", final=True),
+        ProposedUserStoppedSpeakingFrame(),
+        SleepFrame(sleep=0.6),
+        caller_hold=caller_hold,
+    )
+    await done
+
+    assert frames.count(UserStoppedSpeakingFrame.__name__) == 1
+    assert turns == ["佐藤ゆうきです。"]
+
+
+async def test_pressing_done_before_the_caller_has_finished_leaves_the_turn_open() -> None:
+    caller_hold = CallerHold()
+    caller_hold.put_on()
+    await caller_hold.release()
+
+    frames, _ = await _caller_speaks(_text("佐藤", final=False), SleepFrame(sleep=0.2))
+
+    assert UserStoppedSpeakingFrame.__name__ not in frames

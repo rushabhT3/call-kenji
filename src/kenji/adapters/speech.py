@@ -9,13 +9,17 @@ from pipecat.transcriptions.language import Language
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 
-from kenji.app.turns import UnfinishedPhraseHold
+from kenji.app.turns import CallerHold, UnfinishedPhraseHold
 from kenji.domain.kana import to_speech_kana
 from kenji.domain.text import without_stray_latin_words
 
 # Soniox's documented range is 500-3000 ms. 1.5 s is its voice-agent recommendation; the
 # default sensitivity is kept, since cutting callers off is the failure that costs most.
 MAX_ENDPOINT_DELAY_MS = 1500
+# Pipecat closes a turn nothing has closed after this much silence. Soniox closes every turn
+# it heard words in within the delay above, so this only ends a turn on Hold, or one opened by
+# noise it heard no words in; Pipecat's 5 s default would cut a caller on Hold short.
+TURN_STOP_WATCHDOG_SECS = 30.0
 
 
 async def kana_for_speech(text: str, _aggregation_type: str) -> str:
@@ -66,8 +70,13 @@ class SonioxEndpointTurnDetection:
     words still stop on a particle.
     """
 
-    def user_params(self, start: BaseUserTurnStartStrategy) -> LLMUserAggregatorParams:
+    def user_params(
+        self, start: BaseUserTurnStartStrategy, caller_hold: CallerHold
+    ) -> LLMUserAggregatorParams:
         return LLMUserAggregatorParams(
             vad_analyzer=SileroVADAnalyzer(),
-            user_turn_strategies=UserTurnStrategies(start=[start], stop=[UnfinishedPhraseHold()]),
+            user_turn_strategies=UserTurnStrategies(
+                start=[start], stop=[UnfinishedPhraseHold(caller_hold=caller_hold)]
+            ),
+            user_turn_stop_timeout=TURN_STOP_WATCHDOG_SECS,
         )

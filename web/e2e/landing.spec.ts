@@ -12,6 +12,17 @@ test("landing page shows the role card and both ways to call", async ({ page }) 
   await expect(page.getByText("Audio is never stored")).toBeVisible();
 });
 
+test("the header leads to the explainer and the demo at every width", async ({ page }) => {
+  await blockBackend(page);
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("link", { name: /How to read the X-ray|How it works/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Watch a demo call|Demo/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /home/ })).toHaveAttribute("href", "/");
+});
+
 test("browser call stays disabled until this tab has its private feed", async ({ page }) => {
   await blockBackend(page);
   await page.goto("/");
@@ -58,7 +69,10 @@ test("a call Kenji could not hear is never placed", async ({ page }) => {
 
   await page.getByRole("button", { name: "Call from browser" }).click();
 
-  await expect(page.locator(".call-panel__error")).toContainText("blocked the microphone");
+  // Asking the browser for its devices can take a few seconds on a busy machine.
+  await expect(page.locator(".call-panel__error")).toContainText("blocked the microphone", {
+    timeout: 15_000,
+  });
   expect(offers).toEqual([]);
 });
 

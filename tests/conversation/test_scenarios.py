@@ -125,8 +125,8 @@ async def test_an_open_turn_is_acknowledged_before_the_model_answers() -> None:
     await wait_until(lambda: answer in call.kenji_lines(), "the model's answer")
     await call.hang_up()
 
-    lines = call.kenji_lines()
-    assert lines.index(ACKNOWLEDGEMENT) < lines.index(answer)
+    spoken = [text.strip() for text in call.speech.spoken]
+    assert spoken.index(ACKNOWLEDGEMENT) < spoken.index(answer)
 
 
 async def test_strategist_advice_reaches_the_next_talker_turn_only() -> None:

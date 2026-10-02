@@ -7,6 +7,7 @@ import {
   nodeLabel,
   nowSentence,
   outcomeLabel,
+  transcriptSummary,
 } from "./copy.ts";
 
 const compliance = (overrides: Partial<ComplianceUpdated> = {}): ComplianceUpdated => ({
@@ -77,5 +78,14 @@ describe("call problems", () => {
 
   it("never shows a technical error when the line cannot be reached", () => {
     expect(LINE_UNREACHABLE).not.toMatch(/ICE|offer|\[object/);
+  });
+});
+
+describe("transcriptSummary", () => {
+  it("counts the lines once the call is over", () => {
+    expect(transcriptSummary("ended", 13)).toBe(
+      "The whole call: 13 lines, Japanese with English underneath.",
+    );
+    expect(transcriptSummary("ended", 1)).toContain("1 line,");
   });
 });

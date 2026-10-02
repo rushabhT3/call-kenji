@@ -1,65 +1,20 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { elapsedMs, latestKenjiLineId, type CallView } from "../call/callView.ts";
+import { useState } from "react";
+import {
+  currentKenjiLineId,
+  elapsedMs,
+  type CallView,
+  type TranscriptEntry,
+} from "../call/callView.ts";
+import { transcriptSummary } from "../call/copy.ts";
 import { Button } from "../ui/Button.tsx";
+import { Card } from "../ui/Card.tsx";
 import { TranscriptLine } from "./TranscriptLine.tsx";
 
-const NEAR_BOTTOM_PX = 48;
-
-function JumpToLatest({ onJump }: { onJump: () => void }) {
-  return (
-    <span className="transcript__jump">
-      <Button size="sm" icon="arrowDown" onClick={onJump}>
-        Jump to latest
-      </Button>
-    </span>
-  );
-}
-
-interface ScrollRegionProps {
-  contentKey: number;
-  children: ReactNode;
-}
-
-function ScrollRegion({ contentKey, children }: ScrollRegionProps) {
-  const regionRef = useRef<HTMLDivElement>(null);
-  const [isAwayFromBottom, setIsAwayFromBottom] = useState(false);
-
-  useLayoutEffect(() => {
-    const region = regionRef.current;
-    if (region && !isAwayFromBottom) {
-      region.scrollTop = region.scrollHeight;
-    }
-  }, [contentKey, isAwayFromBottom]);
-
-  const handleScroll = () => {
-    const region = regionRef.current;
-    if (region) {
-      const distance = region.scrollHeight - region.scrollTop - region.clientHeight;
-      setIsAwayFromBottom(distance > NEAR_BOTTOM_PX);
-    }
-  };
-
-  return (
-    <>
-      <div
-        ref={regionRef}
-        className="transcript__scroll"
-        tabIndex={0}
-        aria-label="Call transcript"
-        onScroll={handleScroll}
-      >
-        {children}
-      </div>
-      {isAwayFromBottom ? (
-        <JumpToLatest
-          onJump={() => {
-            setIsAwayFromBottom(false);
-          }}
-        />
-      ) : null}
-    </>
-  );
-}
+/**
+ * During a call the card keeps to the latest lines, as captions do, so it never needs a scroll
+ * box of its own inside the scrolling page; the earlier lines are one press away.
+ */
+export const LIVE_LINES = 3;
 
 function ListeningRow({ text }: { text: string | null }) {
   return (
@@ -73,31 +28,106 @@ function ListeningRow({ text }: { text: string | null }) {
   );
 }
 
-export function Transcript({ view }: { view: CallView }) {
-  const currentId = latestKenjiLineId(view);
-  const startedAt = view.startedAt;
+function linesToShow(view: CallView, isShowingAll: boolean): TranscriptEntry[] {
+  const finished = view.lines;
+  if (view.status !== "live" || isShowingAll) {
+    return finished;
+  }
+  return finished.slice(Math.max(0, finished.length - LIVE_LINES));
+}
+
+function speakingEntry(view: CallView): TranscriptEntry | null {
+  const speaking = view.speaking;
+  return speaking
+    ? {
+        lineId: speaking.lineId,
+        speaker: "kenji",
+        ja: speaking.ja,
+        isBackchannel: false,
+        at: speaking.at,
+      }
+    : null;
+}
+
+interface EarlierLinesToggleProps {
+  hiddenCount: number;
+  isShowingAll: boolean;
+  onToggle: () => void;
+}
+
+function EarlierLinesToggle({ hiddenCount, isShowingAll, onToggle }: EarlierLinesToggleProps) {
+  const label = isShowingAll
+    ? "Show the latest lines only"
+    : `Show ${String(hiddenCount)} earlier ${hiddenCount === 1 ? "line" : "lines"}`;
   return (
-    <section className="transcript" aria-label="Call transcript">
-      <ScrollRegion
-        contentKey={
-          view.lines.length + Object.keys(view.subtitles).length + (view.partial?.ja.length ?? 0)
-        }
-      >
-        <div role="log" aria-live="polite" aria-relevant="additions">
-          <ol className="transcript__log">
-            {view.lines.map((line) => (
-              <TranscriptLine
-                key={line.lineId}
-                line={line}
-                offsetMs={startedAt ? elapsedMs(startedAt, line.at) : 0}
-                subtitle={view.subtitles[line.lineId]}
-                isCurrent={line.lineId === currentId}
-              />
-            ))}
-          </ol>
-        </div>
-        {view.status === "live" ? <ListeningRow text={view.partial?.ja ?? null} /> : null}
-      </ScrollRegion>
-    </section>
+    <Button variant="quiet" size="sm" aria-expanded={isShowingAll} onClick={onToggle}>
+      {label}
+    </Button>
+  );
+}
+
+interface TranscriptLogProps {
+  view: CallView;
+  lines: TranscriptEntry[];
+}
+
+function TranscriptLog({ view, lines }: TranscriptLogProps) {
+  const speaking = speakingEntry(view);
+  const currentId = currentKenjiLineId(view);
+  const startedAt = view.startedAt;
+  const offset = (line: TranscriptEntry) => (startedAt ? elapsedMs(startedAt, line.at) : 0);
+  return (
+    <div role="log" aria-live="polite" aria-relevant="additions" aria-label="Call transcript">
+      <ol className="transcript__log">
+        {lines.map((line) => (
+          <TranscriptLine
+            key={line.lineId}
+            line={line}
+            offsetMs={offset(line)}
+            subtitle={view.subtitles[line.lineId]}
+            isCurrent={line.lineId === currentId}
+          />
+        ))}
+        {speaking ? (
+          <TranscriptLine
+            key={speaking.lineId}
+            line={speaking}
+            offsetMs={offset(speaking)}
+            subtitle={view.subtitles[speaking.lineId]}
+            isCurrent
+            isSpeaking
+          />
+        ) : null}
+      </ol>
+    </div>
+  );
+}
+
+export function Transcript({ view }: { view: CallView }) {
+  const [isShowingAll, setIsShowingAll] = useState(false);
+  const isLive = view.status === "live";
+  const shown = linesToShow(view, isShowingAll);
+  const hiddenCount = view.lines.length - shown.length;
+  return (
+    <Card
+      id="transcript"
+      title="Transcript"
+      titleJa="通話記録"
+      summary={transcriptSummary(view.status, view.lines.length)}
+      isEmpty={view.status === "waiting"}
+      className="transcript"
+    >
+      {isLive && (hiddenCount > 0 || isShowingAll) ? (
+        <EarlierLinesToggle
+          hiddenCount={hiddenCount}
+          isShowingAll={isShowingAll}
+          onToggle={() => {
+            setIsShowingAll(!isShowingAll);
+          }}
+        />
+      ) : null}
+      <TranscriptLog view={view} lines={shown} />
+      {isLive ? <ListeningRow text={view.partial?.ja ?? null} /> : null}
+    </Card>
   );
 }

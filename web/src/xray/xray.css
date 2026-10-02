@@ -61,6 +61,24 @@
   min-width: 0;
 }
 
+.demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+.demo-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .banner {
   padding: var(--space-4);
   border-radius: var(--radius-sm);
@@ -132,35 +150,12 @@
 }
 
 .transcript {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding-top: var(--space-4);
-  border-top: var(--border-hairline);
-}
-
-.transcript__scroll {
-  height: 56svh;
-  min-height: 320px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  gap: var(--space-5);
 }
 
 .transcript__log {
   display: grid;
   gap: var(--space-6);
-}
-
-.transcript__jump {
-  position: absolute;
-  right: var(--space-4);
-  bottom: var(--space-4);
-}
-
-.transcript__jump .button {
-  box-shadow: var(--shadow-float);
 }
 
 .line {
@@ -363,7 +358,7 @@
   inset: auto 0 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   padding: var(--space-3) var(--gutter) max(var(--space-3), env(safe-area-inset-bottom));
   background: var(--color-surface-sunken);
@@ -371,10 +366,6 @@
 }
 
 @media (min-width: 768px) {
-  .transcript__scroll {
-    height: 60svh;
-  }
-
   .now {
     position: static;
     padding: 0 0 var(--space-6);
@@ -387,11 +378,6 @@
 
   .now__ja {
     display: block;
-  }
-
-  .transcript {
-    padding-top: 0;
-    border-top: 0;
   }
 
   .line {
@@ -418,10 +404,6 @@
 }
 
 @media (min-width: 1024px) {
-  .live--ended .live__main {
-    position: static;
-  }
-
   .live__grid {
     grid-template-columns: minmax(0, 1fr) var(--rail-width);
     gap: var(--column-gap);
@@ -430,22 +412,6 @@
 
   .live {
     padding-top: var(--space-7);
-  }
-
-  .live__main {
-    position: sticky;
-    top: calc(var(--space-4) + var(--header-height) + var(--space-4));
-    height: calc(100svh - var(--space-4) - var(--header-height) - var(--space-4) - var(--space-6));
-  }
-
-  .transcript {
-    flex: 1;
-  }
-
-  .transcript__scroll {
-    flex: 1;
-    height: auto;
-    min-height: 0;
   }
 
   .rail {

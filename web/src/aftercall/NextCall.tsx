@@ -1,12 +1,18 @@
 import { ButtonLink } from "../ui/ButtonLink.tsx";
 
-/** The way on from a finished call: back to the start, where a new call begins. */
+/** The ways on from a finished call, so nobody has to edit the address bar. */
 export function NextCall({ isDemo }: { isDemo: boolean }) {
   return (
-    <div className="post-call__next">
-      <ButtonLink href="/" variant="primary" size="lg" icon="phone">
+    <nav className="post-call__next" aria-label="What next">
+      <ButtonLink href="/#call" variant="primary" size="lg" icon="phone">
         {isDemo ? "Call Kenji yourself" : "Call again"}
       </ButtonLink>
-    </div>
+      <ButtonLink href="/?demo=1" size="lg">
+        {isDemo ? "Watch again" : "Watch the demo"}
+      </ButtonLink>
+      <ButtonLink href="/" variant="quiet" size="lg">
+        Home
+      </ButtonLink>
+    </nav>
   );
 }

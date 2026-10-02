@@ -1,11 +1,17 @@
 import { useRef, useState } from "react";
 import type { CallView } from "../call/callView.ts";
-import { nowSentence } from "../call/copy.ts";
+import { ON_HOLD, nowSentence } from "../call/copy.ts";
 import { useStickyClearance } from "./useStickyClearance.ts";
 
-export function NowStrip({ view }: { view: CallView }) {
+interface NowStripProps {
+  view: CallView;
+  /** The caller pressed Hold: the strip says Kenji is waiting for them. */
+  isOnHold: boolean;
+}
+
+export function NowStrip({ view, isOnHold }: NowStripProps) {
   const [isJapaneseShown, setIsJapaneseShown] = useState(false);
-  const sentence = nowSentence(view.status, view.node);
+  const sentence = isOnHold ? ON_HOLD : nowSentence(view.status, view.node);
   const strip = useRef<HTMLElement>(null);
   useStickyClearance(strip);
   return (

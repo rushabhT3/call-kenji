@@ -3,6 +3,7 @@ import type { CallEvent } from "../contract/events.ts";
 import {
   EMPTY_CALL,
   applyEvents,
+  currentKenjiLineId,
   elapsedMs,
   finishedCallMs,
   latestKenjiLineId,
@@ -106,5 +107,47 @@ describe("selectors", () => {
 
     expect(finishedCallMs(started)).toBeNull();
     expect(finishedCallMs(ended)).toBe(140_000);
+  });
+});
+
+describe("Kenji's line in progress", () => {
+  it("shows the line he is saying and replaces it when he finishes", () => {
+    const speaking = applyEvents(EMPTY_CALL, [transcript("kenji-3", "kenji", "ご確認", false)]);
+    const finished = applyEvents(speaking, [
+      transcript("kenji-3", "kenji", "ご確認ありがとうございます。"),
+    ]);
+
+    expect(speaking.speaking?.ja).toBe("ご確認");
+    expect(finished.speaking).toBeNull();
+    expect(finished.lines.map((line) => line.ja)).toEqual(["ご確認ありがとうございます。"]);
+  });
+
+  it("keeps the caller's words in progress apart from Kenji's", () => {
+    const view = applyEvents(EMPTY_CALL, [
+      transcript("kenji-3", "kenji", "ご確認", false),
+      transcript("caller-4", "caller", "はい", false),
+    ]);
+
+    expect(view.speaking?.lineId).toBe("kenji-3");
+    expect(view.partial?.lineId).toBe("caller-4");
+  });
+
+  it("is the current line while he says it", () => {
+    const view = applyEvents(EMPTY_CALL, [
+      transcript("kenji-1", "kenji", "お電話ありがとうございます。"),
+      transcript("kenji-3", "kenji", "ご確認", false),
+    ]);
+
+    expect(currentKenjiLineId(view)).toBe("kenji-3");
+  });
+});
+
+describe("subtitles", () => {
+  it("records a translation that failed for good as missing", () => {
+    const view = applyEvents(EMPTY_CALL, [
+      { type: "subtitle", line_id: "kenji-2", en: "", is_unavailable: true },
+    ]);
+
+    expect(view.subtitles["kenji-2"]).toBeNull();
   });
 });

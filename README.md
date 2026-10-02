@@ -146,6 +146,9 @@ cd web && pnpm dev    # then open http://localhost:5173/?demo=1
 3. Run `make dev` and open http://localhost:5173.
 4. Press **Call from browser**.
 
+Need time to think mid-sentence? Press **Hold**: Kenji waits, however long you pause, until
+you press **Done**.
+
 Kenji answers between 08:00 and 21:00 Japan time. To try him at any other hour, run
 `uv run python scripts/dev_server.py --afternoon-in-tokyo` in place of `make dev-server`: its
 clock reads 15:00 in Tokyo. It is for testing only; the deployed server never moves its clock.

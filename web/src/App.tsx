@@ -8,20 +8,24 @@ import { Explainer } from "./landing/Explainer.tsx";
 import { Hero } from "./landing/Hero.tsx";
 import { RoleCard } from "./landing/RoleCard.tsx";
 import { SiteHeader } from "./landing/SiteHeader.tsx";
+import { useScrollToHash } from "./landing/useScrollToHash.ts";
 import { LiveView } from "./xray/LiveView.tsx";
 
 const PHONE_NUMBER: string | null =
   (import.meta.env.VITE_PHONE_NUMBER as string | undefined) ?? null;
 
 function Landing({ feed, call }: { feed: CallFeed; call: BrowserCall }) {
+  useScrollToHash();
   return (
     <>
-      <SiteHeader>
+      <SiteHeader homeHref="/">
         <a className="caption site-header__link" href="#how-to-read">
-          How to read the X-ray
+          <span className="site-header__link-long">How to read the X-ray</span>
+          <span className="site-header__link-short">How it works</span>
         </a>
         <a className="caption site-header__link" href="/?demo=1">
-          Watch a demo call
+          <span className="site-header__link-long">Watch a demo call</span>
+          <span className="site-header__link-short">Demo</span>
         </a>
       </SiteHeader>
       <main className="container landing">

@@ -34,14 +34,56 @@ test.describe("demo replay", () => {
     await expect(page.locator("#audit")).toContainText("Hash chain verified");
   });
 
-  test("offers a call of your own once the replay ends", async ({ page }) => {
+  test("offers a call of your own throughout the replay", async ({ page }) => {
+    await blockBackend(page);
+    await openMidCall(page);
+
+    const banner = page.getByRole("complementary", { name: "About this replay" });
+    await expect(banner.getByRole("link", { name: "Call Kenji yourself" })).toHaveAttribute(
+      "href",
+      "/#call",
+    );
+    await expect(banner.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+  });
+
+  test("ends with a way to call, to watch again and to go home", async ({ page }) => {
     await blockBackend(page);
     await openAfterCall(page);
 
-    await expect(page.getByRole("link", { name: "Call Kenji yourself" })).toHaveAttribute(
+    const next = page.getByRole("navigation", { name: "What next" });
+    await expect(next.getByRole("link", { name: "Call Kenji yourself" })).toHaveAttribute(
       "href",
-      "/",
+      "/#call",
     );
+    await expect(next.getByRole("link", { name: "Watch again" })).toHaveAttribute(
+      "href",
+      "/?demo=1",
+    );
+    await expect(next.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+  });
+
+  test("a live transcript keeps to the latest lines, the rest one press away", async ({ page }) => {
+    await blockBackend(page);
+    await openMidCall(page);
+
+    const earlier = page.getByRole("button", { name: /^Show \d+ earlier lines?$/ });
+    await earlier.click({ timeout: 20_000 });
+
+    await expect(page.getByRole("button", { name: "Show the latest lines only" })).toBeVisible();
+    await expect(page.getByRole("log").getByRole("listitem").nth(3)).toBeVisible();
+  });
+
+  test("the audit record reads as a timeline, the raw JSON one press away", async ({ page }) => {
+    await blockBackend(page);
+    await openAfterCall(page);
+    const audit = page.locator("#audit");
+
+    await expect(audit.getByRole("list", { name: /step by step/ })).toContainText(
+      "Payment promise recorded",
+    );
+    await audit.getByRole("button", { name: "Show raw JSON" }).click();
+
+    await expect(audit.getByLabel("Audit record JSON")).toContainText("previous_hash");
   });
 
   test("a summary chip lands its card below the sticky bars", async ({ page }) => {

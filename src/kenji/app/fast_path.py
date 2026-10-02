@@ -85,7 +85,6 @@ class Acknowledgement:
 
     text: str
     floor: Floor
-    on_spoken: Callable[[str], object]
     holding: str = ""
     apology: str = ""
     deadline_secs: float = ANSWER_DEADLINE_SECS
@@ -213,7 +212,6 @@ class FastPath(FrameProcessor):
             await self.push_frame(
                 TTSSpeakFrame(acknowledgement.text, append_to_context=False), direction
             )
-            acknowledgement.on_spoken(acknowledgement.text)
             await self.push_frame(frame, direction)
             self._guard = self.create_task(self._guard_answer(frame), f"{self}::guard")
             return
@@ -251,5 +249,3 @@ class FastPath(FrameProcessor):
 
     async def _say(self, line: str, *, into_context: bool) -> None:
         await self.push_frame(TTSSpeakFrame(line, append_to_context=into_context))
-        if not into_context:
-            self._acknowledgement.on_spoken(line)

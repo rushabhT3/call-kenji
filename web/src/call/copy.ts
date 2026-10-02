@@ -63,6 +63,11 @@ export function outcomeLabel(outcome: CallOutcome): Bilingual {
   return ENDINGS[outcome];
 }
 
+/** An outcome named in plain English, or its own id when it is one this page does not know. */
+export function outcomeText(outcome: string): string {
+  return Object.hasOwn(ENDINGS, outcome) ? ENDINGS[outcome as CallOutcome].en : outcome;
+}
+
 export const LINE_UNREACHABLE =
   "Kenji's line can't be reached right now. Please try again in a minute.";
 
@@ -85,6 +90,13 @@ export function nodeLabel(node: string): Bilingual {
   return NODE_LABELS[node] ?? { en: node, ja: node };
 }
 
+export const ON_HOLD: Bilingual = {
+  en: "On hold. Kenji waits until you press Done, however long you pause.",
+  ja: "保留中です。「Done」を押すまで、ケンジはお待ちします。",
+};
+
+export const HOLD_HINT = "Kenji keeps listening and waits to answer until you press Done.";
+
 export function nowSentence(status: CallStatus, node: string | null): Bilingual {
   if (status === "waiting") {
     return { en: "Waiting for your call.", ja: "お電話をお待ちしています。" };
@@ -98,6 +110,17 @@ export function nowSentence(status: CallStatus, node: string | null): Bilingual 
       ja: nodeLabel(node ?? "greeting").ja,
     }
   );
+}
+
+export function transcriptSummary(status: CallStatus, lineCount: number): string {
+  if (status === "waiting") {
+    return "Waiting for the first words.";
+  }
+  if (status === "live") {
+    return "Japanese as it is spoken, with English underneath.";
+  }
+  const lines = lineCount === 1 ? "1 line" : `${String(lineCount)} lines`;
+  return `The whole call: ${lines}, Japanese with English underneath.`;
 }
 
 export const COMPLIANCE_CHECKS: readonly {

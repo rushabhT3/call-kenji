@@ -87,7 +87,8 @@ export const MID_CALL_URL = "/?demo=1&speed=4";
 export const DEMO_URL = "/?demo=1&speed=40";
 export const WIDTHS = [1440, 1024, 768, 390] as const;
 const REPLAY_TIMEOUT_MS = 20_000;
-const LINES_BEFORE_INSPECTING = 4;
+// A live transcript shows the latest three lines, so three lines in means the call is well under way.
+const LINES_BEFORE_INSPECTING = 3;
 
 export async function openMidCall(page: Page): Promise<void> {
   await page.goto(MID_CALL_URL);

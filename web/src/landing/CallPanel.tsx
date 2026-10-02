@@ -25,7 +25,7 @@ function PhoneNumber({ phoneNumber }: { phoneNumber: string | null }) {
 export function CallPanel(props: CallPanelProps) {
   const isConnecting = props.callState === "connecting";
   return (
-    <section className="call-panel" aria-labelledby="call-title">
+    <section id="call" className="call-panel" aria-labelledby="call-title">
       <h2 id="call-title" className="caption call-panel__caption">
         Call Kenji · <span lang="ja">ケンジに電話</span>
       </h2>

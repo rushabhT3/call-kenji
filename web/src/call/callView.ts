@@ -25,6 +25,7 @@ export interface TranscriptEntry {
 export interface PartialLine {
   lineId: string;
   ja: string;
+  at: string;
 }
 
 export interface CallView {
@@ -34,8 +35,12 @@ export interface CallView {
   endedAt: string | null;
   node: string | null;
   lines: TranscriptEntry[];
+  /** What the caller is saying, before the speech service settles on it. */
   partial: PartialLine | null;
-  subtitles: Readonly<Record<string, string>>;
+  /** The line Kenji is saying right now, shown from its first word. */
+  speaking: PartialLine | null;
+  /** English per line; null when the translation failed for good. */
+  subtitles: Readonly<Record<string, string | null>>;
   turn: TurnAssessed | null;
   strategist: StrategistUpdated | null;
   compliance: ComplianceUpdated | null;
@@ -54,6 +59,7 @@ export const EMPTY_CALL: CallView = {
   node: null,
   lines: [],
   partial: null,
+  speaking: null,
   subtitles: {},
   turn: null,
   strategist: null,
@@ -70,7 +76,10 @@ function withTranscript(
   event: Extract<CallEvent, { type: "transcript" }>,
 ): CallView {
   if (!event.is_final) {
-    return { ...view, partial: { lineId: event.line_id, ja: event.ja } };
+    const inProgress: PartialLine = { lineId: event.line_id, ja: event.ja, at: event.at };
+    return event.speaker === "kenji"
+      ? { ...view, speaking: inProgress }
+      : { ...view, partial: inProgress };
   }
   const entry: TranscriptEntry = {
     lineId: event.line_id,
@@ -81,7 +90,8 @@ function withTranscript(
   };
   const others = view.lines.filter((line) => line.lineId !== event.line_id);
   const partial = view.partial?.lineId === event.line_id ? null : view.partial;
-  return { ...view, lines: [...others, entry], partial };
+  const speaking = view.speaking?.lineId === event.line_id ? null : view.speaking;
+  return { ...view, lines: [...others, entry], partial, speaking };
 }
 
 export function applyEvent(view: CallView, event: CallEvent): CallView {
@@ -91,7 +101,10 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
     case "transcript":
       return withTranscript(view, event);
     case "subtitle":
-      return { ...view, subtitles: { ...view.subtitles, [event.line_id]: event.en } };
+      return {
+        ...view,
+        subtitles: { ...view.subtitles, [event.line_id]: event.is_unavailable ? null : event.en },
+      };
     case "flow_node":
       return { ...view, node: event.node };
     case "turn":
@@ -113,6 +126,7 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
         outcome: event.outcome,
         endedAt: event.ended_at,
         partial: null,
+        speaking: null,
       };
     case "audit":
       return { ...view, audit: event };
@@ -121,6 +135,11 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
 
 export function applyEvents(view: CallView, events: readonly CallEvent[]): CallView {
   return events.reduce(applyEvent, view);
+}
+
+/** The line shown large: the one Kenji is saying, or else the last one he said. */
+export function currentKenjiLineId(view: CallView): string | null {
+  return view.speaking?.lineId ?? latestKenjiLineId(view);
 }
 
 export function latestKenjiLineId(view: CallView): string | null {

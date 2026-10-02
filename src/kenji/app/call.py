@@ -9,7 +9,15 @@ from dataclasses import dataclass, replace
 
 from loguru import logger
 from pipecat.flows import FlowManager, NodeConfig
-from pipecat.frames.frames import EndFrame, TTSSpeakFrame
+from pipecat.frames.frames import (
+    BotSpeakingFrame,
+    EndFrame,
+    InterimTranscriptionFrame,
+    TranscriptionFrame,
+    TTSSpeakFrame,
+    UserSpeakingFrame,
+    UserStartedSpeakingFrame,
+)
 from pipecat.observers.user_bot_latency_observer import LatencyBreakdown, UserBotLatencyObserver
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker
@@ -23,6 +31,8 @@ from pipecat.processors.aggregators.llm_response_universal import (
     UserTurnStoppedMessage,
 )
 from pipecat.processors.frame_processor import FrameProcessor
+from pipecat.processors.frameworks.rtvi.frames import RTVIClientMessageFrame
+from pipecat.processors.frameworks.rtvi.models import ClientMessage
 from pipecat.transports.base_transport import BaseTransport
 from pipecat.turns.user_mute.first_speech_user_mute_strategy import (
     FirstSpeechUserMuteStrategy,
@@ -34,14 +44,26 @@ from kenji.app.debrief import publish_debrief
 from kenji.app.events import CallStarted, TurnAssessed
 from kenji.app.fast_path import Acknowledgement, FastPath
 from kenji.app.latency import split_turn_latency
-from kenji.app.observers import InterimTranscriptObserver
+from kenji.app.narration import HandoverNarrationFilter
+from kenji.app.observers import InterimTranscriptObserver, SpokenSentenceObserver
 from kenji.app.session import CallContext
 from kenji.app.strategist import count_caller_turns
-from kenji.app.turns import AnswerWatch, BackchannelTurnStartStrategy, Floor
+from kenji.app.turns import AnswerWatch, BackchannelTurnStartStrategy, CallerHold, Floor
 from kenji.domain.outcome import CallOutcome
 from kenji.domain.turn import TurnDecision, TurnVerdict
 
 IDLE_TIMEOUT_SECS = 45
+HOLD_MESSAGE = "hold"
+# Pipecat's own idle frames, and the page's messages: a caller on Hold says nothing, but the
+# page repeats the hold message so the call is not closed as idle.
+IDLE_TIMEOUT_FRAMES = (
+    BotSpeakingFrame,
+    InterimTranscriptionFrame,
+    TranscriptionFrame,
+    UserSpeakingFrame,
+    UserStartedSpeakingFrame,
+    RTVIClientMessageFrame,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,6 +82,7 @@ class Call:
         self._input_processors = setup.input_processors
         self._parts: CallParts = build_call_parts(kit, setup.context, setup.io)
         self._floor = Floor()
+        self._caller_hold = CallerHold()
         self._fast_path = self._build_fast_path()
         self._talker = kit.voice.talker.create(self._parts.talker_instruction)
         self._context = LLMContext()
@@ -95,7 +118,9 @@ class Call:
         return publish_debrief(self._kit, self._parts)
 
     def _user_params(self) -> LLMUserAggregatorParams:
-        params = self._kit.voice.turn_detection.user_params(self._turn_strategy())
+        params = self._kit.voice.turn_detection.user_params(
+            self._turn_strategy(), self._caller_hold
+        )
         # The opening carries the AI disclosure; the caller is heard again once it has played.
         mute = FirstSpeechUserMuteStrategy()  # type: ignore[no-untyped-call]
         return replace(params, user_mute_strategies=[mute])
@@ -113,7 +138,6 @@ class Call:
         acknowledgement = Acknowledgement(
             lines.acknowledgement.ja,
             self._floor,
-            on_spoken=self._parts.feed.kenji_said,
             holding=lines.holding.ja,
             apology=lines.answer_failed.ja,
         )
@@ -130,6 +154,7 @@ class Call:
             self._parts.injector,
             self._talker,
             AnswerWatch(self._floor),
+            HandoverNarrationFilter(),
             voice.text_to_speech.create(),
             self._transport.output(),
             self._pair.assistant(),
@@ -139,8 +164,13 @@ class Call:
         return PipelineWorker(
             Pipeline(processors),
             params=PipelineParams(enable_metrics=True, enable_usage_metrics=True),
-            observers=[latency, InterimTranscriptObserver(self._parts.feed.caller_partial)],
+            observers=[
+                latency,
+                InterimTranscriptObserver(self._parts.feed.caller_partial),
+                SpokenSentenceObserver(self._parts.feed.kenji_speaking),
+            ],
             idle_timeout_secs=IDLE_TIMEOUT_SECS,
+            idle_timeout_frames=IDLE_TIMEOUT_FRAMES,
             enable_tracing=True,
             conversation_id=self._parts.session.context.call_id,
         )
@@ -154,6 +184,17 @@ class Call:
         self._pair.assistant().add_event_handler(
             "on_assistant_turn_stopped", self._on_assistant_turn_stopped
         )
+        self._worker.rtvi.add_event_handler("on_client_message", self._on_client_message)
+
+    async def _on_client_message(self, _rtvi: object, message: ClientMessage) -> None:
+        """The browser's Hold button: on keeps the caller's turn open, off hands it over."""
+        if message.type != HOLD_MESSAGE:
+            return
+        data = message.data if isinstance(message.data, dict) else {}
+        if data.get("on") is True:
+            self._caller_hold.put_on()
+        else:
+            await self._caller_hold.release()
 
     async def _set_node(self, node: NodeConfig) -> None:
         await self._flow_manager.set_node_from_config(node)
