@@ -10,7 +10,7 @@ from kenji.app.ports import Clock, EventSink, Translator
 from kenji.app.script import Line
 from kenji.domain.text import spoken_characters, without_repeated_sentence_ends
 
-TRANSLATION_TIMEOUT_SECS = 6.0
+TRANSLATION_TIMEOUT_SECS = 15.0
 
 
 def _key(japanese: str) -> str:

@@ -236,6 +236,8 @@ def _report(results: list[CallResult], run_dir: Path) -> bool:
 async def run(names: list[str]) -> bool:
     run_dir = Path("var") / "voice-check" / time.strftime("%Y%m%d-%H%M%S")
     settings = load_settings().model_copy(update={"data_dir": run_dir})
+    run_dir.mkdir(parents=True, exist_ok=True)
+    logger.add(run_dir / "server.log", level="DEBUG", encoding="utf-8")
     results: list[CallResult] = []
     async with _voice_server(settings) as base, httpx.AsyncClient(timeout=30) as http:
         voice = CallerVoice(settings, http)
