@@ -1,6 +1,7 @@
 """HTTP and WebSocket entry points. Run with `uv run kenji-server`."""
 
 import asyncio
+import hmac
 import secrets
 import sys
 from collections.abc import AsyncIterator, Callable, Coroutine
@@ -110,8 +111,16 @@ def bot_ice_servers(servers: list[IceServer]) -> list[PipecatIceServer]:
     return picked
 
 
+def client_address(http: Request, proxy_secret: str | None) -> str:
+    """The visitor's address; a forwarded one counts only from our own proxy."""
+    claimed = http.headers.get("X-Kenji-Proxy", "")
+    if proxy_secret and hmac.compare_digest(claimed.encode(), proxy_secret.encode()):
+        return http.headers.get("X-Client-Address", "unknown")
+    return http.client.host if http.client else "unknown"
+
+
 def _browser_request(services: Services, http: Request, viewer_id: str | None) -> CallRequest:
-    address = http.client.host if http.client else "unknown"
+    address = client_address(http, services.proxy_secret)
     return CallRequest(
         transport="browser", caller_ref=caller_ref(address, services.salt), viewer_id=viewer_id
     )

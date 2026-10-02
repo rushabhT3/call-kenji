@@ -1,0 +1,17 @@
+{
+  // Static page plus a same-origin proxy to the voice server.
+  // Deploy: npx wrangler@4.147.0 deploy (after `pnpm build`).
+  // Secret: npx wrangler@4.147.0 secret put PROXY_SHARED_SECRET
+  "name": "call-kenji",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/ws/*"],
+  },
+  "vars": {
+    "VOICE_SERVER_URL": "https://REPLACE-WITH-CLOUD-RUN-URL",
+  },
+}

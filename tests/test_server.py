@@ -1,13 +1,14 @@
 from pathlib import Path
 
 import pytest
+from fastapi import Request
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from kenji.app.events import FlowNodeEntered
 from kenji.config import Settings
 from kenji.container import Services
-from kenji.server import create_app
+from kenji.server import client_address, create_app
 
 
 @pytest.fixture
@@ -55,3 +56,18 @@ def test_ice_servers_for_a_browser_call(client: TestClient) -> None:
         reply = client.get("/api/ice").json()
 
     assert reply == {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+
+
+def _request(headers: dict[str, str]) -> Request:
+    raw = [(key.lower().encode(), value.encode()) for key, value in headers.items()]
+    return Request({"type": "http", "headers": raw, "client": ("10.0.0.1", 1234)})
+
+
+def test_forwarded_address_is_trusted_only_with_the_proxy_secret() -> None:
+    forwarded = {"X-Client-Address": "203.0.113.9"}
+    from_proxy = _request({**forwarded, "X-Kenji-Proxy": "s3cret"})
+    spoofed = _request({**forwarded, "X-Kenji-Proxy": "guess"})
+
+    assert client_address(from_proxy, "s3cret") == "203.0.113.9"
+    assert client_address(spoofed, "s3cret") == "10.0.0.1"
+    assert client_address(_request(forwarded), None) == "10.0.0.1"

@@ -60,3 +60,15 @@ jobs:
           name: playwright-report
           path: web/playwright-report
           retention-days: 7
+
+  image:
+    name: Voice server image builds
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build --tag call-kenji:ci .
+      - name: Server refuses to start without keys and names only the missing fields
+        run: |
+          output=$(docker run --rm call-kenji:ci 2>&1 || true)
+          echo "$output"
+          echo "$output" | grep -q "Invalid configuration: LLM_API_KEY"

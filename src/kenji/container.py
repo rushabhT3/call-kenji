@@ -54,6 +54,7 @@ class Services:
     salt: bytes
     ice: IceServerSource
     phone: PhoneLine | None = None
+    proxy_secret: str | None = None
 
 
 def chat_endpoint(settings: LanguageModelSettings) -> ChatEndpoint:
@@ -181,4 +182,9 @@ def build_services(settings: Settings) -> Services:
         salt=load_or_create_salt(settings.data_dir / "caller-salt.bin"),
         ice=build_ice_source(settings),
         phone=build_phone_line(settings, kit.clock),
+        proxy_secret=(
+            settings.proxy_shared_secret.get_secret_value()
+            if settings.proxy_shared_secret
+            else None
+        ),
     )

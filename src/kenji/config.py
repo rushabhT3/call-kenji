@@ -49,6 +49,7 @@ class Settings(LanguageModelSettings):
     twilio_account_sid: str | None = None
     twilio_auth_token: SecretStr | None = None
     public_base_url: str | None = None
+    proxy_shared_secret: SecretStr | None = None
 
     max_call_seconds: int = Field(default=300, gt=0)
     daily_phone_seconds: int = Field(default=3_600, gt=0)
