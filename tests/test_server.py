@@ -5,6 +5,7 @@ from fastapi import Request
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
+from kenji import server
 from kenji.app.events import FlowNodeEntered
 from kenji.config import Settings
 from kenji.container import Services
@@ -44,6 +45,19 @@ def test_viewer_gets_a_private_code_and_only_its_linked_call(
         services.hub.channel("call-1").publish(FlowNodeEntered(node="greeting"))
 
         assert viewer.receive_json() == {"type": "flow_node", "node": "greeting"}
+
+
+def test_viewer_code_is_renewed_before_it_expires(
+    client: TestClient, services: Services, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(server, "CODE_REFRESH_SECS", 0.05)
+
+    with client, client.websocket_connect("/ws/viewer") as viewer:
+        first, renewed = viewer.receive_json(), viewer.receive_json()
+
+    assert renewed["type"] == "viewer_ready"
+    assert renewed["viewer_id"] == first["viewer_id"]
+    assert services.links.redeem("call-1", renewed["code"]) == first["viewer_id"]
 
 
 def test_dev_client_is_off_by_default(client: TestClient) -> None:

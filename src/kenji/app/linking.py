@@ -9,6 +9,7 @@ from kenji.app.ports import Clock
 
 CODE_LENGTH = 4
 CODE_TTL = timedelta(minutes=10)
+CODE_REFRESH = CODE_TTL / 2
 MAX_FAILED_ATTEMPTS_PER_CALL = 3
 
 

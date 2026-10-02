@@ -30,6 +30,7 @@ from kenji.adapters.clock import SystemClock
 from kenji.adapters.storage import purge_expired_calls
 from kenji.app.events import CallEvent
 from kenji.app.launcher import CallRequest
+from kenji.app.linking import CODE_REFRESH
 from kenji.app.ports import IceServer
 from kenji.app.privacy import caller_ref
 from kenji.config import Settings
@@ -38,6 +39,7 @@ from kenji.domain.guardrails import usage_day
 from kenji.phone_routes import add_phone_routes
 
 PURGE_INTERVAL_SECS = 6 * 60 * 60
+CODE_REFRESH_SECS = CODE_REFRESH.total_seconds()
 _EVENT = TypeAdapter[CallEvent](CallEvent)
 
 
@@ -61,8 +63,8 @@ def configure_logging(level: str) -> None:
 async def _purge_forever(settings: Settings) -> None:
     clock = SystemClock()
     while True:
-        removed = purge_expired_calls(
-            settings.data_dir, usage_day(clock.now()), settings.retention_days
+        removed = await asyncio.to_thread(
+            purge_expired_calls, settings.data_dir, usage_day(clock.now()), settings.retention_days
         )
         if removed:
             logger.info("deleted expired call records", days=[path.name for path in removed])
@@ -188,25 +190,20 @@ def _add_browser_call_routes(
         return await _add_candidates(webrtc, await http.json())
 
 
-def _add_viewer_route(app: FastAPI, services: Services) -> None:
-    @app.websocket("/ws/viewer")
-    async def viewer(websocket: WebSocket) -> None:
-        await websocket.accept()
-        viewer_id = secrets.token_urlsafe(16)
-        queue = services.hub.subscribe(viewer_id)
-        code = services.links.issue(viewer_id)
-        await websocket.send_json({"type": "viewer_ready", "viewer_id": viewer_id, "code": code})
+class _ViewerFeed:
+    """One browser tab's private feed: a link code that never goes stale, and its call's events."""
 
-        async def forward_events() -> None:
-            while True:
-                event = await queue.get()
-                await websocket.send_text(_EVENT.dump_json(event).decode("utf-8"))
+    def __init__(self, websocket: WebSocket, services: Services) -> None:
+        self._websocket = websocket
+        self._services = services
+        self._viewer_id = secrets.token_urlsafe(16)
 
-        async def wait_for_close() -> None:
-            while True:
-                await websocket.receive_text()
-
-        tasks = [asyncio.create_task(forward_events()), asyncio.create_task(wait_for_close())]
+    async def run(self) -> None:
+        hub = self._services.hub
+        queue = hub.subscribe(self._viewer_id)
+        await self._send_code()
+        work = (self._forward_events(queue), self._refresh_code(), self._wait_for_close())
+        tasks = [asyncio.create_task(job) for job in work]
         try:
             await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
         except WebSocketDisconnect:
@@ -214,7 +211,34 @@ def _add_viewer_route(app: FastAPI, services: Services) -> None:
         finally:
             for task in tasks:
                 task.cancel()
-            services.hub.unsubscribe(viewer_id)
+            hub.unsubscribe(self._viewer_id)
+
+    async def _send_code(self) -> None:
+        code = self._services.links.issue(self._viewer_id)
+        await self._websocket.send_json(
+            {"type": "viewer_ready", "viewer_id": self._viewer_id, "code": code}
+        )
+
+    async def _refresh_code(self) -> None:
+        while True:
+            await asyncio.sleep(CODE_REFRESH_SECS)
+            await self._send_code()
+
+    async def _forward_events(self, queue: asyncio.Queue[CallEvent]) -> None:
+        while True:
+            event = await queue.get()
+            await self._websocket.send_text(_EVENT.dump_json(event).decode("utf-8"))
+
+    async def _wait_for_close(self) -> None:
+        while True:
+            await self._websocket.receive_text()
+
+
+def _add_viewer_route(app: FastAPI, services: Services) -> None:
+    @app.websocket("/ws/viewer")
+    async def viewer(websocket: WebSocket) -> None:
+        await websocket.accept()
+        await _ViewerFeed(websocket, services).run()
 
 
 def _add_dev_client(
