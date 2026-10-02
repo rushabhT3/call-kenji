@@ -70,14 +70,20 @@ test.describe("accessibility rules", () => {
   test("keyboard focus is always visible", async ({ page }) => {
     await blockBackend(page);
     await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     await page.keyboard.press("Tab");
 
-    const outline = await page.evaluate(() => {
-      const focused = document.activeElement;
-      return focused ? getComputedStyle(focused).outlineStyle : "none";
-    });
-    expect(outline).toBe("solid");
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const focused = document.activeElement;
+          return focused && focused !== document.body
+            ? getComputedStyle(focused).outlineStyle
+            : "nothing focused";
+        }),
+      )
+      .toBe("solid");
   });
 
   test("reduced motion turns animation off", async ({ page }) => {
