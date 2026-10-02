@@ -31,10 +31,8 @@ class LinkRegistry:
         self._failed_attempts: dict[str, int] = {}
 
     def issue(self, viewer_id: str) -> str:
+        """A new code for the tab; its earlier codes keep working until they expire."""
         self._drop_expired()
-        self._pending = {
-            code: link for code, link in self._pending.items() if link.viewer_id != viewer_id
-        }
         code = self._unused_code()
         self._pending[code] = _PendingLink(viewer_id=viewer_id, issued_at=self._clock.now())
         return code
@@ -47,6 +45,11 @@ class LinkRegistry:
         if link is None:
             self._failed_attempts[call_id] = self._failed_attempts.get(call_id, 0) + 1
             return None
+        self._pending = {
+            other: pending
+            for other, pending in self._pending.items()
+            if pending.viewer_id != link.viewer_id
+        }
         return link.viewer_id
 
     def _unused_code(self) -> str:

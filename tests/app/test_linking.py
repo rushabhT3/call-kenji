@@ -62,13 +62,26 @@ def test_call_is_locked_out_after_repeated_wrong_codes(clock: StepClock) -> None
     assert registry.redeem("call-2", real_code) == "tab-b"
 
 
-def test_reissuing_for_a_tab_retires_its_previous_code(clock: StepClock) -> None:
+def test_a_renewed_code_leaves_the_previous_one_working_until_it_expires(
+    clock: StepClock,
+) -> None:
     codes = _codes("1111", "2222")
     registry = LinkRegistry(clock, code_source=lambda: next(codes))
     first = registry.issue("tab-a")
+    clock.advance(CODE_TTL / 2)
     registry.issue("tab-a")
 
-    assert registry.redeem("call-1", first) is None
+    assert registry.redeem("call-1", first) == "tab-a"
+
+
+def test_linking_a_tab_retires_its_other_codes(clock: StepClock) -> None:
+    codes = _codes("1111", "2222")
+    registry = LinkRegistry(clock, code_source=lambda: next(codes))
+    first = registry.issue("tab-a")
+    second = registry.issue("tab-a")
+    registry.redeem("call-1", second)
+
+    assert registry.redeem("call-2", first) is None
 
 
 def test_codes_never_collide_with_a_pending_code(clock: StepClock) -> None:
