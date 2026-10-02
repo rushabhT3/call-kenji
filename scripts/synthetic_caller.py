@@ -45,6 +45,12 @@ class CallerMicrophone(MediaStreamTrack):
         self._samples_sent = 0
         self._started_at: float | None = None
         self.stopped_speaking_at = 0.0
+        self.sent = bytearray()
+
+    @property
+    def started_at(self) -> float | None:
+        """When the first frame left, on the monotonic clock: where `sent` begins."""
+        return self._started_at
 
     def say(self, pcm: bytes) -> None:
         self._pending.extend(pcm)
@@ -59,8 +65,10 @@ class CallerMicrophone(MediaStreamTrack):
         del self._pending[:FRAME_BYTES]
         if chunk and not self._pending:
             self.stopped_speaking_at = time.monotonic()
+        padded = chunk.ljust(FRAME_BYTES, b"\0")
+        self.sent.extend(padded)
         frame = AudioFrame(format="s16", layout="mono", samples=FRAME_SAMPLES)
-        frame.planes[0].update(chunk.ljust(FRAME_BYTES, b"\0"))
+        frame.planes[0].update(padded)
         frame.sample_rate = SAMPLE_RATE
         frame.pts = self._samples_sent
         frame.time_base = Fraction(1, SAMPLE_RATE)
@@ -76,10 +84,13 @@ class CallerMicrophone(MediaStreamTrack):
 
 @dataclass
 class KenjiVoice:
-    """What the caller hears: when Kenji starts and stops making sound."""
+    """What the caller hears: when Kenji starts and stops making sound, and the sound itself."""
 
     last_voice_at: float = 0.0
     onsets: list[float] = field(default_factory=list)
+    heard: list[tuple[int, np.ndarray]] = field(default_factory=list)
+    first_heard_at: float | None = None
+    first_pts: int | None = None
 
     async def listen(self, track: MediaStreamTrack) -> None:
         while True:
@@ -93,7 +104,17 @@ class KenjiVoice:
     def first_onset_after(self, moment: float) -> float | None:
         return next((onset for onset in self.onsets if onset > moment), None)
 
+    def _keep(self, frame: AudioFrame) -> None:
+        """Keep the audio at its place in the stream, as mono 16-bit samples."""
+        channels = len(frame.layout.channels)
+        mono = frame.to_ndarray().reshape(-1, channels).mean(axis=1).astype(np.int16)
+        pts = frame.pts if frame.pts is not None else sum(len(kept) for _, kept in self.heard)
+        if self.first_pts is None:
+            self.first_pts, self.first_heard_at = pts, time.monotonic()
+        self.heard.append((pts - self.first_pts, mono))
+
     def _hear(self, frame: AudioFrame) -> None:
+        self._keep(frame)
         samples = frame.to_ndarray().astype(np.float64)
         if float(np.sqrt(np.mean(np.square(samples)))) < VOICE_RMS:
             return
@@ -109,6 +130,7 @@ class ViewerFeed:
 
     viewer_id: str = ""
     events: list[dict[str, Any]] = field(default_factory=list)
+    arrived_at: list[float] = field(default_factory=list)
 
     def of_type(self, kind: str) -> list[dict[str, Any]]:
         return [event for event in self.events if event.get("type") == kind]
@@ -213,6 +235,7 @@ async def follow_feed(base: str, feed: ViewerFeed, ready: asyncio.Event) -> None
                 ready.set()
             else:
                 feed.events.append(message)
+                feed.arrived_at.append(time.monotonic())
 
 
 async def dial(base: str, feed: ViewerFeed, http: httpx.AsyncClient) -> LiveCall:

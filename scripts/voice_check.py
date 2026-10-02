@@ -2,6 +2,7 @@
 
     uv run python scripts/voice_check.py                # all three conversations
     uv run python scripts/voice_check.py spouse handoff # some of: promise, spouse, handoff
+    uv run python scripts/voice_check.py --record-demo  # the promise call, kept as the demo
 
 The caller's lines are spoken by a second Cartesia voice and sent as real audio over a
 SmallWebRTC peer connection, so Soniox, the talker, the strategist and Cartesia all run for
@@ -11,6 +12,9 @@ The voice server runs in this process with its clock moved to 15:00 Japan time t
 because calls outside 08:00 to 21:00 are refused; the calling-hours rule has its own tests.
 Each run keeps its records under var/voice-check/<run>/. A run costs a few cents.
 Exits non-zero if any conversation misses its expected outcome.
+
+--record-demo keeps a passing promise call as the page's replay, with both sides' audio
+(web/public/demo/call.json and call.m4a). The caller is synthetic, so no one's voice is kept.
 """
 
 import argparse
@@ -28,6 +32,7 @@ from pathlib import Path
 import httpx
 import uvicorn
 from afternoon_clock import AfternoonInTokyoClock
+from demo_recording import CallAudio, write_demo_recording
 from loguru import logger
 from synthetic_caller import (
     CALL_TIMEOUT_SECS,
@@ -66,6 +71,7 @@ class CallResult:
     feed: ViewerFeed
     mouth_to_ear_ms: list[float]
     problems: list[str]
+    audio: CallAudio
 
 
 def _says_nothing_about_the_debt(feed: ViewerFeed) -> list[str]:
@@ -183,7 +189,8 @@ async def _run_scenario(base: str, scenario: Scenario, voice: CallerVoice) -> Ca
         await call.peer.close()
         await until(lambda: feed.outcome is not None and bool(feed.of_type("audit")), 20)
         following.cancel()
-    return CallResult(scenario, feed, call.mouth_to_ear_ms, _problems(scenario, feed))
+    audio = CallAudio(call.microphone, call.kenji)
+    return CallResult(scenario, feed, call.mouth_to_ear_ms, _problems(scenario, feed), audio)
 
 
 def _problems(scenario: Scenario, feed: ViewerFeed) -> list[str]:
@@ -240,7 +247,16 @@ def _report(results: list[CallResult], run_dir: Path) -> bool:
     return all(not result.problems for result in results)
 
 
-async def run(names: list[str]) -> bool:
+def _keep_as_demo(results: list[CallResult]) -> None:
+    passed = [result for result in results if not result.problems]
+    if not passed:
+        print("demo not written: the call did not pass")
+        return
+    path = write_demo_recording(passed[0].feed, passed[0].audio)
+    print(f"demo written: {path}")
+
+
+async def run(names: list[str], *, is_recording_demo: bool = False) -> bool:
     run_dir = Path("var") / "voice-check" / time.strftime("%Y%m%d-%H%M%S")
     settings = load_settings().model_copy(update={"data_dir": run_dir})
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -253,19 +269,25 @@ async def run(names: list[str]) -> bool:
             results.append(await _run_scenario(base, SCENARIOS[name], voice))
             for line in results[-1].feed.kenji_lines():
                 print(f"  kenji: {line}")
+    if is_recording_demo:
+        _keep_as_demo(results)
     return _report(results, run_dir)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("scenarios", nargs="*", help=f"any of {', '.join(SCENARIOS)}")
-    names: list[str] = parser.parse_args().scenarios or list(SCENARIOS)
+    parser.add_argument(
+        "--record-demo", action="store_true", help="keep the promise call as the page's demo"
+    )
+    options = parser.parse_args()
+    names: list[str] = ["promise"] if options.record_demo else options.scenarios or list(SCENARIOS)
     unknown = [name for name in names if name not in SCENARIOS]
     if unknown:
         parser.error(f"unknown scenario: {', '.join(unknown)}")
     logger.remove()
     logger.add(sys.stderr, level="WARNING")
-    sys.exit(0 if asyncio.run(run(names)) else 1)
+    sys.exit(0 if asyncio.run(run(names, is_recording_demo=options.record_demo)) else 1)
 
 
 if __name__ == "__main__":

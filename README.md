@@ -91,7 +91,7 @@ so a native speaker can review one file.
 | Speech recognition (Soniox), speech (Cartesia), the language models | The servicer, the debtor, the account and the debt are fictional |
 | The phone number and the browser call | There is no human to hand over to: Kenji writes the handoff record instead |
 | Turn-taking, tools, the guardrails and the audit chain run on every call | The SMS is a preview and is never sent |
-| The live view shows your call and only your call | `?demo=1` replays a recorded call with no backend |
+| The live view shows your call and only your call | `?demo=1` replays a recorded call, with its sound, with no backend; the caller in it is a synthetic voice |
 | Transcripts and events are kept for 30 days, then deleted | Audio is never stored |
 
 The language model runs on Meta's Muse Spark contributor tier. Meta may use that traffic to
@@ -164,6 +164,7 @@ recognition, both models and speech synthesis all run for real. It costs a few c
 
 ```bash
 uv run python scripts/voice_check.py    # or name some of: promise spouse handoff
+uv run python scripts/voice_check.py --record-demo  # keep the promise call as the demo
 ```
 
 **Try the phone line** without buying a number. A browser softphone calls Kenji through

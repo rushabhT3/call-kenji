@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isDemoMode, replaySchedule, replaySpeed, type Recording } from "./demoReplay.ts";
+import {
+  isDemoMode,
+  recordingAudioUrl,
+  replaySchedule,
+  replaySpeed,
+  type Recording,
+} from "./demoReplay.ts";
 
 const recording: Recording = {
   source: "test",
@@ -30,5 +36,15 @@ describe("query options", () => {
     expect(isDemoMode("?demo=0")).toBe(false);
     expect(replaySpeed("?demo=1&speed=20")).toBe(20);
     expect(replaySpeed("?speed=-3")).toBe(1);
+  });
+});
+
+describe("recordingAudioUrl", () => {
+  it("finds the audio beside the recording, at normal speed only", () => {
+    const withAudio = { ...recording, audio: "call.m4a" };
+
+    expect(recordingAudioUrl(withAudio, 1, "/demo/call.json")).toBe("/demo/call.m4a");
+    expect(recordingAudioUrl(withAudio, 4, "/demo/call.json")).toBeNull();
+    expect(recordingAudioUrl(recording, 1, "/demo/call.json")).toBeNull();
   });
 });

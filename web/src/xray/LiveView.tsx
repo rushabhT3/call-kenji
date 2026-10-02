@@ -1,6 +1,7 @@
 import { PostCall } from "../aftercall/PostCall.tsx";
 import { finishedCallMs, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
+import type { DemoSound } from "../call/useDemoSound.ts";
 import { Button } from "../ui/Button.tsx";
 import { ComplianceCard } from "./ComplianceCard.tsx";
 import { DemoBanner } from "./DemoBanner.tsx";
@@ -21,6 +22,7 @@ interface LiveViewProps {
   isFeedLost: boolean;
   startedAtMs: number | null;
   endedAtMs: number | null;
+  demoSound: DemoSound | null;
 }
 
 function liveClasses(status: CallView["status"], hasCallBar: boolean): string {
@@ -70,7 +72,7 @@ export function LiveView(props: LiveViewProps) {
     <>
       <LiveHeader view={view} elapsedMs={elapsedMs} isDemo={isDemo} call={call} />
       <main className={liveClasses(view.status, hasCallBar)}>
-        {isDemo ? <DemoBanner /> : null}
+        {isDemo ? <DemoBanner sound={props.demoSound} /> : null}
         {isFeedLost ? (
           <p className="banner" role="alert">
             Connection lost. The call may still be running. Reload to reconnect.

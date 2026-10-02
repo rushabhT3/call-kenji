@@ -46,6 +46,18 @@ test.describe("demo replay", () => {
     await expect(banner.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
   });
 
+  test("plays both sides of the call when asked, at normal speed", async ({ page }) => {
+    await blockBackend(page);
+    await page.goto("/?demo=1");
+
+    await page.getByRole("button", { name: "Sound on" }).click();
+
+    await expect(page.getByRole("button", { name: "Sound off" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
   test("ends with a way to call, to watch again and to go home", async ({ page }) => {
     await blockBackend(page);
     await openAfterCall(page);

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { isDemoMode, replaySpeed } from "./call/demoReplay.ts";
 import { useBrowserCall, type BrowserCall } from "./call/useBrowserCall.ts";
 import { useCallFeed, type CallFeed } from "./call/useCallFeed.ts";
+import { useDemoSound } from "./call/useDemoSound.ts";
 import { CallPanel } from "./landing/CallPanel.tsx";
 import { Explainer } from "./landing/Explainer.tsx";
 import { Hero } from "./landing/Hero.tsx";
@@ -57,6 +58,7 @@ export function App() {
   );
   const feed = useCallFeed(options);
   const call = useBrowserCall(feed.viewerId);
+  const demoSound = useDemoSound(feed.demoAudio);
   const showsLive = options.isDemo || feed.view.status !== "waiting";
   return (
     <PipecatClientProvider client={call.client}>
@@ -69,6 +71,7 @@ export function App() {
           isFeedLost={!options.isDemo && feed.feedStatus === "lost"}
           startedAtMs={feed.startedAtMs}
           endedAtMs={feed.endedAtMs}
+          demoSound={demoSound}
         />
       ) : (
         <Landing feed={feed} call={call} />

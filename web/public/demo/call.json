@@ -1,18 +1,19 @@
 {
-  "source": "recorded call 4fd5fd2408394598881dfec6e7c87b86",
-  "recorded_on": "2026-10-02",
+  "source": "voice check: Kenji and a synthetic Cartesia caller over WebRTC",
+  "recorded_on": "2026-10-03",
+  "audio": "call.m4a",
   "events": [
     {
-      "offset_ms": 375,
+      "offset_ms": 0,
       "event": {
         "type": "call_started",
-        "call_id": "4fd5fd2408394598881dfec6e7c87b86",
+        "call_id": "47807948668a42f7a6afe71a97a09f27",
         "transport": "browser",
-        "started_at": "2026-10-03T15:00:10.590769+09:00"
+        "started_at": "2026-10-03T15:00:10.598934+09:00"
       }
     },
     {
-      "offset_ms": 375,
+      "offset_ms": 0,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -23,14 +24,47 @@
       }
     },
     {
-      "offset_ms": 531,
+      "offset_ms": 109,
       "event": {
         "type": "flow_node",
         "node": "greeting"
       }
     },
     {
-      "offset_ms": 23109,
+      "offset_ms": 1015,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-1",
+        "speaker": "kenji",
+        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。また、AIの提供元が、会話の内容をモデルの改善に使う場合があります。実在する方の個人情報は、おっしゃらないでください。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:11.925468+09:00"
+      }
+    },
+    {
+      "offset_ms": 1015,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-1",
+        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. The AI provider may also use it to improve its models. Please don't share any real person's personal information.",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 22281,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-1",
+        "speaker": "kenji",
+        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。また、AIの提供元が、会話の内容をモデルの改善に使う場合があります。実在する方の個人情報は、おっしゃらないでください。ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:33.193635+09:00"
+      }
+    },
+    {
+      "offset_ms": 22281,
       "event": {
         "type": "transcript",
         "line_id": "kenji-1",
@@ -38,19 +72,32 @@
         "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。また、AIの提供元が、会話の内容をモデルの改善に使う場合があります。実在する方の個人情報は、おっしゃらないでください。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:33.702759+09:00"
+        "at": "2026-10-03T15:00:33.199801+09:00"
       }
     },
     {
-      "offset_ms": 23109,
+      "offset_ms": 22281,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-2",
+        "speaker": "kenji",
+        "ja": "ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:33.201421+09:00"
+      }
+    },
+    {
+      "offset_ms": 22281,
       "event": {
         "type": "subtitle",
-        "line_id": "kenji-1",
-        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. The AI provider may also use it to improve its models. Please don't share any real person's personal information."
+        "line_id": "kenji-2",
+        "en": "To confirm who I'm speaking with, may I have your full name and date of birth?",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 23109,
+      "offset_ms": 22281,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -61,7 +108,7 @@
       }
     },
     {
-      "offset_ms": 28000,
+      "offset_ms": 27484,
       "event": {
         "type": "transcript",
         "line_id": "kenji-2",
@@ -69,26 +116,18 @@
         "ja": "ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:38.589084+09:00"
+        "at": "2026-10-03T15:00:38.398463+09:00"
       }
     },
     {
-      "offset_ms": 28000,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-2",
-        "en": "To confirm who I'm speaking with, may I have your full name and date of birth?"
-      }
-    },
-    {
-      "offset_ms": 33687,
+      "offset_ms": 33140,
       "event": {
         "type": "flow_node",
         "node": "verify_identity"
       }
     },
     {
-      "offset_ms": 34328,
+      "offset_ms": 33781,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -96,11 +135,11 @@
         "ja": "佐",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:44.923098+09:00"
+        "at": "2026-10-03T15:00:44.688303+09:00"
       }
     },
     {
-      "offset_ms": 34468,
+      "offset_ms": 33937,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -108,11 +147,23 @@
         "ja": "佐藤",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.064298+09:00"
+        "at": "2026-10-03T15:00:44.846598+09:00"
       }
     },
     {
-      "offset_ms": 34703,
+      "offset_ms": 34047,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-3",
+        "speaker": "caller",
+        "ja": "佐藤ゆ",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:44.956178+09:00"
+      }
+    },
+    {
+      "offset_ms": 34156,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -120,11 +171,11 @@
         "ja": "佐藤ゆう",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.291821+09:00"
+        "at": "2026-10-03T15:00:45.069857+09:00"
       }
     },
     {
-      "offset_ms": 34797,
+      "offset_ms": 34281,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -132,23 +183,11 @@
         "ja": "佐藤ゆうき",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.385174+09:00"
+        "at": "2026-10-03T15:00:45.192797+09:00"
       }
     },
     {
-      "offset_ms": 34953,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-3",
-        "speaker": "caller",
-        "ja": "佐藤ゆうきで",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.538890+09:00"
-      }
-    },
-    {
-      "offset_ms": 35047,
+      "offset_ms": 34406,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -156,11 +195,11 @@
         "ja": "佐藤ゆうきです",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.643999+09:00"
+        "at": "2026-10-03T15:00:45.319637+09:00"
       }
     },
     {
-      "offset_ms": 35297,
+      "offset_ms": 34625,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -168,11 +207,11 @@
         "ja": "佐藤ゆうきです。",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:45.893421+09:00"
+        "at": "2026-10-03T15:00:45.531585+09:00"
       }
     },
     {
-      "offset_ms": 35797,
+      "offset_ms": 35203,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -180,11 +219,11 @@
         "ja": "佐藤ゆうきです。生",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:46.392394+09:00"
+        "at": "2026-10-03T15:00:46.117744+09:00"
       }
     },
     {
-      "offset_ms": 36031,
+      "offset_ms": 35453,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -192,11 +231,11 @@
         "ja": "佐藤ゆうきです。生年",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:46.613440+09:00"
+        "at": "2026-10-03T15:00:46.362601+09:00"
       }
     },
     {
-      "offset_ms": 36156,
+      "offset_ms": 35562,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -204,11 +243,11 @@
         "ja": "佐藤ゆうきです。生年月",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:46.740299+09:00"
+        "at": "2026-10-03T15:00:46.477638+09:00"
       }
     },
     {
-      "offset_ms": 36250,
+      "offset_ms": 35812,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -216,11 +255,11 @@
         "ja": "佐藤ゆうきです。生年月日",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:46.845725+09:00"
+        "at": "2026-10-03T15:00:46.724545+09:00"
       }
     },
     {
-      "offset_ms": 36500,
+      "offset_ms": 35922,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -228,11 +267,11 @@
         "ja": "佐藤ゆうきです。生年月日は",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:47.094065+09:00"
+        "at": "2026-10-03T15:00:46.835312+09:00"
       }
     },
     {
-      "offset_ms": 36984,
+      "offset_ms": 36531,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -240,11 +279,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:47.575509+09:00"
+        "at": "2026-10-03T15:00:47.437538+09:00"
       }
     },
     {
-      "offset_ms": 37468,
+      "offset_ms": 36890,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -252,11 +291,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:48.060161+09:00"
+        "at": "2026-10-03T15:00:47.806903+09:00"
       }
     },
     {
-      "offset_ms": 37578,
+      "offset_ms": 37125,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -264,11 +303,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:48.165050+09:00"
+        "at": "2026-10-03T15:00:48.044187+09:00"
       }
     },
     {
-      "offset_ms": 37812,
+      "offset_ms": 37344,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -276,11 +315,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:48.408657+09:00"
+        "at": "2026-10-03T15:00:48.263012+09:00"
       }
     },
     {
-      "offset_ms": 38047,
+      "offset_ms": 37609,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -288,11 +327,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7月",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:48.643001+09:00"
+        "at": "2026-10-03T15:00:48.527126+09:00"
       }
     },
     {
-      "offset_ms": 38328,
+      "offset_ms": 37844,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -300,23 +339,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7月1",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:48.916029+09:00"
+        "at": "2026-10-03T15:00:48.757347+09:00"
       }
     },
     {
-      "offset_ms": 38406,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-3",
-        "speaker": "caller",
-        "ja": "佐藤ゆうきです。生年月日は平成2年7月1",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:00:49.001963+09:00"
-      }
-    },
-    {
-      "offset_ms": 38547,
+      "offset_ms": 38094,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -324,11 +351,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7月14",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:49.137985+09:00"
+        "at": "2026-10-03T15:00:49.007226+09:00"
       }
     },
     {
-      "offset_ms": 38672,
+      "offset_ms": 38203,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -336,11 +363,23 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7月14日",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:49.254540+09:00"
+        "at": "2026-10-03T15:00:49.117399+09:00"
       }
     },
     {
-      "offset_ms": 38922,
+      "offset_ms": 38344,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-3",
+        "speaker": "caller",
+        "ja": "佐藤ゆうきです。生年月日は平成2年7月14日で",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:49.254233+09:00"
+      }
+    },
+    {
+      "offset_ms": 38578,
       "event": {
         "type": "transcript",
         "line_id": "caller-3",
@@ -348,11 +387,11 @@
         "ja": "佐藤ゆうきです。生年月日は平成2年7月14日です。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:00:49.508959+09:00"
+        "at": "2026-10-03T15:00:49.363398+09:00"
       }
     },
     {
-      "offset_ms": 39062,
+      "offset_ms": 38578,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -363,37 +402,70 @@
       }
     },
     {
-      "offset_ms": 39062,
+      "offset_ms": 38578,
       "event": {
         "type": "flow_node",
         "node": "state_balance"
       }
     },
     {
-      "offset_ms": 39265,
+      "offset_ms": 38656,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-4",
+        "speaker": "kenji",
+        "ja": "ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。口座番号の末尾7731のご契約について、9月30日が期日のお支払い、35,000円が、まだ確認できておりません。本日は、お支払いについてご相談させていただけますでしょうか。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:00:49.559259+09:00"
+      }
+    },
+    {
+      "offset_ms": 38656,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-4",
+        "en": "Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer. On the account ending 7731, the payment of ¥35,000 due on 30 Sep hasn't reached us yet. Could we talk about how to settle it today?",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 38812,
       "event": {
         "type": "latency",
         "turn": 1,
-        "end_of_turn_ms": 461.14373207092285,
+        "end_of_turn_ms": 627.3941993713379,
         "llm_first_token_ms": 0.0,
-        "tts_first_audio_ms": 347.4090099334717,
-        "total_ms": 808.5527420043945,
-        "p50_ms": 808.5527420043945,
-        "p95_ms": 808.5527420043945,
+        "tts_first_audio_ms": 350.10814666748047,
+        "total_ms": 977.5023460388184,
+        "p50_ms": 977.5023460388184,
+        "p95_ms": 977.5023460388184,
         "budget_ms": 1500.0,
         "opened_with": "rules"
       }
     },
     {
-      "offset_ms": 44625,
+      "offset_ms": 41875,
       "event": {
         "type": "subtitle",
         "line_id": "caller-3",
-        "en": "I'm Yuki Sato, born July 14, 1990."
+        "en": "I'm Yuki Sato, born July 14, 1990.",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 61515,
+      "offset_ms": 44875,
+      "event": {
+        "type": "strategist",
+        "identity": "Caller claims to be Sato Yuki, identity unverified",
+        "situation": "Caller provided name and birthdate but no circumstances yet.",
+        "ability_to_pay": "unknown - no payment info yet",
+        "offers": [],
+        "next_move": "Have Kenji confirm the name and birthdate match records before discussing the balance."
+      }
+    },
+    {
+      "offset_ms": 60703,
       "event": {
         "type": "transcript",
         "line_id": "kenji-4",
@@ -401,26 +473,18 @@
         "ja": "ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。口座番号の末尾7731のご契約について、9月30日が期日のお支払い、35,000円が、まだ確認できておりません。本日は、お支払いについてご相談させていただけますでしょうか。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:12.097688+09:00"
+        "at": "2026-10-03T15:01:11.613472+09:00"
       }
     },
     {
-      "offset_ms": 61515,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-4",
-        "en": "Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer. On the account ending 7731, the payment of ¥35,000 due on 30 Sep hasn't reached us yet. Could we talk about how to settle it today?"
-      }
-    },
-    {
-      "offset_ms": 66797,
+      "offset_ms": 65953,
       "event": {
         "type": "flow_node",
         "node": "listen"
       }
     },
     {
-      "offset_ms": 67234,
+      "offset_ms": 66297,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -428,11 +492,11 @@
         "ja": " ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:17.828909+09:00"
+        "at": "2026-10-03T15:01:17.216609+09:00"
       }
     },
     {
-      "offset_ms": 67343,
+      "offset_ms": 66531,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -440,11 +504,11 @@
         "ja": " 今",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:17.923970+09:00"
+        "at": "2026-10-03T15:01:17.444021+09:00"
       }
     },
     {
-      "offset_ms": 67437,
+      "offset_ms": 66625,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -452,11 +516,11 @@
         "ja": " 今月",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.026164+09:00"
+        "at": "2026-10-03T15:01:17.543190+09:00"
       }
     },
     {
-      "offset_ms": 67687,
+      "offset_ms": 66890,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -464,35 +528,23 @@
         "ja": " 今月は",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.277161+09:00"
+        "at": "2026-10-03T15:01:17.808229+09:00"
       }
     },
     {
-      "offset_ms": 67828,
+      "offset_ms": 67000,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
         "speaker": "caller",
-        "ja": " 今月はち",
+        "ja": " 今月はちょ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.410831+09:00"
+        "at": "2026-10-03T15:01:17.920840+09:00"
       }
     },
     {
-      "offset_ms": 67953,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-5",
-        "speaker": "caller",
-        "ja": " 今月はちょっ",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.538477+09:00"
-      }
-    },
-    {
-      "offset_ms": 68062,
+      "offset_ms": 67109,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -500,11 +552,11 @@
         "ja": " 今月はちょっと",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.659889+09:00"
+        "at": "2026-10-03T15:01:18.030707+09:00"
       }
     },
     {
-      "offset_ms": 68297,
+      "offset_ms": 67359,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -512,7 +564,43 @@
         "ja": " 今月はちょっと厳",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:18.892752+09:00"
+        "at": "2026-10-03T15:01:18.280882+09:00"
+      }
+    },
+    {
+      "offset_ms": 67484,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-5",
+        "speaker": "caller",
+        "ja": " 今月はちょっと厳し",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:18.402080+09:00"
+      }
+    },
+    {
+      "offset_ms": 67640,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-5",
+        "speaker": "caller",
+        "ja": " 今月はちょっと厳しく",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:18.554484+09:00"
+      }
+    },
+    {
+      "offset_ms": 67703,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-5",
+        "speaker": "caller",
+        "ja": " 今月はちょっと厳しくて、",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:18.617960+09:00"
       }
     },
     {
@@ -521,50 +609,14 @@
         "type": "transcript",
         "line_id": "caller-5",
         "speaker": "caller",
-        "ja": " 今月はちょっと厳し",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:19.025316+09:00"
-      }
-    },
-    {
-      "offset_ms": 68547,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-5",
-        "speaker": "caller",
-        "ja": " 今月はちょっと厳しく",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:19.131291+09:00"
-      }
-    },
-    {
-      "offset_ms": 68672,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-5",
-        "speaker": "caller",
-        "ja": " 今月はちょっと厳しくて、",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:19.259420+09:00"
-      }
-    },
-    {
-      "offset_ms": 69390,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-5",
-        "speaker": "caller",
         "ja": " 今月はちょっと厳しくて、月",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:19.986452+09:00"
+        "at": "2026-10-03T15:01:19.351341+09:00"
       }
     },
     {
-      "offset_ms": 69625,
+      "offset_ms": 68703,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -572,11 +624,11 @@
         "ja": " 今月はちょっと厳しくて、月3",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.215866+09:00"
+        "at": "2026-10-03T15:01:19.619322+09:00"
       }
     },
     {
-      "offset_ms": 69734,
+      "offset_ms": 68812,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -584,11 +636,11 @@
         "ja": " 今月はちょっと厳しくて、月3,",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.324534+09:00"
+        "at": "2026-10-03T15:01:19.724182+09:00"
       }
     },
     {
-      "offset_ms": 69890,
+      "offset_ms": 68922,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -596,11 +648,11 @@
         "ja": " 今月はちょっと厳しくて、月3,0",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.475938+09:00"
+        "at": "2026-10-03T15:01:19.829969+09:00"
       }
     },
     {
-      "offset_ms": 69968,
+      "offset_ms": 69031,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -608,11 +660,11 @@
         "ja": " 今月はちょっと厳しくて、月3,00",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.561431+09:00"
+        "at": "2026-10-03T15:01:19.942239+09:00"
       }
     },
     {
-      "offset_ms": 70109,
+      "offset_ms": 69265,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -620,11 +672,11 @@
         "ja": " 今月はちょっと厳しくて、月3,000",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.692032+09:00"
+        "at": "2026-10-03T15:01:20.186669+09:00"
       }
     },
     {
-      "offset_ms": 70250,
+      "offset_ms": 69469,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -632,11 +684,11 @@
         "ja": " 今月はちょっと厳しくて、月3,000円",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.837146+09:00"
+        "at": "2026-10-03T15:01:20.378285+09:00"
       }
     },
     {
-      "offset_ms": 70359,
+      "offset_ms": 69515,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -644,11 +696,11 @@
         "ja": " 今月はちょっと厳しくて、月3,000円なら",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:20.951522+09:00"
+        "at": "2026-10-03T15:01:20.426598+09:00"
       }
     },
     {
-      "offset_ms": 70468,
+      "offset_ms": 69562,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -656,11 +708,11 @@
         "ja": " 今月はちょっと厳しくて、月3,000円なら払",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:21.056341+09:00"
+        "at": "2026-10-03T15:01:20.478342+09:00"
       }
     },
     {
-      "offset_ms": 70593,
+      "offset_ms": 69656,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -668,11 +720,11 @@
         "ja": " 今月はちょっと厳しくて、月3,000円なら払え",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:21.177477+09:00"
+        "at": "2026-10-03T15:01:20.564154+09:00"
       }
     },
     {
-      "offset_ms": 70718,
+      "offset_ms": 69828,
       "event": {
         "type": "transcript",
         "line_id": "caller-5",
@@ -680,11 +732,11 @@
         "ja": "今月はちょっと厳しくて、月3,000円なら払えます。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:21.310292+09:00"
+        "at": "2026-10-03T15:01:20.729643+09:00"
       }
     },
     {
-      "offset_ms": 70734,
+      "offset_ms": 69828,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -695,52 +747,74 @@
       }
     },
     {
-      "offset_ms": 70734,
+      "offset_ms": 69828,
       "event": {
         "type": "flow_node",
         "node": "negotiate"
       }
     },
     {
-      "offset_ms": 70859,
+      "offset_ms": 69859,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-6",
+        "speaker": "kenji",
+        "ja": "申し訳ございません。毎月3,000円ですと、お受けできる条件に届きません。毎月6,000円からでしたらお受けできますが、いかがでしょうか。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:20.766300+09:00"
+      }
+    },
+    {
+      "offset_ms": 69859,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-6",
+        "en": "I'm sorry, ¥3,000 a month is below what we can accept. We can accept from ¥6,000 a month. Would that work for you?",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 69937,
       "event": {
         "type": "latency",
         "turn": 2,
-        "end_of_turn_ms": 427.84571647644043,
+        "end_of_turn_ms": 548.8548278808594,
         "llm_first_token_ms": 0.0,
-        "tts_first_audio_ms": 138.40460777282715,
-        "total_ms": 566.2503242492676,
-        "p50_ms": 566.2503242492676,
-        "p95_ms": 808.5527420043945,
+        "tts_first_audio_ms": 121.3080883026123,
+        "total_ms": 670.1629161834717,
+        "p50_ms": 670.1629161834717,
+        "p95_ms": 977.5023460388184,
         "budget_ms": 1500.0,
         "opened_with": "rules"
       }
     },
     {
-      "offset_ms": 73453,
+      "offset_ms": 72797,
       "event": {
         "type": "subtitle",
         "line_id": "caller-5",
-        "en": "This month's tight, but I can pay ¥3,000 a month."
+        "en": "This month's tight, but I can pay 3,000 yen a month.",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 78156,
+      "offset_ms": 76234,
       "event": {
         "type": "strategist",
-        "identity": "佐藤ゆうき, identity verified",
-        "situation": "Caller says this month is tight and offers low payments.",
-        "ability_to_pay": "partial - can pay ¥3,000 a month",
+        "identity": "Sato Yuki, identity verified",
+        "situation": "Caller says this month is tight and can pay 3000 yen per month.",
+        "ability_to_pay": "partial - can pay 3000 yen monthly",
         "offers": [
-          "¥6,000 × 5 then ¥5,000 from 17 Oct (6 payments)",
-          "¥7,000 × 5 from 17 Oct",
-          "¥8,000 × 4 then ¥3,000 from 17 Oct (5 payments)"
+          "¥6,000 ×5 then ¥5,000 from 17 Oct (6 payments)",
+          "¥7,000 ×5 from 17 Oct",
+          "¥8,000 ×4 then ¥3,000 from 17 Oct (5 payments)"
         ],
-        "next_move": "Explain ¥6,000 is the minimum monthly amount and present the checked plans."
+        "next_move": "Acknowledge difficulty and explain the minimum is 6000 yen then offer the lowest checked plan."
       }
     },
     {
-      "offset_ms": 80250,
+      "offset_ms": 79828,
       "event": {
         "type": "transcript",
         "line_id": "kenji-6",
@@ -748,19 +822,11 @@
         "ja": "申し訳ございません。毎月3,000円ですと、お受けできる条件に届きません。毎月6,000円からでしたらお受けできますが、いかがでしょうか。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:30.836367+09:00"
+        "at": "2026-10-03T15:01:30.740560+09:00"
       }
     },
     {
-      "offset_ms": 80250,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-6",
-        "en": "I'm sorry, ¥3,000 a month is below what we can accept. We can accept from ¥6,000 a month. Would that work for you?"
-      }
-    },
-    {
-      "offset_ms": 85859,
+      "offset_ms": 85484,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -768,11 +834,11 @@
         "ja": " ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:36.446988+09:00"
+        "at": "2026-10-03T15:01:36.395017+09:00"
       }
     },
     {
-      "offset_ms": 86062,
+      "offset_ms": 85719,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -780,11 +846,11 @@
         "ja": " わ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:36.648705+09:00"
+        "at": "2026-10-03T15:01:36.632091+09:00"
       }
     },
     {
-      "offset_ms": 86218,
+      "offset_ms": 85875,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -792,11 +858,11 @@
         "ja": " わかり",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:36.801483+09:00"
+        "at": "2026-10-03T15:01:36.780920+09:00"
       }
     },
     {
-      "offset_ms": 86297,
+      "offset_ms": 85969,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -804,11 +870,11 @@
         "ja": " わかりま",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:36.892418+09:00"
+        "at": "2026-10-03T15:01:36.886685+09:00"
       }
     },
     {
-      "offset_ms": 86437,
+      "offset_ms": 86078,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -816,11 +882,11 @@
         "ja": " わかりました。",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:37.020645+09:00"
+        "at": "2026-10-03T15:01:36.999366+09:00"
       }
     },
     {
-      "offset_ms": 87047,
+      "offset_ms": 86781,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -828,11 +894,11 @@
         "ja": " わかりました。では、",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:37.642457+09:00"
+        "at": "2026-10-03T15:01:37.696914+09:00"
       }
     },
     {
-      "offset_ms": 87750,
+      "offset_ms": 87515,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -840,11 +906,11 @@
         "ja": " わかりました。では、月",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:38.339945+09:00"
+        "at": "2026-10-03T15:01:38.434404+09:00"
       }
     },
     {
-      "offset_ms": 87968,
+      "offset_ms": 87906,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -852,11 +918,11 @@
         "ja": " わかりました。では、月6",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:38.561727+09:00"
+        "at": "2026-10-03T15:01:38.813885+09:00"
       }
     },
     {
-      "offset_ms": 88093,
+      "offset_ms": 88015,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -864,11 +930,11 @@
         "ja": " わかりました。では、月6,",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:38.689182+09:00"
+        "at": "2026-10-03T15:01:38.934521+09:00"
       }
     },
     {
-      "offset_ms": 88218,
+      "offset_ms": 88125,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -876,11 +942,11 @@
         "ja": " わかりました。では、月6,0",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:38.812461+09:00"
+        "at": "2026-10-03T15:01:39.034533+09:00"
       }
     },
     {
-      "offset_ms": 88328,
+      "offset_ms": 88250,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -888,19 +954,31 @@
         "ja": " わかりました。では、月6,00",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:38.916699+09:00"
+        "at": "2026-10-03T15:01:39.158263+09:00"
       }
     },
     {
-      "offset_ms": 88453,
+      "offset_ms": 88359,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
         "speaker": "caller",
-        "ja": " わかりました。では、月6,000",
+        "ja": " わかりました。では、月6,000円",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.036508+09:00"
+        "at": "2026-10-03T15:01:39.268994+09:00"
+      }
+    },
+    {
+      "offset_ms": 88469,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-7",
+        "speaker": "caller",
+        "ja": " わかりました。では、月6,000円で",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:39.384471+09:00"
       }
     },
     {
@@ -909,26 +987,14 @@
         "type": "transcript",
         "line_id": "caller-7",
         "speaker": "caller",
-        "ja": " わかりました。では、月6,000円",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.203159+09:00"
-      }
-    },
-    {
-      "offset_ms": 88703,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-7",
-        "speaker": "caller",
         "ja": " わかりました。では、月6,000円でお",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.292782+09:00"
+        "at": "2026-10-03T15:01:39.521864+09:00"
       }
     },
     {
-      "offset_ms": 88828,
+      "offset_ms": 88719,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -936,23 +1002,23 @@
         "ja": " わかりました。では、月6,000円でお願",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.419252+09:00"
+        "at": "2026-10-03T15:01:39.625899+09:00"
       }
     },
     {
-      "offset_ms": 88937,
+      "offset_ms": 88875,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
         "speaker": "caller",
-        "ja": " わかりました。では、月6,000円でお願い",
+        "ja": " わかりました。では、月6,000円でお願いし",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.526707+09:00"
+        "at": "2026-10-03T15:01:39.781842+09:00"
       }
     },
     {
-      "offset_ms": 89047,
+      "offset_ms": 88953,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -960,11 +1026,11 @@
         "ja": " わかりました。では、月6,000円でお願いしま",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.639926+09:00"
+        "at": "2026-10-03T15:01:39.874765+09:00"
       }
     },
     {
-      "offset_ms": 89172,
+      "offset_ms": 89094,
       "event": {
         "type": "transcript",
         "line_id": "caller-7",
@@ -972,46 +1038,56 @@
         "ja": "わかりました。では、月6,000円でお願いします。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.764818+09:00"
+        "at": "2026-10-03T15:01:39.994114+09:00"
       }
     },
     {
-      "offset_ms": 89187,
+      "offset_ms": 89156,
       "event": {
         "type": "transcript",
         "line_id": "kenji-8",
         "speaker": "kenji",
         "ja": "はい、",
-        "is_final": true,
+        "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:39.771544+09:00"
+        "at": "2026-10-03T15:01:40.064124+09:00"
       }
     },
     {
-      "offset_ms": 89187,
+      "offset_ms": 89156,
       "event": {
         "type": "subtitle",
         "line_id": "kenji-8",
-        "en": "Yes,"
+        "en": "Yes,",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 89422,
+      "offset_ms": 89234,
       "event": {
         "type": "latency",
         "turn": 3,
-        "end_of_turn_ms": 478.4278869628906,
+        "end_of_turn_ms": 439.4099712371826,
         "llm_first_token_ms": 0.0,
-        "tts_first_audio_ms": 233.80279541015625,
-        "total_ms": 712.2306823730469,
-        "p50_ms": 712.2306823730469,
-        "p95_ms": 808.5527420043945,
+        "tts_first_audio_ms": 144.38509941101074,
+        "total_ms": 583.7950706481934,
+        "p50_ms": 670.1629161834717,
+        "p95_ms": 977.5023460388184,
         "budget_ms": 1500.0,
         "opened_with": "acknowledgement"
       }
     },
     {
-      "offset_ms": 91531,
+      "offset_ms": 92015,
+      "event": {
+        "type": "subtitle",
+        "line_id": "caller-7",
+        "en": "Got it — 6,000 yen a month, please.",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 93000,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -1022,282 +1098,282 @@
       }
     },
     {
-      "offset_ms": 92640,
+      "offset_ms": 93031,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-9",
+        "line_id": "kenji-8",
         "speaker": "kenji",
-        "ja": "確認いたします。",
+        "ja": "はい、確認いたします。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:43.939259+09:00"
+      }
+    },
+    {
+      "offset_ms": 94140,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-8",
+        "speaker": "kenji",
+        "ja": "はい、確認いたします。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:01:43.226890+09:00"
+        "at": "2026-10-03T15:01:45.044540+09:00"
       }
     },
     {
-      "offset_ms": 92687,
-      "event": {
-        "type": "subtitle",
-        "line_id": "caller-7",
-        "en": "Got it. Let's go with 6,000 yen a month."
-      }
-    },
-    {
-      "offset_ms": 95640,
+      "offset_ms": 94265,
       "event": {
         "type": "strategist",
         "identity": "Caller is Sato Yuki and identity is verified",
-        "situation": "Caller says this month is tight but accepted 6000 yen monthly.",
-        "ability_to_pay": "partial - agreed to pay 6000 monthly",
+        "situation": "Caller says this month is tight but agrees to pay 6000 yen monthly.",
+        "ability_to_pay": "partial - offered 3000, agreed 6000",
         "offers": ["¥6,000 × 5 then ¥5,000 from 17 Oct (6 payments)"],
-        "next_move": "Confirm the 6000 yen monthly plan starting 17 Oct with the caller."
+        "next_move": "Offer the 6000 yen plan with start date 17 Oct and confirm agreement."
       }
     },
     {
-      "offset_ms": 95906,
+      "offset_ms": 96312,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-8",
+        "en": "Yes, Let me check that.",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 96640,
       "event": {
         "type": "flow_node",
         "node": "read_back"
       }
     },
     {
-      "offset_ms": 96093,
+      "offset_ms": 96687,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-9",
+        "speaker": "kenji",
+        "ja": "それでは、お約束の内容を確認させていただきます。初回のお支払いは10月17日、毎月6,000円を5回、そのあと最終回に5,000円で、全6回、合計35,000円です。この内容でよろしいでしょうか。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:01:47.595930+09:00"
+      }
+    },
+    {
+      "offset_ms": 96687,
       "event": {
         "type": "subtitle",
         "line_id": "kenji-9",
-        "en": "Let me check."
+        "en": "Let me read back what we've agreed. Starting on 17 Oct, ¥6,000 a month for 5 payments, then a final payment of ¥5,000: 6 payments and ¥35,000 in total. Is that correct?",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 99281,
+      "offset_ms": 114109,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-10",
-        "speaker": "kenji",
-        "ja": "了解しました。月6,000円の条件を確認しています。",
-        "is_final": true,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:01:49.867988+09:00"
-      }
-    },
-    {
-      "offset_ms": 109359,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-10",
-        "en": "Got it. Confirming the 6,000 yen per month terms."
-      }
-    },
-    {
-      "offset_ms": 117609,
-      "event": {
-        "type": "transcript",
-        "line_id": "kenji-11",
+        "line_id": "kenji-9",
         "speaker": "kenji",
         "ja": "それでは、お約束の内容を確認させていただきます。初回のお支払いは10月17日、毎月6,000円を5回、そのあと最終回に5,000円で、全6回、合計35,000円です。この内容でよろしいでしょうか。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:08.191990+09:00"
+        "at": "2026-10-03T15:02:05.031827+09:00"
       }
     },
     {
-      "offset_ms": 117609,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-11",
-        "en": "Let me read back what we've agreed. Starting on 17 Oct, ¥6,000 a month for 5 payments, then a final payment of ¥5,000: 6 payments and ¥35,000 in total. Is that correct?"
-      }
-    },
-    {
-      "offset_ms": 123156,
+      "offset_ms": 119703,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:13.741371+09:00"
+        "at": "2026-10-03T15:02:10.613603+09:00"
       }
     },
     {
-      "offset_ms": 123265,
+      "offset_ms": 119922,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " は",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:13.859915+09:00"
+        "at": "2026-10-03T15:02:10.843607+09:00"
       }
     },
     {
-      "offset_ms": 123390,
+      "offset_ms": 120047,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " はい、",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:13.977415+09:00"
+        "at": "2026-10-03T15:02:10.956971+09:00"
       }
     },
     {
-      "offset_ms": 123765,
+      "offset_ms": 120406,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
-        "speaker": "caller",
-        "ja": " はい、間",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.359755+09:00"
-      }
-    },
-    {
-      "offset_ms": 123875,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " はい、間違",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.470008+09:00"
+        "at": "2026-10-03T15:02:11.323648+09:00"
       }
     },
     {
-      "offset_ms": 123984,
+      "offset_ms": 120515,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " はい、間違い",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.579212+09:00"
+        "at": "2026-10-03T15:02:11.429794+09:00"
       }
     },
     {
-      "offset_ms": 124109,
+      "offset_ms": 120672,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
+        "speaker": "caller",
+        "ja": " はい、間違いあ",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:02:11.588184+09:00"
+      }
+    },
+    {
+      "offset_ms": 120922,
+      "event": {
+        "type": "transcript",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " はい、間違いあり",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.701393+09:00"
+        "at": "2026-10-03T15:02:11.840757+09:00"
       }
     },
     {
-      "offset_ms": 124218,
+      "offset_ms": 121000,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
-        "speaker": "caller",
-        "ja": " はい、間違いありま",
-        "is_final": false,
-        "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.806237+09:00"
-      }
-    },
-    {
-      "offset_ms": 124328,
-      "event": {
-        "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": " はい、間違いありませ",
         "is_final": false,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:14.919779+09:00"
+        "at": "2026-10-03T15:02:11.906232+09:00"
       }
     },
     {
-      "offset_ms": 124500,
+      "offset_ms": 121203,
       "event": {
         "type": "transcript",
-        "line_id": "caller-12",
+        "line_id": "caller-10",
         "speaker": "caller",
         "ja": "はい、間違いありません。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:15.091553+09:00"
+        "at": "2026-10-03T15:02:12.093878+09:00"
       }
     },
     {
-      "offset_ms": 124515,
+      "offset_ms": 121203,
       "event": {
         "type": "flow_node",
         "node": "close"
       }
     },
     {
-      "offset_ms": 124703,
+      "offset_ms": 121265,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-11",
+        "speaker": "kenji",
+        "ja": "ありがとうございます。お約束を承りました。確認のメッセージの内容は、画面でご覧いただけます。本日はお時間をいただき、ありがとうございました。失礼いたします。",
+        "is_final": false,
+        "is_backchannel": false,
+        "at": "2026-10-03T15:02:12.166923+09:00"
+      }
+    },
+    {
+      "offset_ms": 121265,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-11",
+        "en": "Thank you, your promise is recorded. You can see the confirmation message on the screen. Thank you for your time today. Goodbye.",
+        "is_unavailable": false
+      }
+    },
+    {
+      "offset_ms": 121344,
       "event": {
         "type": "latency",
         "turn": 4,
-        "end_of_turn_ms": 724.0316867828369,
+        "end_of_turn_ms": 795.6311702728271,
         "llm_first_token_ms": 0.0,
-        "tts_first_audio_ms": 206.97307586669922,
-        "total_ms": 931.0047626495361,
-        "p50_ms": 712.2306823730469,
-        "p95_ms": 931.0047626495361,
+        "tts_first_audio_ms": 161.07916831970215,
+        "total_ms": 956.7103385925293,
+        "p50_ms": 670.1629161834717,
+        "p95_ms": 977.5023460388184,
         "budget_ms": 1500.0,
         "opened_with": "rules"
       }
     },
     {
-      "offset_ms": 127172,
+      "offset_ms": 123875,
       "event": {
         "type": "subtitle",
-        "line_id": "caller-12",
-        "en": "Yes, that's correct."
+        "line_id": "caller-10",
+        "en": "Yes, that's correct.",
+        "is_unavailable": false
       }
     },
     {
-      "offset_ms": 132359,
+      "offset_ms": 125234,
       "event": {
         "type": "strategist",
         "identity": "Caller is Sato Yuki and identity is verified",
-        "situation": "Caller says this month is tight but accepted a repayment plan.",
-        "ability_to_pay": "partial - agreed to pay ¥6,000 monthly",
+        "situation": "Caller finds this month difficult but accepted monthly payments to clear balance.",
+        "ability_to_pay": "partial - agreed to pay 6000 monthly",
         "offers": ["¥6,000 × 5 then ¥5,000 from 17 Oct (6 payments)"],
-        "next_move": "Thank the caller and confirm the payment promise is finalized."
+        "next_move": "Thank caller and confirm the payment promise is finalized."
       }
     },
     {
-      "offset_ms": 135609,
+      "offset_ms": 132312,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-13",
+        "line_id": "kenji-11",
         "speaker": "kenji",
         "ja": "ありがとうございます。お約束を承りました。確認のメッセージの内容は、画面でご覧いただけます。本日はお時間をいただき、ありがとうございました。失礼いたします。",
         "is_final": true,
         "is_backchannel": false,
-        "at": "2026-10-03T15:02:26.201856+09:00"
+        "at": "2026-10-03T15:02:23.221707+09:00"
       }
     },
     {
-      "offset_ms": 135609,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-13",
-        "en": "Thank you, your promise is recorded. You can see the confirmation message on the screen. Thank you for your time today. Goodbye."
-      }
-    },
-    {
-      "offset_ms": 137797,
+      "offset_ms": 134562,
       "event": {
         "type": "call_ended",
         "outcome": "promise_to_pay",
-        "ended_at": "2026-10-03T15:02:28.378691+09:00"
+        "ended_at": "2026-10-03T15:02:25.477176+09:00"
       }
     },
     {
-      "offset_ms": 137797,
+      "offset_ms": 134562,
       "event": {
         "type": "sms_preview",
         "ja": "【みなと債権回収】佐藤様　お支払いのお約束を承りました。初回10月17日　6,000円、全6回（最終回5,000円、合計35,000円）。ご不明な点は本メッセージにご返信ください。",
@@ -1306,89 +1382,89 @@
       }
     },
     {
-      "offset_ms": 137797,
+      "offset_ms": 134562,
       "event": {
         "type": "audit",
         "is_chain_valid": true,
-        "head_hash": "1995dd19d84ea7f828d1443ac618c5138f0c46b2c07d482223e930ccd95165ed",
+        "head_hash": "96b54e03ed7818695814f60aa62a4900a1a56348f6b19d40cf5bda9554b38989",
         "records": [
           {
             "sequence": 0,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:00:11.127797+09:00",
+            "recorded_at": "2026-10-03T15:00:11.002688+09:00",
             "payload": {
               "node": "greeting"
             },
             "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
-            "hash": "69c7bd8bbd91e06c7da7b966b28b8ac81c3805fa76988b1187205643eb628aad"
+            "hash": "de0876251489b34e2bccdcd10df9496780d34a3ab7e1c74355484233c7076d22"
           },
           {
             "sequence": 1,
             "kind": "disclosure_given",
-            "recorded_at": "2026-10-03T15:00:33.703777+09:00",
+            "recorded_at": "2026-10-03T15:00:33.201421+09:00",
             "payload": {
               "ai": true,
               "demo": true,
               "transcript_notice": true
             },
-            "previous_hash": "69c7bd8bbd91e06c7da7b966b28b8ac81c3805fa76988b1187205643eb628aad",
-            "hash": "79490a1fde5c708b7d19232163967b64a4fb061fbc3e65d2170c9f43491cdabf"
+            "previous_hash": "de0876251489b34e2bccdcd10df9496780d34a3ab7e1c74355484233c7076d22",
+            "hash": "d145983143ee4bf662a2ddd50b815664b5ced44260d724764fbf5f14229e2770"
           },
           {
             "sequence": 2,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:00:44.270496+09:00",
+            "recorded_at": "2026-10-03T15:00:44.045230+09:00",
             "payload": {
               "node": "verify_identity"
             },
-            "previous_hash": "79490a1fde5c708b7d19232163967b64a4fb061fbc3e65d2170c9f43491cdabf",
-            "hash": "78c76a8b85e37e45dad19e247d51a2f531b96a4a9077ccaa7ac11cd8c8e12d91"
+            "previous_hash": "d145983143ee4bf662a2ddd50b815664b5ced44260d724764fbf5f14229e2770",
+            "hash": "6e23fb11c0d2a31fd79491d1b23572eeaafe45e26d57bebf31356f96f9292a80"
           },
           {
             "sequence": 3,
             "kind": "identity_checked",
-            "recorded_at": "2026-10-03T15:00:49.650742+09:00",
+            "recorded_at": "2026-10-03T15:00:49.484142+09:00",
             "payload": {
               "status": "verified",
               "failed_attempts": 0
             },
-            "previous_hash": "78c76a8b85e37e45dad19e247d51a2f531b96a4a9077ccaa7ac11cd8c8e12d91",
-            "hash": "b28220295b7e9bade4ab174c1ae33768a37da2c55fc7a98c5605c78155ef5875"
+            "previous_hash": "6e23fb11c0d2a31fd79491d1b23572eeaafe45e26d57bebf31356f96f9292a80",
+            "hash": "1d7914ff2163b7a34681fa387e04fcbd8e8368a96a5a52874c048db7ec3f2949"
           },
           {
             "sequence": 4,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:00:49.650742+09:00",
+            "recorded_at": "2026-10-03T15:00:49.485153+09:00",
             "payload": {
               "node": "state_balance"
             },
-            "previous_hash": "b28220295b7e9bade4ab174c1ae33768a37da2c55fc7a98c5605c78155ef5875",
-            "hash": "310654d205faef6a66ec17d59a9d7cf81882f814be28e821d7965929981b430e"
+            "previous_hash": "1d7914ff2163b7a34681fa387e04fcbd8e8368a96a5a52874c048db7ec3f2949",
+            "hash": "ffae965179108f9d46f4750a5025382815eeac863bf322cf0f8a962547382725"
           },
           {
             "sequence": 5,
             "kind": "account_summary_requested",
-            "recorded_at": "2026-10-03T15:00:49.651741+09:00",
+            "recorded_at": "2026-10-03T15:00:49.485153+09:00",
             "payload": {
               "locked": false
             },
-            "previous_hash": "310654d205faef6a66ec17d59a9d7cf81882f814be28e821d7965929981b430e",
-            "hash": "8860ffd41ccdf261090e82e94fafeb1e6818de98d155e2290f17f353d5960d67"
+            "previous_hash": "ffae965179108f9d46f4750a5025382815eeac863bf322cf0f8a962547382725",
+            "hash": "1ec16e44cfbdadeca0c7137692c38b42bc9c50f433d903590ee2c3bbc3e84ce9"
           },
           {
             "sequence": 6,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:01:17.394145+09:00",
+            "recorded_at": "2026-10-03T15:01:16.857037+09:00",
             "payload": {
               "node": "listen"
             },
-            "previous_hash": "8860ffd41ccdf261090e82e94fafeb1e6818de98d155e2290f17f353d5960d67",
-            "hash": "345b39131397b65b03909c9b03a7de7936b1355740c5d3c5772e33d2b23e1cd5"
+            "previous_hash": "1ec16e44cfbdadeca0c7137692c38b42bc9c50f433d903590ee2c3bbc3e84ce9",
+            "hash": "118ba590f6be4e3787b78d12db13a79652f07735f4def69c6c7eade1d9823ccb"
           },
           {
             "sequence": 7,
             "kind": "terms_checked",
-            "recorded_at": "2026-10-03T15:01:21.316963+09:00",
+            "recorded_at": "2026-10-03T15:01:20.734314+09:00",
             "payload": {
               "monthly_yen": 3000,
               "first_payment_on": "2026-10-17",
@@ -1396,23 +1472,23 @@
               "accepted": false,
               "violations": ["below_minimum_monthly", "too_many_installments"]
             },
-            "previous_hash": "345b39131397b65b03909c9b03a7de7936b1355740c5d3c5772e33d2b23e1cd5",
-            "hash": "cc4b4e7eef194b75f991d371759b569107c9b0d38192f3ac3a296c10a831c342"
+            "previous_hash": "118ba590f6be4e3787b78d12db13a79652f07735f4def69c6c7eade1d9823ccb",
+            "hash": "365e3dc1833b04adbec74896abe3c67c2f004bfe72cfb8fae003d39dd8284a0f"
           },
           {
             "sequence": 8,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:01:21.316963+09:00",
+            "recorded_at": "2026-10-03T15:01:20.735322+09:00",
             "payload": {
               "node": "negotiate"
             },
-            "previous_hash": "cc4b4e7eef194b75f991d371759b569107c9b0d38192f3ac3a296c10a831c342",
-            "hash": "3739bb2f18e409ba70a1b3c53a780493c9ec4ac6579181314cf96f1365a26be9"
+            "previous_hash": "365e3dc1833b04adbec74896abe3c67c2f004bfe72cfb8fae003d39dd8284a0f",
+            "hash": "d75a50b63c6121c958d4eb4c6ee9a467699d06afc77ed8175868c92c57e16a57"
           },
           {
             "sequence": 9,
             "kind": "terms_checked",
-            "recorded_at": "2026-10-03T15:01:42.114263+09:00",
+            "recorded_at": "2026-10-03T15:01:43.910283+09:00",
             "payload": {
               "monthly_yen": 6000,
               "first_payment_on": "2026-10-17",
@@ -1420,13 +1496,13 @@
               "accepted": true,
               "violations": []
             },
-            "previous_hash": "3739bb2f18e409ba70a1b3c53a780493c9ec4ac6579181314cf96f1365a26be9",
-            "hash": "edbf9fcd8f88dca0b54942d531322300a681db5b1f1f79ecfdc6b6edb16ad9be"
+            "previous_hash": "d75a50b63c6121c958d4eb4c6ee9a467699d06afc77ed8175868c92c57e16a57",
+            "hash": "625793873ea5b9566a48a0de5d10440ff4d1b9bd934ef4ad3e44502c73a5f8aa"
           },
           {
             "sequence": 10,
             "kind": "terms_checked",
-            "recorded_at": "2026-10-03T15:01:46.490136+09:00",
+            "recorded_at": "2026-10-03T15:01:47.548378+09:00",
             "payload": {
               "monthly_yen": 6000,
               "first_payment_on": "2026-10-17",
@@ -1434,23 +1510,23 @@
               "accepted": true,
               "violations": []
             },
-            "previous_hash": "edbf9fcd8f88dca0b54942d531322300a681db5b1f1f79ecfdc6b6edb16ad9be",
-            "hash": "0c90fc74493841dcdd24693e67c0b9c3668034a899dc6a52fa58a70f7aaa3282"
+            "previous_hash": "625793873ea5b9566a48a0de5d10440ff4d1b9bd934ef4ad3e44502c73a5f8aa",
+            "hash": "8b0d34d0db574a8eb3eae2d44992ff791f2077fcb09143313a7a80bdb83e6f28"
           },
           {
             "sequence": 11,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:01:46.491115+09:00",
+            "recorded_at": "2026-10-03T15:01:47.548378+09:00",
             "payload": {
               "node": "read_back"
             },
-            "previous_hash": "0c90fc74493841dcdd24693e67c0b9c3668034a899dc6a52fa58a70f7aaa3282",
-            "hash": "ae918773dcfd1f0015928ccd471aec1e8ca0ef3c66018adf237da1b712843214"
+            "previous_hash": "8b0d34d0db574a8eb3eae2d44992ff791f2077fcb09143313a7a80bdb83e6f28",
+            "hash": "381c5f3d7a4fe34d4f286298071757fe821aa4a1c0c76ae5d54c0aae854a40a4"
           },
           {
             "sequence": 12,
             "kind": "promise_recorded",
-            "recorded_at": "2026-10-03T15:02:15.099568+09:00",
+            "recorded_at": "2026-10-03T15:02:12.101456+09:00",
             "payload": {
               "monthly_yen": 6000,
               "first_payment_on": "2026-10-17",
@@ -1458,38 +1534,38 @@
               "accepted": true,
               "violations": []
             },
-            "previous_hash": "ae918773dcfd1f0015928ccd471aec1e8ca0ef3c66018adf237da1b712843214",
-            "hash": "88990628baa50804ebe65d385decfa74c199569ae7d256cfaeacaa2454c38695"
+            "previous_hash": "381c5f3d7a4fe34d4f286298071757fe821aa4a1c0c76ae5d54c0aae854a40a4",
+            "hash": "4f9cb6fe7a9cc3be19335abd86a864b6dab997cb05a41ac67d6441033edcf4ad"
           },
           {
             "sequence": 13,
             "kind": "outcome_decided",
-            "recorded_at": "2026-10-03T15:02:15.099568+09:00",
+            "recorded_at": "2026-10-03T15:02:12.101456+09:00",
             "payload": {
               "outcome": "promise_to_pay"
             },
-            "previous_hash": "88990628baa50804ebe65d385decfa74c199569ae7d256cfaeacaa2454c38695",
-            "hash": "92d35bbfdf0e34c7b784e3b72eceb90df27f78640bd702a6f08afa574b1f530b"
+            "previous_hash": "4f9cb6fe7a9cc3be19335abd86a864b6dab997cb05a41ac67d6441033edcf4ad",
+            "hash": "926dcee9149ed69b1ec77d0858b32b6c2bf23e1111ae08ce64bd8a8a7b59f05b"
           },
           {
             "sequence": 14,
             "kind": "node_entered",
-            "recorded_at": "2026-10-03T15:02:15.099568+09:00",
+            "recorded_at": "2026-10-03T15:02:12.101456+09:00",
             "payload": {
               "node": "close"
             },
-            "previous_hash": "92d35bbfdf0e34c7b784e3b72eceb90df27f78640bd702a6f08afa574b1f530b",
-            "hash": "c7aa7ea1f6b5e35144e5fec8646e001b0a24712be055cbf8e64beeb588b24ecb"
+            "previous_hash": "926dcee9149ed69b1ec77d0858b32b6c2bf23e1111ae08ce64bd8a8a7b59f05b",
+            "hash": "984be5cf7ccd4a8b97e275c79accd83d52c6374775b626b8684724cd6ec1aaf4"
           },
           {
             "sequence": 15,
             "kind": "call_ended",
-            "recorded_at": "2026-10-03T15:02:28.378691+09:00",
+            "recorded_at": "2026-10-03T15:02:25.477176+09:00",
             "payload": {
               "outcome": "promise_to_pay"
             },
-            "previous_hash": "c7aa7ea1f6b5e35144e5fec8646e001b0a24712be055cbf8e64beeb588b24ecb",
-            "hash": "1995dd19d84ea7f828d1443ac618c5138f0c46b2c07d482223e930ccd95165ed"
+            "previous_hash": "984be5cf7ccd4a8b97e275c79accd83d52c6374775b626b8684724cd6ec1aaf4",
+            "hash": "96b54e03ed7818695814f60aa62a4900a1a56348f6b19d40cf5bda9554b38989"
           }
         ]
       }
