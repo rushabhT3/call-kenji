@@ -28,7 +28,8 @@ after the caller stops. Three changes got there (DECISIONS #29 to #31):
 
 - predictable turns are answered from rules, through the same tools, without the model;
 - every other turn opens with an instant 「はい、」, and Kenji keeps the floor until his answer;
-- a talker request that has not started streaming after 2.5 s is raced by a second one.
+- a talker request that has not started streaming after 2.5 s is raced by a second one;
+- if the model says nothing for 8 s, Kenji holds, retries once, then apologises (DECISIONS #33).
 
 Muse Spark's own answers still take 2 to 6 s on the turns it handles: its thinking cannot be
 switched off (`reasoning_effort` `none` returns HTTP 400 in both APIs), and Muse Glimmer is not on
