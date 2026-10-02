@@ -2,6 +2,7 @@
 
 from typing import cast
 
+import pytest
 from pipecat.flows import NodeConfig
 from pipecat.frames.frames import LLMContextFrame, TTSSpeakFrame
 from pipecat.processors.aggregators.llm_context import LLMContext
@@ -205,3 +206,50 @@ def test_restating_the_proposed_plan_goes_to_the_model_instead_of_asking_again()
     parts.planner.answer("毎月3,000円なら払えます。")
 
     assert parts.planner.answer("わかりました、6,000円にします。") is None
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        IDENTITY + "もう電話してこないでください。",
+        IDENTITY + "担当者の方と話したいです。",
+    ],
+)
+def test_a_second_request_beside_the_identity_goes_to_the_model(speech: str) -> None:
+    parts, recorder = _call_parts()
+
+    assert parts.planner.answer(speech) is None
+    assert "identity_checked" not in [record.entry.kind for record in recorder.records()]
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "毎月6,000円なら払えますが、人間の担当者と話したいです。",
+        "6,000円なら払えます。でも、もう連絡しないでください。",
+        "毎月6,000円なら払えます。弁護士に相談しています。",
+    ],
+)
+def test_a_second_request_beside_an_offer_goes_to_the_model(speech: str) -> None:
+    parts, _ = _verified()
+
+    assert parts.planner.answer(speech) is None
+    assert parts.session.confirmed_plan is None
+
+
+def _tool_names(node: NodeConfig | None) -> set[str]:
+    assert node is not None
+    return {str(getattr(function, "name", "")) for function in node.get("functions", [])}
+
+
+def test_steps_that_change_on_the_callers_reply_keep_the_same_tools() -> None:
+    parts, _ = _call_parts()
+    greeting = parts.flow.initial_node()
+    verify = parts.flow.enter(NodeName.VERIFY_IDENTITY)
+    balance = parts.planner.answer(IDENTITY)
+    assert balance is not None
+
+    listen = parts.flow.enter(NodeName.LISTEN)
+
+    assert _tool_names(greeting) == _tool_names(verify)
+    assert _tool_names(balance.node) == _tool_names(listen)

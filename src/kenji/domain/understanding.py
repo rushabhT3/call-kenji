@@ -41,6 +41,66 @@ AGREEMENT_PHRASES = (
     "分かりました",
 )
 MAX_AGREEMENT_CHARACTERS = 20
+# The rules may act on a name and date of birth, or on an amount, only when nothing else was said.
+# Anything outside these words (a request to stop calling, to speak to a person, a lawyer, a
+# question) could be a second request in the same breath, so the turn goes to the model.
+IDENTITY_WORDS = (
+    "はい",
+    "ええ",
+    "わたしは",
+    "私は",
+    "名前は",
+    "お名前は",
+    "氏名は",
+    "本人です",
+    "です",
+    "と申します",
+    "でございます",
+    "生年月日は",
+    "誕生日は",
+    "生まれです",
+    "生まれ",
+    "で",
+)
+OFFER_WORDS = (
+    "はい",
+    "ええ",
+    "わかりました",
+    "分かりました",
+    "では",
+    "じゃあ",
+    "それなら",
+    "今月は",
+    "ちょっと",
+    "少し",
+    "厳しくて",
+    "厳しいので",
+    "苦しくて",
+    "毎月",
+    "月々",
+    "月",
+    "なら",
+    "でしたら",
+    "だったら",
+    "しか",
+    "だけ",
+    "くらい",
+    "ぐらい",
+    "で",
+    "は",
+    "に",
+    "初回は",
+    "から",
+    "払えます",
+    "払えません",
+    "お支払いできます",
+    "お願いします",
+    "します",
+    "でお願いします",
+    "にします",
+    "にしてください",
+    "です",
+)
 # Words that put the speaker beside the account holder rather than in their place.
 SOMEONE_ELSE = (
     "妻",
@@ -164,6 +224,26 @@ def names_the_debtor(text: str, identity: DebtorIdentity) -> bool:
     return any(name in spoken for name in names)
 
 
+def only_identity_words(text: str, identity: DebtorIdentity) -> bool:
+    """Whether the caller said their name and date of birth and nothing else."""
+    compact = _compact(text)
+    if compact is None:
+        return False
+    rest = _spoken(_without(compact, (_ERA_DATE, _WESTERN_DATE)))
+    for name in sorted(identity.accepted_names(), key=len, reverse=True):
+        rest = rest.replace(name, "")
+    return _composed_of_words(rest, IDENTITY_WORDS)
+
+
+def only_offer_words(text: str) -> bool:
+    """Whether the caller offered an amount, perhaps with a date, and said nothing else."""
+    compact = _compact(text)
+    if compact is None:
+        return False
+    rest = _without(compact, (_YEN, _ERA_DATE, _WESTERN_DATE, _MONTH_DAY))
+    return _composed_of_words(_spoken(rest), OFFER_WORDS)
+
+
 def is_plain_agreement(text: str) -> bool:
     """Whether the caller said an unconditional yes and nothing else."""
     if any(mark in text for mark in _QUESTION_MARKS):
@@ -174,6 +254,20 @@ def is_plain_agreement(text: str) -> bool:
     return is_composed_of(
         spoken, frozenset(_agreement_form(phrase) for phrase in AGREEMENT_PHRASES)
     )
+
+
+def _without(compact: str, patterns: tuple[re.Pattern[str], ...]) -> str:
+    for pattern in patterns:
+        compact = pattern.sub("", compact)
+    return compact
+
+
+def _spoken(text: str) -> str:
+    return spoken_characters(to_hiragana(text)).lower()
+
+
+def _composed_of_words(rest: str, words: tuple[str, ...]) -> bool:
+    return not rest or is_composed_of(rest, frozenset(_spoken(word) for word in words))
 
 
 def _read_kanji_number(numeral: str) -> int | None:

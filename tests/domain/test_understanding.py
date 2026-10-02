@@ -10,6 +10,8 @@ from kenji.domain.understanding import (
     is_plain_agreement,
     mentions_relative_timing,
     names_the_debtor,
+    only_identity_words,
+    only_offer_words,
 )
 
 BIRTHDAY = date(1990, 7, 14)
@@ -237,3 +239,59 @@ def test_anything_beyond_a_plain_yes_is_left_to_the_model(speech: str) -> None:
 )
 def test_relative_timing_is_noticed(speech: str, is_relative: bool) -> None:
     assert mentions_relative_timing(speech) is is_relative
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "佐藤ゆうきです。生年月日は、平成2年7月14日です。",
+        "佐藤ゆうきです。平成2年7月14日生まれです。",
+        "サトウユウキと申します。1990年7月14日生まれです。",
+        "はい、本人です。佐藤ゆうき、生年月日は1990年7月14日です。",
+    ],
+)
+def test_a_name_and_birth_date_alone_are_left_for_the_rules(speech: str) -> None:
+    assert only_identity_words(speech, DEBTOR)
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "佐藤ゆうきです。平成2年7月14日生まれです。もう電話してこないでください。",
+        "佐藤ゆうきです。平成2年7月14日です。担当者の方と話したいです。",
+        "佐藤ゆうきです。平成2年7月14日です。弁護士に相談しています。",
+        "佐藤ゆうきです。平成2年7月14日です。いくら払えばいいですか。",
+        "佐藤ゆうきです。平成二二年七月十四日です。",
+    ],
+)
+def test_a_name_and_birth_date_with_anything_more_go_to_the_model(speech: str) -> None:
+    assert not only_identity_words(speech, DEBTOR)
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "今月はちょっと厳しくて、月3000円なら払えます。",
+        "毎月6,000円でお願いします。",
+        "3,000円しか払えません。",
+        "わかりました、6,000円にします。",
+        "毎月6,000円で、初回は10月20日でお願いします。",
+    ],
+)
+def test_an_amount_alone_is_left_for_the_rules(speech: str) -> None:
+    assert only_offer_words(speech)
+
+
+@pytest.mark.parametrize(
+    "speech",
+    [
+        "毎月6,000円なら払えますが、人間の担当者と話したいです。",
+        "6,000円なら払えます。でも、もう連絡しないでください。",
+        "毎月6,000円なら払えます。弁護士に相談しています。",
+        "今月は仕事が減って苦しいです。毎月6,000円なら払えます。",
+        "6,000円なら払えますけど、手数料はかかりますか。",
+        "三二千円なら払えます。",
+    ],
+)
+def test_an_amount_with_anything_more_goes_to_the_model(speech: str) -> None:
+    assert not only_offer_words(speech)

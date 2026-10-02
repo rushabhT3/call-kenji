@@ -37,6 +37,8 @@ from kenji.domain.understanding import (
     is_plain_agreement,
     mentions_relative_timing,
     names_the_debtor,
+    only_identity_words,
+    only_offer_words,
 )
 
 type NodeSetter = Callable[[NodeConfig], Awaitable[None]]
@@ -108,6 +110,8 @@ class FastPathPlanner:
         born = find_birth_date(text)
         if born != debtor.date_of_birth or not names_the_debtor(text, debtor):
             return None
+        if not only_identity_words(text, debtor):
+            return None
         spoken_name = debtor.family_name_kana + debtor.given_name_kana
         return self._follow(
             parts.tools.verify_identity(spoken_name, debtor.date_of_birth.isoformat())
@@ -130,7 +134,7 @@ class FastPathPlanner:
         monthly = find_monthly_yen(text)
         if parts.session.node not in _PLAN_STEPS or monthly is None:
             return None
-        if mentions_relative_timing(text) or self._proposed(monthly):
+        if mentions_relative_timing(text) or self._proposed(monthly) or not only_offer_words(text):
             return None
         negotiation = parts.session.negotiation
         first_payment_on = find_month_day(text, negotiation.today)
