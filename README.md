@@ -92,14 +92,22 @@ improve its models, which is one more reason the page asks callers not to share 
 ## Monthly cost
 
 At 60 phone minutes and 30 browser minutes a day the total is about **$69 a month**: hosting is
-about $12, and the rest is pay-per-use speech, telephony and model calls. The guardrails cap usage:
+about $12, and the rest is pay-per-use speech, telephony and model calls.
+
+The voice server runs on one always-warm Cloud Run instance rather than Pipecat Cloud. One
+service holds everything the guardrails need: the signed Twilio webhook, the daily counters, the
+WebRTC offers and the private viewer feed. A warm Cloud Run instance costs about $12 a month,
+against about $48.60 for a warm Pipecat Cloud agent. Cloud Run takes no inbound UDP, so browser
+audio relays through Cloudflare TURN, which is free at this volume.
+
+The guardrails cap usage:
 
 - 5 minutes a call;
 - 60 phone minutes and 60 browser minutes a day;
 - 3 calls a day per caller;
 - a $20 budget alert.
 
-The itemised table and the hosting decision are in [docs/DEPLOY.md](docs/DEPLOY.md).
+The itemised table and the full hosting decision are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Run it
 
@@ -134,6 +142,13 @@ The real-model smoke run drives the five test conversations through your provide
 
 ```bash
 uv run pytest -m real_llm
+```
+
+The voice check calls Kenji over WebRTC with a synthetic caller, a second Cartesia voice, so speech
+recognition, both models and speech synthesis all run for real. It costs a few cents a run:
+
+```bash
+uv run python scripts/voice_check.py    # or name some of: promise spouse handoff
 ```
 
 The phone line and deployment are covered step by step in [docs/DEPLOY.md](docs/DEPLOY.md).
@@ -177,6 +192,7 @@ The phone line and deployment are covered step by step in [docs/DEPLOY.md](docs/
 >
 > Built with Pipecat, Pipecat Flows, Soniox, Cartesia, Twilio and Cloudflare. The company and the
 > debt are fictional, transcripts are deleted after 30 days, audio is never stored, and the SMS is
-> never sent.
+> never sent. The language model runs on Meta's Muse Spark contributor tier, which may use the
+> conversation to improve its models, so please don't share real details.
 >
 > Call from the browser or by phone: <link>

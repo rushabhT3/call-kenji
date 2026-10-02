@@ -109,6 +109,14 @@ Not used:
 | pnpm/action-setup | **v6** (v6.1.0) | 2026-09-05 | [GitHub](https://github.com/pnpm/action-setup) | 6.1.0 adds pnpm 12 support. SHA `ea17c68df8912ef543352723c149a84f56e3d413` |
 | actions/upload-artifact | **v7** (v7.0.1) | 2026-04-10 | [GitHub](https://github.com/actions/upload-artifact) | SHA `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` |
 
+## Language model API
+
+The demo's provider. Any OpenAI-compatible endpoint works through `LLM_BASE_URL` (DECISIONS #18).
+
+| Service | Model | Checked | Docs | Notes |
+| --- | --- | --- | --- | --- |
+| Meta Model API | **muse-spark-1.3-contributor** | 2026-10-02 | [Reasoning](https://dev.meta.ai/docs/reasoning) · [Chat Completions](https://dev.meta.ai/docs/protocols/chat-completions) | Base URL `https://api.meta.ai/v1`. Used for the talker, the strategist and the translator, with `reasoning_effort: minimal`. Contributor tier: $0.10 / $0.20 per million input / output tokens, and Meta may use the traffic to improve its models. See the note below. |
+
 ## Pipecat feature docs
 
 | Topic | Docs |
@@ -196,6 +204,23 @@ Some features need no extra:
   - `LLMSettings.filter_incomplete_user_turns` was deprecated in 1.7.0. Use `FilterIncompleteUserTurnStrategies` via `LLMUserAggregatorParams(user_turn_strategies=...)`.
   - Overriding `reset()` on turn strategies was deprecated in 1.6.0. Use `handle_user_turn_started()` and `handle_user_turn_stopped()`.
 - **Scaffolding.** `pipecat create` was removed in 1.5.0. Use `pipecat init`.
+
+### Muse Spark through the OpenAI-compatible API
+
+The docs say Muse Spark always reasons. `reasoning_effort: "none"` returns HTTP 400, `"max"` is
+for the standard tier only, and the contributor tier accepts `minimal`, `low`, `medium`, `high`
+and `xhigh`. `logprobs`, `stop` and `n > 1` are not supported.
+
+A probe against `muse-spark-1.3-contributor` on 2026-10-02 confirmed what the app relies on:
+
+- **The `developer` role is accepted.** Flows task messages and the strategist's hint use it, so
+  Pipecat's `OpenAILLMService` keeps `supports_developer_role = True`.
+- **Strict structured output works.** `response_format` with `json_schema` and `strict: true`
+  returned advice that the `Advice` model validated.
+- **Tools are accepted on streamed requests.** A streamed request carrying a function tool was
+  accepted and streamed its answer. The model chose to answer in text, so the probe did not see a
+  streamed tool call; the real-model conversation tests cover that.
+- **Effort levels.** `minimal` and `xhigh` were both accepted on the contributor tier.
 
 ### Tracing exporter
 
