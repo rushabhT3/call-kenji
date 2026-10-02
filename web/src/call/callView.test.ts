@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { CallEvent } from "../contract/events.ts";
-import { EMPTY_CALL, applyEvents, elapsedMs, latestKenjiLineId } from "./callView.ts";
+import {
+  EMPTY_CALL,
+  applyEvents,
+  elapsedMs,
+  finishedCallMs,
+  latestKenjiLineId,
+} from "./callView.ts";
 
 const START = "2026-10-02T15:00:00+09:00";
 
@@ -88,5 +94,17 @@ describe("selectors", () => {
   it("measures elapsed time and never goes negative", () => {
     expect(elapsedMs(START, "2026-10-02T15:02:14+09:00")).toBe(134_000);
     expect(elapsedMs("2026-10-02T15:02:14+09:00", START)).toBe(0);
+  });
+
+  it("times a finished call by its own clock, however fast it was replayed", () => {
+    const started = applyEvents(EMPTY_CALL, [
+      { type: "call_started", call_id: "c1", transport: "browser", started_at: START },
+    ]);
+    const ended = applyEvents(started, [
+      { type: "call_ended", outcome: "promise_to_pay", ended_at: "2026-10-02T15:02:20+09:00" },
+    ]);
+
+    expect(finishedCallMs(started)).toBeNull();
+    expect(finishedCallMs(ended)).toBe(140_000);
   });
 });

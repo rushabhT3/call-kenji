@@ -1,5 +1,5 @@
 import { PostCall } from "../aftercall/PostCall.tsx";
-import type { CallView } from "../call/callView.ts";
+import { finishedCallMs, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
 import { Button } from "../ui/Button.tsx";
 import { ComplianceCard } from "./ComplianceCard.tsx";
@@ -60,7 +60,8 @@ function MobileCallBar({ call }: { call: BrowserCall }) {
 
 export function LiveView(props: LiveViewProps) {
   const { view, isDemo, call, isFeedLost } = props;
-  const elapsedMs = useCallTimer(props.startedAtMs, props.endedAtMs);
+  const timerMs = useCallTimer(props.startedAtMs, props.endedAtMs);
+  const elapsedMs = finishedCallMs(view) ?? timerMs;
   const hasCallBar = call?.state === "connected" && view.status === "live";
   return (
     <>

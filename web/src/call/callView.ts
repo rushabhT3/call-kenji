@@ -131,3 +131,8 @@ export function latestKenjiLineId(view: CallView): string | null {
 export function elapsedMs(from: string, to: string): number {
   return Math.max(0, Date.parse(to) - Date.parse(from));
 }
+
+/** How long a finished call lasted, by its own clock rather than by how fast it was replayed. */
+export function finishedCallMs(view: CallView): number | null {
+  return view.startedAt && view.endedAt ? elapsedMs(view.startedAt, view.endedAt) : null;
+}
