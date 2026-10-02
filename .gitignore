@@ -1,0 +1,40 @@
+# Local planning notes and editor tooling
+plan.md
+.qodo/
+.vscode/
+.idea/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+
+# Runtime data (transcripts, events, audit logs)
+var/
+
+# Web
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/blob-report/
+
+# Third-party reference captures stay local; DESIGN.md links to the sources
+docs/design-refs/*
+!docs/design-refs/README.md
+
+# OS
+.DS_Store
+Thumbs.db
