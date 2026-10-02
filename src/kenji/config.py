@@ -7,14 +7,12 @@ from pydantic import Field, FilePath, SecretStr, field_validator, model_validato
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
+class LanguageModelSettings(BaseSettings):
+    """Any OpenAI-compatible chat-completions provider; an unset base URL means OpenAI."""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     llm_api_key: SecretStr
-    soniox_api_key: SecretStr
-    cartesia_api_key: SecretStr
-
-    # Any OpenAI-compatible chat-completions provider; unset base URL means OpenAI itself.
     talker_provider: Literal["openai"] = "openai"
     llm_base_url: str | None = None
     llm_reasoning_effort: Literal["none", "minimal", "low", "medium", "high"] | None = "none"
@@ -22,6 +20,22 @@ class Settings(BaseSettings):
     talker_model: str = "gpt-6-luna"
     strategist_model: str = "gpt-6-luna"
     translator_model: str = "gpt-6-luna"
+
+    @field_validator("llm_api_key")
+    @classmethod
+    def _require_llm_key(cls, value: SecretStr) -> SecretStr:
+        return _non_empty(value)
+
+
+def _non_empty(value: SecretStr) -> SecretStr:
+    if not value.get_secret_value().strip():
+        raise ValueError("must not be empty")
+    return value
+
+
+class Settings(LanguageModelSettings):
+    soniox_api_key: SecretStr
+    cartesia_api_key: SecretStr
     soniox_model: str = "stt-rt-v5"
     cartesia_model: str = "sonic-3.6"
     cartesia_voice_id: str = "aa3ccc4a-cfd8-405c-acf5-1873a527b006"
@@ -48,12 +62,10 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     otel_exporter_otlp_endpoint: str | None = None
 
-    @field_validator("llm_api_key", "soniox_api_key", "cartesia_api_key")
+    @field_validator("soniox_api_key", "cartesia_api_key")
     @classmethod
-    def _require_non_empty_secret(cls, value: SecretStr) -> SecretStr:
-        if not value.get_secret_value().strip():
-            raise ValueError("must not be empty")
-        return value
+    def _require_speech_keys(cls, value: SecretStr) -> SecretStr:
+        return _non_empty(value)
 
     @model_validator(mode="after")
     def _require_consistent_options(self) -> Self:

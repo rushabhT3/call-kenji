@@ -29,7 +29,7 @@ from kenji.app.linking import LinkRegistry
 from kenji.app.ports import CallRecorder, Clock, TalkerFactory
 from kenji.app.script import Script
 from kenji.app.stream_tokens import StreamTokens
-from kenji.config import Settings
+from kenji.config import LanguageModelSettings, Settings
 from kenji.domain.account import Account
 from kenji.domain.guardrails import CallLimits
 from kenji.domain.turn import BackchannelClassifier, LexiconBackchannelClassifier
@@ -54,7 +54,7 @@ class Services:
     phone: PhoneLine | None = None
 
 
-def chat_endpoint(settings: Settings) -> ChatEndpoint:
+def chat_endpoint(settings: LanguageModelSettings) -> ChatEndpoint:
     return ChatEndpoint(
         api_key=settings.llm_api_key.get_secret_value(),
         base_url=settings.llm_base_url,
