@@ -97,7 +97,16 @@ def test_confirmations_over_the_read_back_do_not_interrupt(
 
 
 @pytest.mark.parametrize(
-    "correction", ["違います", "そうじゃなくて", "いいえ、10日です", "すみません、金額が違います"]
+    "correction",
+    [
+        "違います",
+        "そうじゃなくて",
+        "いいえ、10日です",
+        "すみません、金額が違います",
+        "日付を変えたいです",
+        "もう一度お願いします",
+        "金額を変更できますか",
+    ],
 )
 def test_corrections_over_the_read_back_interrupt(
     classifier: LexiconBackchannelClassifier, correction: str

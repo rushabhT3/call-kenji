@@ -33,6 +33,11 @@ DEFAULT_URGENT_PHRASES = (
     "すとっぷ",
     "やめて",
     "止めて",
+    "もう一度",
+    "もういちど",
+    "変え",
+    "変更",
+    "訂正",
 )
 DEFAULT_HALF_SCORE_CHARACTERS = 4
 _ELONGATION_MARKS = str.maketrans("", "", "ー〜～")
