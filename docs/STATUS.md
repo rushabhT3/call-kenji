@@ -31,7 +31,7 @@ gate cannot be met on this provider; a faster talker model is the owner's call.
 - Phase 2: 100% line and branch coverage of `domain/`, all required cases, gate review findings fixed.
 - Phase 3 (code): FastAPI server, Flows talker, strategist, backchannel strategy, kana TTS transform, guardrails, live event feed, per-call ICE servers. The text-mode harness runs the real call assembly.
 - Phase 4: normal, spouse, ¥3,000 bargainer, human handoff and stop-contact scenarios pass in text mode with a scripted talker. With Muse Spark as the talker and strategist, `pytest -m real_llm` passed 5/5 three times in a row on commit 92029fb (78 s, 76 s, 89 s).
-- Phase 5 (provisional): live page per `docs/DESIGN.md`, demo replay with no backend, 22 Playwright tests at 1440 and 390, screenshots in `docs/screenshots/`, design review applied (`docs/DESIGN-REVIEW.md`). The demo recording is a scripted text-mode run until a real call replaces it.
+- Phase 5 (provisional): live page per `docs/DESIGN.md`, demo replay with no backend, 32 Playwright tests (WCAG AA scans, overflow at 1440, 1024, 768 and 390), screenshots in `docs/screenshots/`, design review applied (`docs/DESIGN-REVIEW.md`). The demo recording is a scripted text-mode run until a real call replaces it.
 - Phase 6 (code): signed Twilio webhook, single-use stream tokens, keypad linking to one tab, all tested with simulated Twilio messages.
 - Phase 7 (prepared): Dockerfile (built in CI), Cloudflare Worker, manual Deploy workflow, `docs/DEPLOY.md`, `scripts/smoke.py`.
 - Phase 8 (draft): README with pitch, diagram, real vs simulated, cost, run steps, recording script and launch post.

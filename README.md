@@ -29,7 +29,9 @@ Voice agents for collections live or die on three things a demo usually hides: *
   advice: identity, situation, ability to pay, offers and next move. The next move reaches the
   talker on the following turn, so the conversation never waits for it.
 - **Latency you can see.** Every turn is split into end-of-turn detection, the model's first
-  token and the first audio, against a 1,500 ms budget, with p50 and p95.
+  token and the first audio, against a 1,500 ms budget, with p50 and p95. On Muse Spark's
+  contributor tier the model's first token alone takes about 2.9 s, so turns run over budget,
+  and the card shows by how much.
 
 ## Architecture
 
