@@ -179,7 +179,7 @@ The phone line and deployment are covered step by step in [docs/DEPLOY.md](docs/
 3. **0:20–0:35, identity.** Give the name and the 平成 birthday. Show the identity gate passing,
    then Kenji stating the balance only after that.
 4. **0:35–0:50, negotiation.** Offer ¥3,000. "Offer inside terms" goes BLOCKED, and the
-   Strategist suggests ¥6,000 × 6. Accept.
+   Strategist suggests ¥6,000 × 5 then ¥5,000. Accept.
 5. **0:50–1:00, read-back.** Say はい while Kenji reads the agreement. The Turn card shows it was
    aizuchi, and he keeps going.
 6. **1:00–1:15, after the call.** Show the outcome, the SMS preview marked NOT SENT, and the audit
