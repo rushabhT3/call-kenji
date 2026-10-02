@@ -163,8 +163,8 @@ def build_phone_line(settings: Settings, clock: Clock) -> PhoneLine | None:
     )
 
 
-def build_services(settings: Settings) -> Services:
-    kit = build_kit(settings)
+def build_services(settings: Settings, kit: CallKit | None = None) -> Services:
+    kit = kit or build_kit(settings)
     routing = CallRouting(hub=EventHub(), links=LinkRegistry(kit.clock))
 
     def recorder(call_id: str, call_date: date) -> CallRecorder:
