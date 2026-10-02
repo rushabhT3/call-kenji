@@ -8,6 +8,8 @@ _KATAKANA_LAST = ord("ヶ")
 _KATAKANA_TO_HIRAGANA_OFFSET = ord("ァ") - ord("ぁ")
 _FULLWIDTH_TO_ASCII = str.maketrans("０１２３４５６７８９，￥／－", "0123456789,¥/-")
 _REPEATED_SENTENCE_END = re.compile(r"([。！？])\1+")
+# Kenji speaks Japanese only; the model now and then slips a Latin word into a sentence.
+_STRAY_LATIN_WORD = re.compile(r"\s*(?<![A-Za-z])(?!AI(?![A-Za-z]))[A-Za-z]{2,}(?![A-Za-z])\s*")
 
 
 def to_hiragana(text: str) -> str:
@@ -39,3 +41,7 @@ def ascii_digits(text: str) -> str:
 
 def without_repeated_sentence_ends(text: str) -> str:
     return _REPEATED_SENTENCE_END.sub(r"\1", text)
+
+
+def without_stray_latin_words(text: str) -> str:
+    return _STRAY_LATIN_WORD.sub("", text)

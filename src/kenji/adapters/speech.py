@@ -11,6 +11,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 
 from kenji.app.turns import UnfinishedPhraseHold
 from kenji.domain.kana import to_speech_kana
+from kenji.domain.text import without_stray_latin_words
 
 # Soniox's documented range is 500-3000 ms. 1.5 s is its voice-agent recommendation; the
 # default sensitivity is kept, since cutting callers off is the failure that costs most.
@@ -18,7 +19,7 @@ MAX_ENDPOINT_DELAY_MS = 1500
 
 
 async def kana_for_speech(text: str, _aggregation_type: str) -> str:
-    return to_speech_kana(text)
+    return to_speech_kana(without_stray_latin_words(text))
 
 
 class SonioxSpeechToText:
