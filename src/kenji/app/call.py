@@ -4,7 +4,7 @@ transport -> STT -> turn handling -> Flows talker (+ strategist hint) -> kana TT
 """
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from loguru import logger
 from pipecat.flows import FlowManager
@@ -18,10 +18,14 @@ from pipecat.processors.aggregators.llm_response_universal import (
     LLMAssistantAggregator,
     LLMContextAggregatorPair,
     LLMUserAggregator,
+    LLMUserAggregatorParams,
     UserTurnStoppedMessage,
 )
 from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.transports.base_transport import BaseTransport
+from pipecat.turns.user_mute.first_speech_user_mute_strategy import (
+    FirstSpeechUserMuteStrategy,
+)
 from pipecat.workers.runner import WorkerRunner
 
 from kenji.app.call_parts import CallIO, CallKit, CallParts, build_call_parts
@@ -55,10 +59,7 @@ class Call:
         self._parts: CallParts = build_call_parts(kit, setup.context, setup.io)
         self._talker = kit.voice.talker.create(self._parts.talker_instruction)
         self._context = LLMContext()
-        self._pair = LLMContextAggregatorPair(
-            self._context,
-            user_params=kit.voice.turn_detection.user_params(self._turn_strategy()),
-        )
+        self._pair = LLMContextAggregatorPair(self._context, user_params=self._user_params())
         self._worker = self._build_worker()
         self._flow_manager = FlowManager(
             worker=self._worker,
@@ -88,6 +89,12 @@ class Call:
             await self._parts.feed.drain()
         return publish_debrief(self._kit, self._parts)
 
+    def _user_params(self) -> LLMUserAggregatorParams:
+        params = self._kit.voice.turn_detection.user_params(self._turn_strategy())
+        # The opening carries the AI disclosure; the caller is heard again once it has played.
+        mute = FirstSpeechUserMuteStrategy()  # type: ignore[no-untyped-call]
+        return replace(params, user_mute_strategies=[mute])
+
     def _turn_strategy(self) -> BackchannelTurnStartStrategy:
         return BackchannelTurnStartStrategy(
             classifier=self._kit.classifier,
@@ -115,6 +122,8 @@ class Call:
             params=PipelineParams(enable_metrics=True, enable_usage_metrics=True),
             observers=[latency, InterimTranscriptObserver(self._parts.feed.caller_partial)],
             idle_timeout_secs=IDLE_TIMEOUT_SECS,
+            enable_tracing=True,
+            conversation_id=self._parts.session.context.call_id,
         )
 
     def _wire_events(self) -> None:

@@ -35,7 +35,7 @@
         "type": "transcript",
         "line_id": "kenji-1",
         "speaker": "kenji",
-        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。実在する方の個人情報は、おっしゃらないでください。",
+        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。また、AIの提供元が、会話の内容をモデルの改善に使う場合があります。実在する方の個人情報は、おっしゃらないでください。",
         "is_final": true,
         "is_backchannel": false,
         "at": "2026-10-02T15:00:00+09:00"
@@ -46,7 +46,7 @@
       "event": {
         "type": "subtitle",
         "line_id": "kenji-1",
-        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. Please don't share any real person's personal information."
+        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. The AI provider may also use it to improve its models. Please don't share any real person's personal information."
       }
     },
     {
