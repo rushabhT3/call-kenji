@@ -5,11 +5,20 @@ OpenAI by default, or for example Meta's Muse Spark at https://api.meta.ai/v1.
 """
 
 from dataclasses import dataclass
-from typing import Any
+from functools import partial
+from typing import Any, cast
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AsyncStream
+from openai.types.chat import ChatCompletionChunk
+from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.services.llm_service import LLMService
 from pipecat.services.openai.llm import OpenAILLMService
+
+from kenji.adapters.hedging import first_to_start
+
+# Muse Spark's first token: median about 2.3 s, with spikes past 15 s. A second request after
+# the median trims that tail, and the duplicate input costs about $0.10 per million tokens.
+HEDGE_AFTER_SECS = 2.5
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,13 +40,25 @@ class ChatEndpoint:
         return AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
 
 
+class HedgedOpenAILLMService(OpenAILLMService):
+    """Asks again when an answer is slow to start, and speaks whichever starts first."""
+
+    hedge_after_secs: float = HEDGE_AFTER_SECS
+
+    async def get_chat_completions(self, context: LLMContext) -> AsyncStream[ChatCompletionChunk]:
+        start = partial(super().get_chat_completions, context)
+        stream = await first_to_start(start, self.hedge_after_secs)
+        # Pipecat only iterates the stream and closes it, which the hedged stream supports.
+        return cast(AsyncStream[ChatCompletionChunk], stream)
+
+
 class OpenAITalker:
     def __init__(self, endpoint: ChatEndpoint, model: str) -> None:
         self._endpoint = endpoint
         self._model = model
 
     def create(self, system_instruction: str) -> LLMService[Any]:
-        return OpenAILLMService(
+        return HedgedOpenAILLMService(
             api_key=self._endpoint.api_key,
             base_url=self._endpoint.base_url,
             settings=OpenAILLMService.Settings(
