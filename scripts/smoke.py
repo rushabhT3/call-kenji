@@ -16,6 +16,8 @@ from http import HTTPStatus
 import httpx
 import websockets
 
+from kenji.app.linking import CODE_LENGTH
+
 type Check = Callable[[httpx.AsyncClient, str], Awaitable[str]]
 
 
@@ -54,7 +56,7 @@ async def viewer_gets_a_code(_client: httpx.AsyncClient, base: str) -> str:
     async with websockets.connect(f"{socket_url}/ws/viewer") as viewer:
         ready = json.loads(await asyncio.wait_for(viewer.recv(), 10))
     code = ready.get("code", "")
-    if ready.get("type") != "viewer_ready" or len(code) != 4 or not code.isdigit():
+    if ready.get("type") != "viewer_ready" or len(code) != CODE_LENGTH or not code.isdigit():
         raise AssertionError(f"unexpected viewer reply: {ready}")
     return "viewer feed issued a 4-digit code"
 
