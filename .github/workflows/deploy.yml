@@ -27,29 +27,68 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
-      - name: Write non-secret settings from repository variables
+      # Unset variables are left out, not written as "": the server rejects empty values,
+      # and the phone line and TURN relay are optional until their accounts exist.
+      - name: Collect settings from repository variables
+        env:
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          LLM_REASONING_EFFORT: ${{ vars.LLM_REASONING_EFFORT }}
+          TALKER_MODEL: ${{ vars.TALKER_MODEL }}
+          STRATEGIST_MODEL: ${{ vars.STRATEGIST_MODEL }}
+          TRANSLATOR_MODEL: ${{ vars.TRANSLATOR_MODEL }}
+          TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
+          PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+          CLOUDFLARE_TURN_KEY_ID: ${{ vars.CLOUDFLARE_TURN_KEY_ID }}
         run: |
-          cat > cloud-run.env.yaml <<EOF
-          LLM_BASE_URL: "${{ vars.LLM_BASE_URL }}"
-          LLM_REASONING_EFFORT: "${{ vars.LLM_REASONING_EFFORT }}"
-          TALKER_MODEL: "${{ vars.TALKER_MODEL }}"
-          STRATEGIST_MODEL: "${{ vars.STRATEGIST_MODEL }}"
-          TRANSLATOR_MODEL: "${{ vars.TRANSLATOR_MODEL }}"
-          TWILIO_ACCOUNT_SID: "${{ vars.TWILIO_ACCOUNT_SID }}"
-          PUBLIC_BASE_URL: "${{ vars.PUBLIC_BASE_URL }}"
-          CLOUDFLARE_TURN_KEY_ID: "${{ vars.CLOUDFLARE_TURN_KEY_ID }}"
-          EOF
+          settings_file="$RUNNER_TEMP/cloud-run.env.yaml"
+          names="LLM_BASE_URL LLM_REASONING_EFFORT TALKER_MODEL STRATEGIST_MODEL TRANSLATOR_MODEL"
+          secrets="LLM_API_KEY=llm-api-key:latest,SONIOX_API_KEY=soniox-api-key:latest"
+          secrets="$secrets,CARTESIA_API_KEY=cartesia-api-key:latest"
+          secrets="$secrets,PROXY_SHARED_SECRET=proxy-shared-secret:latest"
+          if [ -n "$TWILIO_ACCOUNT_SID" ]; then
+            if [ -z "$PUBLIC_BASE_URL" ]; then
+              echo "::error::PUBLIC_BASE_URL must be set when TWILIO_ACCOUNT_SID is set"
+              exit 1
+            fi
+            names="$names TWILIO_ACCOUNT_SID PUBLIC_BASE_URL"
+            secrets="$secrets,TWILIO_AUTH_TOKEN=twilio-auth-token:latest"
+          fi
+          if [ -n "$CLOUDFLARE_TURN_KEY_ID" ]; then
+            names="$names CLOUDFLARE_TURN_KEY_ID"
+            secrets="$secrets,CLOUDFLARE_TURN_API_TOKEN=cloudflare-turn-api-token:latest"
+          fi
+          : > "$settings_file"
+          for name in $names; do
+            value="${!name}"
+            if [ -z "$value" ]; then
+              continue
+            fi
+            if [[ "$value" == *$'\n'* ]]; then
+              echo "::error::$name must be a single line"
+              exit 1
+            fi
+            printf "%s: '%s'\n" "$name" "${value//\'/\'\'}" >> "$settings_file"
+          done
+          echo "SETTINGS_FILE=$settings_file" >> "$GITHUB_ENV"
+          echo "SERVICE_SECRETS=$secrets" >> "$GITHUB_ENV"
       - name: Build and deploy
+        env:
+          DATA_BUCKET: ${{ secrets.DATA_BUCKET }}
         run: |
+          if [ -s "$SETTINGS_FILE" ]; then
+            settings=(--env-vars-file "$SETTINGS_FILE")
+          else
+            settings=(--clear-env-vars)
+          fi
           gcloud run deploy "$SERVICE" \
             --source . \
             --region "$REGION" \
             --cpu 1 --memory 1Gi \
             --min-instances 1 --max-instances 1 \
             --timeout 3600 \
-            --set-secrets "LLM_API_KEY=llm-api-key:latest,SONIOX_API_KEY=soniox-api-key:latest,CARTESIA_API_KEY=cartesia-api-key:latest,TWILIO_AUTH_TOKEN=twilio-auth-token:latest,CLOUDFLARE_TURN_API_TOKEN=cloudflare-turn-api-token:latest,PROXY_SHARED_SECRET=proxy-shared-secret:latest" \
-            --env-vars-file deploy/cloud-run.env.yaml \
-            --add-volume name=data,type=cloud-storage,bucket="${{ secrets.DATA_BUCKET }}" \
+            --set-secrets "$SERVICE_SECRETS" \
+            "${settings[@]}" \
+            --add-volume name=data,type=cloud-storage,bucket="$DATA_BUCKET" \
             --add-volume-mount volume=data,mount-path=/data \
             --allow-unauthenticated
 

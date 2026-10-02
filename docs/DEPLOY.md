@@ -11,7 +11,8 @@ Browser ──HTTPS──▶ Cloudflare Worker ──┬─ static page (Workers
 Browser ◀──WebRTC media via Cloudflare TURN──▶ Cloud Run
 Phone ──▶ Twilio ──webhook + Media Streams WebSocket──▶ Cloud Run
 Cloud Run ──▶ Soniox (STT) · Cartesia (TTS) · language model API
-Cloud Run ──▶ Cloud Storage volume at /data (transcripts, events, audit, counters; deleted after 30 days)
+Cloud Run ──▶ Cloud Storage volume at /data (call records and counters deleted after 30 days;
+              the caller salt and stop-contact list kept)
 ```
 
 ## Why Cloud Run and Cloudflare TURN, not Pipecat Cloud
@@ -39,11 +40,31 @@ and Session API docs. The links are in `docs/VERSIONS.md` and the vendor notes b
 
 1. **Google Cloud** (project `PROJECT_ID`, region `us-west1`):
    - Enable Cloud Run, Cloud Build, Artifact Registry, Secret Manager and Cloud Storage.
-   - Create the bucket `DATA_BUCKET` with a 30-day lifecycle delete rule. This is a backstop for
-     the server's own purge.
-   - Create these secrets: `llm-api-key`, `soniox-api-key`, `cartesia-api-key`,
-     `twilio-auth-token`, `cloudflare-turn-api-token` and `proxy-shared-secret` (a long random
-     string, for example `openssl rand -hex 32`).
+   - Create the bucket `DATA_BUCKET` and give it a 30-day delete rule as a backstop for the
+     server's own purge. The rule covers only `calls/` (transcripts, events, audit) and `usage/`
+     (daily counters). It must not cover the whole bucket: `caller-salt.bin` and `contacts.json`
+     (the stop-contact requests) live at the root and have to survive.
+
+     ```bash
+     cat > lifecycle.json <<'EOF'
+     {
+       "lifecycle": {
+         "rule": [
+           {
+             "action": {"type": "Delete"},
+             "condition": {"age": 30, "matchesPrefix": ["calls/", "usage/"]}
+           }
+         ]
+       }
+     }
+     EOF
+     gcloud storage buckets update gs://DATA_BUCKET --lifecycle-file=lifecycle.json
+     ```
+
+   - Create these secrets: `llm-api-key`, `soniox-api-key`, `cartesia-api-key` and
+     `proxy-shared-secret` (a long random string, for example `openssl rand -hex 32`). Add
+     `twilio-auth-token` once you have a number, and `cloudflare-turn-api-token` once you have a
+     TURN key.
    - Set up Workload Identity Federation for this GitHub repository, with a deploy service account.
 2. **Budget alert at $20:**
 
@@ -68,9 +89,16 @@ and Session API docs. The links are in `docs/VERSIONS.md` and the vendor notes b
    - Secrets: `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`, `DATA_BUCKET`,
      `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
    - Variables: `LLM_BASE_URL`, `LLM_REASONING_EFFORT`, `TALKER_MODEL`, `STRATEGIST_MODEL`,
-     `TRANSLATOR_MODEL`, `TWILIO_ACCOUNT_SID`, `PUBLIC_BASE_URL` (the Cloud Run URL),
-     `CLOUDFLARE_TURN_KEY_ID`, `VOICE_SERVER_URL` (the Cloud Run URL), and `PHONE_NUMBER` (shown
-     on the page).
+     `TRANSLATOR_MODEL`, `VOICE_SERVER_URL` (the Cloud Run URL) and `PHONE_NUMBER` (shown on the
+     page).
+   - Optional variables. The workflow leaves out any variable that is not set, and mounts a
+     secret only when its feature is configured:
+     - `TWILIO_ACCOUNT_SID` and `PUBLIC_BASE_URL` (the Cloud Run URL) turn on the phone line and
+       mount `twilio-auth-token`. Set both or neither; the workflow stops if only the account SID
+       is set.
+     - `CLOUDFLARE_TURN_KEY_ID` turns on the TURN relay and mounts `cloudflare-turn-api-token`.
+       Browser calls need it on Cloud Run, which takes no inbound UDP; without a relay their audio
+       never connects. Phone calls do not use it.
 5. **Worker secret:**
    - Run `npx wrangler@4.147.0 secret put PROXY_SHARED_SECRET`, using the same value as the GCP
      secret.
