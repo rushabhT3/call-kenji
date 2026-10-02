@@ -6,12 +6,15 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from openai import AsyncOpenAI
-
 from kenji.adapters.clock import SystemClock
 from kenji.adapters.content import load_account, load_script
 from kenji.adapters.onnx_classifier import OnnxBackchannelClassifier
-from kenji.adapters.openai_models import OpenAIAdviceModel, OpenAITalker, OpenAITranslator
+from kenji.adapters.openai_models import (
+    ChatEndpoint,
+    OpenAIAdviceModel,
+    OpenAITalker,
+    OpenAITranslator,
+)
 from kenji.adapters.speech import (
     CartesiaTextToSpeech,
     SileroSmartTurnDetection,
@@ -40,13 +43,17 @@ class Services:
     salt: bytes
 
 
-def _openai_talker(settings: Settings) -> TalkerFactory:
-    return OpenAITalker(
-        settings.openai_api_key.get_secret_value(),
-        settings.talker_model,
-        base_url=settings.talker_base_url,
-        reasoning_effort=settings.openai_reasoning_effort,
+def chat_endpoint(settings: Settings) -> ChatEndpoint:
+    return ChatEndpoint(
+        api_key=settings.llm_api_key.get_secret_value(),
+        base_url=settings.llm_base_url,
+        reasoning_effort=settings.llm_reasoning_effort,
+        temperature=settings.llm_temperature,
     )
+
+
+def _openai_talker(settings: Settings) -> TalkerFactory:
+    return OpenAITalker(chat_endpoint(settings), settings.talker_model)
 
 
 TALKERS: dict[str, Callable[[Settings], TalkerFactory]] = {"openai": _openai_talker}
@@ -90,15 +97,14 @@ def _voice(settings: Settings, script: Script, account: Account) -> VoiceService
 def build_kit(settings: Settings) -> CallKit:
     script = load_script(settings.content_dir / "script_ja.yaml")
     account = load_account(settings.content_dir / "account.yaml")
-    client = AsyncOpenAI(api_key=settings.openai_api_key.get_secret_value())
-    effort = settings.openai_reasoning_effort
+    endpoint = chat_endpoint(settings)
     return CallKit(
         script=script,
         account=account,
         voice=_voice(settings, script, account),
-        advice_model=OpenAIAdviceModel(client, settings.strategist_model, effort),
+        advice_model=OpenAIAdviceModel(endpoint, settings.strategist_model),
         translator=OpenAITranslator(
-            client, settings.translator_model, effort, script.prompts.translator_system
+            endpoint, settings.translator_model, script.prompts.translator_system
         ),
         classifier=build_classifier(settings),
         contacts=JsonContactStore(settings.data_dir / "contacts.json"),

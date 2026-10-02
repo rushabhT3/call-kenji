@@ -3,21 +3,23 @@
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, FilePath, SecretStr, model_validator
+from pydantic import Field, FilePath, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    openai_api_key: SecretStr
+    llm_api_key: SecretStr
     soniox_api_key: SecretStr
     cartesia_api_key: SecretStr
 
+    # Any OpenAI-compatible chat-completions provider; unset base URL means OpenAI itself.
     talker_provider: Literal["openai"] = "openai"
+    llm_base_url: str | None = None
+    llm_reasoning_effort: Literal["none", "minimal", "low", "medium", "high"] | None = "none"
+    llm_temperature: float | None = None
     talker_model: str = "gpt-6-luna"
-    talker_base_url: str | None = None
-    openai_reasoning_effort: Literal["none", "minimal", "low", "medium", "high"] | None = "none"
     strategist_model: str = "gpt-6-luna"
     translator_model: str = "gpt-6-luna"
     soniox_model: str = "stt-rt-v5"
@@ -45,6 +47,13 @@ class Settings(BaseSettings):
     port: int = 7860
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     otel_exporter_otlp_endpoint: str | None = None
+
+    @field_validator("llm_api_key", "soniox_api_key", "cartesia_api_key")
+    @classmethod
+    def _require_non_empty_secret(cls, value: SecretStr) -> SecretStr:
+        if not value.get_secret_value().strip():
+            raise ValueError("must not be empty")
+        return value
 
     @model_validator(mode="after")
     def _require_consistent_options(self) -> Self:

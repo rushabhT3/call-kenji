@@ -36,7 +36,7 @@ def services() -> Services:
 @pytest.fixture
 def client(services: Services, tmp_path: Path) -> TestClient:
     settings = Settings(
-        openai_api_key=SecretStr("test"),
+        llm_api_key=SecretStr("test"),
         soniox_api_key=SecretStr("test"),
         cartesia_api_key=SecretStr("test"),
         data_dir=tmp_path,

@@ -63,7 +63,7 @@ def test_model_is_chosen_by_configuration_only(
     model_path: Path, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    for key in ("OPENAI_API_KEY", "SONIOX_API_KEY", "CARTESIA_API_KEY"):
+    for key in ("LLM_API_KEY", "SONIOX_API_KEY", "CARTESIA_API_KEY"):
         monkeypatch.setenv(key, "test")
     monkeypatch.setenv("BACKCHANNEL_CLASSIFIER", "onnx")
     monkeypatch.setenv("BACKCHANNEL_ONNX_PATH", str(model_path))

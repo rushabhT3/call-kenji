@@ -1,8 +1,10 @@
-"""OpenAI behind the talker, strategist and translator ports.
+"""OpenAI-compatible chat completions behind the talker, strategist and translator ports.
 
-Any OpenAI-compatible endpoint works through `base_url`, so switching provider is config.
+Any OpenAI-compatible endpoint works through `base_url`, so switching provider is config:
+OpenAI by default, or for example Meta's Muse Spark at https://api.meta.ai/v1.
 """
 
+from dataclasses import dataclass
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -10,35 +12,47 @@ from pipecat.services.llm_service import LLMService
 from pipecat.services.openai.llm import OpenAILLMService
 
 
+@dataclass(frozen=True, slots=True)
+class ChatEndpoint:
+    api_key: str
+    base_url: str | None
+    reasoning_effort: str | None
+    temperature: float | None
+
+    def extra_options(self) -> dict[str, Any]:
+        options: dict[str, Any] = {}
+        if self.reasoning_effort is not None:
+            options["reasoning_effort"] = self.reasoning_effort
+        if self.temperature is not None:
+            options["temperature"] = self.temperature
+        return options
+
+    def client(self) -> AsyncOpenAI:
+        return AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
+
+
 class OpenAITalker:
-    def __init__(
-        self, api_key: str, model: str, *, base_url: str | None, reasoning_effort: str | None
-    ) -> None:
-        self._api_key = api_key
+    def __init__(self, endpoint: ChatEndpoint, model: str) -> None:
+        self._endpoint = endpoint
         self._model = model
-        self._base_url = base_url
-        self._extra = {} if reasoning_effort is None else {"reasoning_effort": reasoning_effort}
 
     def create(self, system_instruction: str) -> LLMService[Any]:
         return OpenAILLMService(
-            api_key=self._api_key,
-            base_url=self._base_url,
+            api_key=self._endpoint.api_key,
+            base_url=self._endpoint.base_url,
             settings=OpenAILLMService.Settings(
                 model=self._model,
                 system_instruction=system_instruction,
-                temperature=0.4,
-                extra=dict(self._extra),
+                extra=self._endpoint.extra_options(),
             ),
         )
 
 
 class _ChatModel:
-    def __init__(self, client: AsyncOpenAI, model: str, reasoning_effort: str | None) -> None:
-        self._client = client
+    def __init__(self, endpoint: ChatEndpoint, model: str) -> None:
+        self._client = endpoint.client()
         self._model = model
-        self._extra: dict[str, Any] = (
-            {} if reasoning_effort is None else {"reasoning_effort": reasoning_effort}
-        )
+        self._extra = endpoint.extra_options()
 
     async def _complete(self, system_prompt: str, user_text: str, **options: Any) -> str:
         response = await self._client.chat.completions.create(
@@ -71,10 +85,8 @@ class OpenAIAdviceModel(_ChatModel):
 
 
 class OpenAITranslator(_ChatModel):
-    def __init__(
-        self, client: AsyncOpenAI, model: str, reasoning_effort: str | None, system_prompt: str
-    ) -> None:
-        super().__init__(client, model, reasoning_effort)
+    def __init__(self, endpoint: ChatEndpoint, model: str, system_prompt: str) -> None:
+        super().__init__(endpoint, model)
         self._system_prompt = system_prompt
 
     async def translate(self, japanese: str) -> str:

@@ -7,7 +7,7 @@ from kenji.config import Settings
 from kenji.server import load_settings
 
 REQUIRED_KEYS = {
-    "OPENAI_API_KEY": "sk-test",
+    "LLM_API_KEY": "sk-test",
     "SONIOX_API_KEY": "soniox-test",
     "CARTESIA_API_KEY": "cartesia-test",
 }
@@ -26,7 +26,7 @@ def _set(monkeypatch: pytest.MonkeyPatch, values: dict[str, str]) -> None:
 
 
 def test_missing_api_key_fails_at_startup(monkeypatch: pytest.MonkeyPatch) -> None:
-    _set(monkeypatch, {"OPENAI_API_KEY": "sk-test", "SONIOX_API_KEY": "soniox-test"})
+    _set(monkeypatch, {"LLM_API_KEY": "sk-test", "SONIOX_API_KEY": "soniox-test"})
 
     with pytest.raises(ValidationError, match="cartesia_api_key"):
         Settings()
@@ -76,8 +76,15 @@ def test_guardrails_must_be_positive(monkeypatch: pytest.MonkeyPatch) -> None:
         Settings()
 
 
+def test_empty_keys_fail_at_startup(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {**REQUIRED_KEYS, "LLM_API_KEY": "  "})
+
+    with pytest.raises(ValidationError, match="must not be empty"):
+        Settings()
+
+
 def test_startup_errors_never_echo_secret_values(monkeypatch: pytest.MonkeyPatch) -> None:
-    _set(monkeypatch, {"OPENAI_API_KEY": "sk-do-not-print-me"})
+    _set(monkeypatch, {"LLM_API_KEY": "sk-do-not-print-me"})
 
     with pytest.raises(SystemExit) as stopped:
         load_settings()
