@@ -39,6 +39,7 @@ from tests.conversation.doubles import (
 
 WAIT_SECS = 8.0
 LIVE_WAIT_SECS = 45.0
+MAX_CALL_SECS = 300
 
 __all__ = [
     "FixedClock",
@@ -47,9 +48,11 @@ __all__ = [
     "MemoryRecorder",
     "Say",
     "TextCall",
+    "TextKit",
     "TextTransport",
     "ToolCall",
     "build_text_kit",
+    "launch_text_call",
     "start_text_call",
     "wait_until",
 ]
@@ -180,13 +183,19 @@ async def start_text_call(
     clock: FixedClock | None = None,
     live: LiveModels | None = None,
 ) -> TextCall:
-    parts = build_text_kit(steps, clock, live)
+    wait_secs = LIVE_WAIT_SECS if live else WAIT_SECS
+    return await launch_text_call(build_text_kit(steps, clock, live), wait_secs=wait_secs)
+
+
+async def launch_text_call(
+    parts: TextKit, max_seconds: int = MAX_CALL_SECS, wait_secs: float = WAIT_SECS
+) -> TextCall:
     recorder, transport = MemoryRecorder(), TextTransport()
-    setup = CallSetup(text_call_context(parts.kit), CallIO(sink=recorder, audit=recorder), 300)
+    io = CallIO(sink=recorder, audit=recorder)
+    setup = CallSetup(text_call_context(parts.kit), io, max_seconds)
     task = asyncio.create_task(Call(parts.kit, setup, transport).run())
     await asyncio.sleep(0.2)
     await transport.connect()
-    wait_secs = LIVE_WAIT_SECS if live else WAIT_SECS
     return TextCall(
         transport,
         parts.talker,
