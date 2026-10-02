@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from kenji.domain.audit import JsonValue
 from kenji.domain.compliance import CheckStatus
 from kenji.domain.identity import IdentityStatus
 from kenji.domain.outcome import CallOutcome
@@ -28,6 +29,7 @@ class TranscriptLine(_Event):
     speaker: Literal["caller", "kenji"]
     ja: str
     is_final: bool
+    is_backchannel: bool = False
     at: datetime
 
 
@@ -52,7 +54,7 @@ class TurnAssessed(_Event):
     verdict: TurnVerdict
 
 
-class StrategistAdvice(_Event):
+class StrategistUpdated(_Event):
     type: Literal["strategist"] = "strategist"
     identity: str
     situation: str
@@ -107,7 +109,8 @@ class CallEnded(_Event):
 class AuditPublished(_Event):
     type: Literal["audit"] = "audit"
     is_chain_valid: bool
-    records: list[dict[str, object]]
+    head_hash: str
+    records: list[dict[str, JsonValue]]
 
 
 CallEvent = Annotated[
@@ -116,7 +119,7 @@ CallEvent = Annotated[
     | Subtitle
     | FlowNodeEntered
     | TurnAssessed
-    | StrategistAdvice
+    | StrategistUpdated
     | ComplianceUpdated
     | LatencyMeasured
     | HandoffRecorded

@@ -1,5 +1,6 @@
 # Every line Kenji speaks and every prompt the models receive.
 # A native speaker can review this one file. `ja` is spoken; `en` is the subtitle.
+# Line breaks inside `ja` are removed when loading; Japanese has no spaces between sentences.
 # Numbers stay in Arabic digits here; the kana normaliser turns them into readings before speech.
 # Placeholders in {braces} are filled in by the app.
 
@@ -7,7 +8,6 @@ persona:
   servicer_neutral: みなと
   servicer_full: みなと債権回収
   agent_name: ケンジ
-  debtor_honorific: 佐藤様
 
 lines:
   greeting:
@@ -21,15 +21,18 @@ lines:
       This is a demo call. The conversation is kept as text and deleted after 30 days.
       Please don't share any real person's personal information.
       To confirm who I'm speaking with, may I have your full name and date of birth?
-  identity_retry:
-    ja: 申し訳ございません、ご登録の情報と一致いたしませんでした。もう一度、お名前と生年月日をお願いできますでしょうか。
-    en: I'm sorry, that doesn't match our records. Could you give me your full name and date of birth once more?
   identity_locked:
     ja: 申し訳ございません。ご本人様の確認ができませんでしたので、本日はこちらで失礼いたします。
     en: I'm sorry, I wasn't able to confirm your identity, so I'll end the call here.
-  verified:
-    ja: ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。
-    en: Thank you for confirming. Let me introduce myself properly — I'm Kenji from Minato Servicer.
+  balance_statement:
+    ja: >-
+      ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。
+      口座番号の末尾{account_suffix}のご契約について、{overdue_since}が期日のお支払い、{balance_yen}円が、まだ確認できておりません。
+      本日は、お支払いについてご相談させていただけますでしょうか。
+    en: >-
+      Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer.
+      On the account ending {account_suffix}, the payment of ¥{balance_yen} due on {overdue_since_en} hasn't reached us yet.
+      Could we talk about how to settle it today?
   third_party_callback:
     ja: >-
       ご丁寧にありがとうございます。恐れ入りますが、ご本人様以外の方には、ご用件をお伝えできかねます。
@@ -46,6 +49,13 @@ lines:
       Let me read back what we've agreed.
       The first payment is on {first_due_en}, then ¥{monthly_yen} a month for {installments} payments, with a final payment of ¥{final_yen}, ¥{total_yen} in total.
       Is that correct?
+  read_back_single:
+    ja: >-
+      それでは、お約束の内容を確認させていただきます。
+      {first_due}に、{total_yen}円を一括でお支払いいただきます。この内容でよろしいでしょうか。
+    en: >-
+      Let me read back what we've agreed.
+      You'll pay ¥{total_yen} in full on {first_due_en}. Is that correct?
   promise_close:
     ja: >-
       ありがとうございます。お約束を承りました。確認のメッセージの内容は、画面でご覧いただけます。
@@ -85,16 +95,19 @@ lines:
 
 sms:
   promise:
-    ja: 【みなと債権回収】佐藤様 お支払いのお約束を承りました。初回{first_due} {monthly_yen}円、全{installments}回（最終回{final_yen}円）。ご不明な点は本メッセージにご返信ください。
-    en: "[Minato Servicer] Dear Sato-sama, we've recorded your payment promise: first payment {first_due_en}, ¥{monthly_yen} × {installments} (final ¥{final_yen}). Reply to this message with any questions."
+    ja: 【みなと債権回収】{honorific_ja} お支払いのお約束を承りました。初回{first_due} {monthly_yen}円、全{installments}回（最終回{final_yen}円、合計{total_yen}円）。ご不明な点は本メッセージにご返信ください。
+    en: "[Minato Servicer] Dear {honorific_en}, we've recorded your payment promise: first payment {first_due_en}, ¥{monthly_yen} × {installments} (final ¥{final_yen}, ¥{total_yen} in total). Reply to this message with any questions."
+  promise_single:
+    ja: 【みなと債権回収】{honorific_ja} お支払いのお約束を承りました。{first_due}に{total_yen}円を一括でお支払いください。ご不明な点は本メッセージにご返信ください。
+    en: "[Minato Servicer] Dear {honorific_en}, we've recorded your payment promise: ¥{total_yen} in full on {first_due_en}. Reply to this message with any questions."
   handoff:
-    ja: 【みなと債権回収】佐藤様 担当者への引き継ぎを承りました。担当者より改めてご連絡いたします。
-    en: "[Minato Servicer] Dear Sato-sama, your request to speak with a staff member is noted. A staff member will contact you."
+    ja: 【みなと債権回収】{honorific_ja} 担当者への引き継ぎを承りました。担当者より改めてご連絡いたします。
+    en: "[Minato Servicer] Dear {honorific_en}, your request to speak with a staff member is noted. A staff member will contact you."
 
 prompts:
   talker_role: |-
     あなたは「みなと債権回収」のAIアシスタント「ケンジ」です。
-    これはデモ通話です。相手は、架空の債務者「佐藤ゆうき」様を演じています。
+    これはデモ通話です。相手は、架空の債務者「{debtor_name}」様を演じています。
 
     話し方:
     - 自然で丁寧な敬語で話してください。一度の発話は短く、1〜2文にしてください。
@@ -108,20 +121,22 @@ prompts:
     - 支払い条件は、check_terms で条件内と確認できたものだけを提案し、合意してください。
     - 相手が担当者（人間）との会話を希望したら、request_human を使ってください。
     - 相手が今後の連絡をやめてほしいと言ったら、record_stop_contact を使ってください。
-    - 電話に出た方がご本人様でないと分かったら、third_party_answered を使ってください。
+    - 相手がこれ以上の相談を望まない場合は、end_without_agreement を使ってください。
     - 法的措置をほのめかす表現、威圧的な表現は使わないでください。
   strategist_hint: |-
     【参考: 交渉アドバイザーからの次の一手】{next_move}
     この助言は参考です。厳守事項と、現在の段階の指示を優先してください。
   strategist_system: |-
     You advise Kenji, a polite Japanese debt-collection voice agent, during a live demo call.
-    The caller plays the fictional debtor Yuki Sato (佐藤ゆうき). Balance ¥35,000, overdue since 30 Sep.
-    Terms Kenji may offer: at least ¥5,000 a month, at most 6 payments covering the full balance,
-    first payment within 45 days of today ({today}). The smallest acceptable monthly amount is ¥{smallest_monthly}.
-    Read the conversation so far and return JSON only, with these fields, written in short plain English:
+    The caller plays the fictional debtor {debtor_name}. Balance ¥{balance_yen}, overdue since {overdue_since_en}.
+    Terms Kenji may offer: at least ¥{minimum_monthly} a month, at most {maximum_installments} payments covering
+    the full balance, first payment within {first_payment_within_days} days of today ({today}).
+    The smallest acceptable monthly amount is ¥{smallest_monthly}.
+    The conversation so far and the current step of the call follow.
+    Return JSON only, with these fields, each written in short plain English:
     identity: who the caller seems to be and whether identity is verified.
     situation: the caller's circumstances in one sentence.
-    ability_to_pay: one of "unknown", "none", "partial", "full", plus a few words of evidence.
+    ability_to_pay: one of "unknown", "none", "partial", "full", then a few words of evidence.
     offers: up to 3 repayment options inside the terms, each like "¥6,000 × 6 from 27 Oct".
     next_move: one concrete instruction for Kenji's next reply, in one sentence.
     Never suggest pressure, threats or anything outside the terms.
@@ -130,30 +145,76 @@ prompts:
     Keep amounts and dates exact. Output only the subtitle.
 
 nodes:
-  verify_identity:
+  greeting:
+    min_interruption_score: 0.6
     task: |-
       ご本人様の確認をしています。相手のお名前と生年月日を伺い、両方そろったら verify_identity を呼んでください。
       お名前はカタカナの読み（例: サトウユウキ）、生年月日は YYYY-MM-DD 形式で渡してください。
+      電話に出た方がご本人様ではない場合は、third_party_answered を呼んでください。
+      確認が終わるまで、ご用件には触れないでください。
+  verify_identity:
+    min_interruption_score: 0.5
+    task: |-
+      ご本人様の確認をしています。お名前と生年月日の両方を伺えたら verify_identity を呼んでください。
+      一致しなかった場合は、おわびしたうえで、もう一度お名前と生年月日を伺ってください。
+      電話に出た方がご本人様ではない場合は、third_party_answered を呼んでください。
       確認が終わるまで、ご用件には触れないでください。
   state_balance:
+    min_interruption_score: 0.75
     task: |-
-      ご本人様の確認が完了しました。get_account_summary を呼び、その結果だけを使って、
-      口座番号の末尾、お支払い期日、未納の金額を、責める調子にならないよう丁寧にお伝えしてください。
-      そのあと、本日お支払いのご相談ができるか伺ってください。
+      お支払い状況をお伝えしたところです。相手の反応を受け止め、短く共感を示してください。
   listen:
+    min_interruption_score: 0.5
     task: |-
       相手のご事情を伺う段階です。まずは共感を示し、収入や支出の状況、いつ頃いくらなら払えそうかを、
-      一つずつ穏やかに質問してください。まだ具体的な支払い条件は提案しないでください。
-      状況が分かったら、start_negotiation を呼んでください。
+      一つずつ穏やかに質問してください。必要なら get_account_summary で内容を確認できます。
+      相手が金額や支払い方法を口にしたら、その内容で check_terms を呼んでください。
   negotiate:
+    min_interruption_score: 0.5
     task: |-
       支払い条件を相談する段階です。相手の提案や、あなたが出す案は、必ず check_terms で確認してください。
-      条件外なら、理由をやわらかく伝え、check_terms の結果にある最小の月額などを使って条件内の案を示してください。
-      相手が条件内の案に同意したら、confirm_plan を呼んでください。
+      条件外なら、理由をやわらかく伝え、check_terms の結果にある smallest_acceptable_monthly_yen などを使って条件内の案を示してください。
+      相手が条件内の案にはっきり同意したら、その金額と日付で confirm_plan を呼んでください。
   read_back:
+    min_interruption_score: 0.85
     task: |-
-      合意内容の読み上げが済みました。相手が「はい」など同意したら record_promise を呼んでください。
-      訂正があれば、もう一度 check_terms で確認してください。
-  close:
-    task: |-
-      通話を終える段階です。追加のご質問があれば短くお答えし、なければお礼を述べて終えてください。
+      お約束の内容を読み上げたところです。相手が「はい」などと同意したら record_promise を呼んでください。
+      金額や日付の訂正があれば、新しい内容で confirm_plan を呼んでください。
+
+tools:
+  verify_identity:
+    description: ご本人様確認をします。お名前の読みと生年月日の両方を伺えたら呼んでください。
+    parameters:
+      name_kana: お名前のカタカナ読み。例：サトウユウキ
+      date_of_birth: 生年月日。YYYY-MM-DD 形式。例：1990-07-14
+  third_party_answered:
+    description: 電話に出た方がご本人様ではないと分かったときに呼びます。
+    parameters: {}
+  get_account_summary:
+    description: 口座番号の末尾、未納の金額、お支払い期日を取得します。ご本人様確認の前は LOCKED を返します。
+    parameters: {}
+  check_terms:
+    description: 支払い案が条件内かどうかを確認します。相手の提案も、こちらの提案も、必ずこれで確認してください。
+    parameters:
+      monthly_yen: 毎月のお支払い額。円の整数。一括払いなら残高の全額。
+      first_payment_date: 初回のお支払い日。YYYY-MM-DD 形式。相手が日付を指定していない場合は省略します。
+  confirm_plan:
+    description: 相手がはっきり同意した条件内の支払い案を確定し、読み上げに進みます。
+    parameters:
+      monthly_yen: 毎月のお支払い額。円の整数。
+      first_payment_date: 初回のお支払い日。YYYY-MM-DD 形式。相手が日付を指定していない場合は省略します。
+  record_promise:
+    description: 読み上げた内容に相手が同意したときに、お約束として記録します。
+    parameters: {}
+  request_human:
+    description: 相手が担当者（人間）との会話を希望したときに呼びます。
+    parameters:
+      reason: 希望された理由。日本語で短く。
+      summary: A one-sentence English summary of the call so far, for the staff member who takes over.
+  record_stop_contact:
+    description: 相手が今後の連絡をやめてほしいと求めたときに呼びます。
+    parameters: {}
+  end_without_agreement:
+    description: 相手がこれ以上の相談を望まないときに、合意なしで通話を終えます。
+    parameters:
+      reason: 理由。日本語で短く。

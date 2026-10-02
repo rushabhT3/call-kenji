@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     talker_provider: Literal["openai"] = "openai"
     talker_model: str = "gpt-6-luna"
     talker_base_url: str | None = None
+    openai_reasoning_effort: Literal["none", "minimal", "low", "medium", "high"] | None = "none"
     strategist_model: str = "gpt-6-luna"
     translator_model: str = "gpt-6-luna"
     soniox_model: str = "stt-rt-v5"
@@ -37,7 +38,9 @@ class Settings(BaseSettings):
     retention_days: int = Field(default=30, gt=0)
 
     data_dir: Path = Path("var")
-    content_path: Path = Path("content/script_ja.yaml")
+    content_dir: Path = Path("content")
+    stun_url: str = "stun:stun.l.google.com:19302"
+    enable_dev_client: bool = False
     host: str = "127.0.0.1"
     port: int = 7860
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"

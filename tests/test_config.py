@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from kenji.config import Settings
+from kenji.server import load_settings
 
 REQUIRED_KEYS = {
     "OPENAI_API_KEY": "sk-test",
@@ -73,3 +74,14 @@ def test_guardrails_must_be_positive(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with pytest.raises(ValidationError, match="max_call_seconds"):
         Settings()
+
+
+def test_startup_errors_never_echo_secret_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {"OPENAI_API_KEY": "sk-do-not-print-me"})
+
+    with pytest.raises(SystemExit) as stopped:
+        load_settings()
+
+    message = str(stopped.value)
+    assert "SONIOX_API_KEY" in message
+    assert "do-not-print-me" not in message

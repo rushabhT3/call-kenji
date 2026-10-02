@@ -81,6 +81,11 @@ markers = ["real_llm: talks to the real LLM API; opt in with -m real_llm"]
 [tool.coverage.run]
 source = ["src/kenji"]
 
+# These packages ship no type information.
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*", "pipecat_ai_prebuilt.*"]
+ignore_missing_imports = true
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true

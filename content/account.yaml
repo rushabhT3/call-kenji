@@ -1,0 +1,11 @@
+# The fictional account a caller plays. No real person or account.
+debtor:
+  family_name_kana: さとう
+  given_name_kana: ゆうき
+  written_name: 佐藤ゆうき
+  family_name_written: 佐藤
+  family_name_latin: Sato
+  date_of_birth: 1990-07-14
+account_suffix: "7731"
+balance_yen: 35000
+overdue_since: 2026-09-30

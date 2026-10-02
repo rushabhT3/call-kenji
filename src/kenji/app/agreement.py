@@ -2,23 +2,14 @@
 
 from datetime import date
 
-from kenji.app.script import Line
+from kenji.app.script import Line, Lines, SmsTemplates
+from kenji.domain.account import AccountSummary
+from kenji.domain.identity import DebtorIdentity
 from kenji.domain.terms import TermsDecision
 
 _MONTH_ABBREVIATIONS = (
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-)
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+)  # fmt: skip
 
 
 def format_yen(amount_yen: int) -> str:
@@ -48,5 +39,35 @@ def agreement_fields(decision: TermsDecision) -> dict[str, str]:
     }
 
 
-def describe_agreement(template: Line, decision: TermsDecision) -> Line:
+def describe_read_back(lines: Lines, decision: TermsDecision) -> Line:
+    template = lines.read_back_single if len(decision.schedule) == 1 else lines.read_back
     return template.fill(agreement_fields(decision))
+
+
+def honorific_fields(debtor: DebtorIdentity) -> dict[str, str]:
+    return {
+        "honorific_ja": f"{debtor.family_name_written}様",
+        "honorific_en": f"{debtor.family_name_latin}-sama",
+    }
+
+
+def describe_promise_sms(
+    sms: SmsTemplates, decision: TermsDecision, debtor: DebtorIdentity
+) -> Line:
+    template = sms.promise_single if len(decision.schedule) == 1 else sms.promise
+    return template.fill(agreement_fields(decision) | honorific_fields(debtor))
+
+
+def describe_handoff_sms(sms: SmsTemplates, debtor: DebtorIdentity) -> Line:
+    return sms.handoff.fill(honorific_fields(debtor))
+
+
+def describe_balance(lines: Lines, summary: AccountSummary) -> Line:
+    return lines.balance_statement.fill(
+        {
+            "account_suffix": summary.account_suffix,
+            "overdue_since": format_date_ja(summary.overdue_since),
+            "overdue_since_en": format_date_en(summary.overdue_since),
+            "balance_yen": format_yen(summary.balance_yen),
+        }
+    )
