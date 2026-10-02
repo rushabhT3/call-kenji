@@ -167,6 +167,11 @@ _REWRITES: tuple[_Rewrite, ...] = (
         re.compile(rf"{_NOT_MID_NUMBER}(\d+)(?:か|ヶ|ケ|カ|箇)月"),
         lambda m: counter_prefix(int(m[1])) + "かげつ",
     ),
+    (
+        re.compile(rf"毎月{_NOT_MID_NUMBER}(\d{{1,2}})日"),
+        lambda m: "毎月" + day_of_month_to_kana(int(m[1])),
+    ),
+    (re.compile(rf"{_NOT_MID_NUMBER}(\d+)日後"), lambda m: day_count_to_kana(int(m[1])) + "ご"),
     (re.compile(rf"{_NOT_MID_NUMBER}(\d+)日"), lambda m: day_count_to_kana(int(m[1]))),
     (re.compile(rf"(午前|午後)?{_NOT_MID_NUMBER}(\d{{1,2}})時(?!間)"), _time),
     (

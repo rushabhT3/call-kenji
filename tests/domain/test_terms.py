@@ -9,6 +9,8 @@ from kenji.domain.terms import (
     TermsViolation,
     add_months,
     check_terms,
+    default_first_payment_date,
+    latest_first_payment_date,
     smallest_acceptable_monthly,
 )
 
@@ -91,3 +93,10 @@ def test_non_positive_amounts_are_rejected() -> None:
         PaymentProposal(0, NEXT_MONTH)
     with pytest.raises(ValueError, match="balance"):
         Negotiation(balance_yen=0, today=TODAY)
+
+
+def test_default_first_payment_is_two_weeks_out_and_inside_terms() -> None:
+    first_payment = default_first_payment_date(NEGOTIATION)
+
+    assert first_payment == date(2026, 10, 16)
+    assert first_payment <= latest_first_payment_date(NEGOTIATION)

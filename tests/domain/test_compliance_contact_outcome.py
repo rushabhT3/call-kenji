@@ -60,7 +60,7 @@ def test_guardrails_that_fire_are_shown_as_blocked() -> None:
         replace(
             FRESH_CALL,
             started_at=LATE_NIGHT,
-            identity_status=IdentityStatus.LOCKED,
+            identity_status=IdentityStatus.LOCKED_OUT,
             latest_offer_accepted=False,
         )
     )

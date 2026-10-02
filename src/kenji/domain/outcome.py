@@ -15,6 +15,7 @@ class CallOutcome(StrEnum):
     CALLBACK_REQUESTED = "callback_requested"
     IDENTITY_NOT_VERIFIED = "identity_not_verified"
     OUTSIDE_CALLING_HOURS = "outside_calling_hours"
+    DAILY_LIMIT_REACHED = "daily_limit_reached"
     NO_AGREEMENT = "no_agreement"
 
 

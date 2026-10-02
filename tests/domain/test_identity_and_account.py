@@ -18,6 +18,8 @@ YUKI = DebtorIdentity(
     family_name_kana="さとう",
     given_name_kana="ゆうき",
     written_name="佐藤ゆうき",
+    family_name_written="佐藤",
+    family_name_latin="Sato",
     date_of_birth=date(1990, 7, 14),
 )
 ACCOUNT = Account(
@@ -70,11 +72,11 @@ def test_gate_locks_after_max_failed_attempts() -> None:
     for _ in range(gate.max_attempts):
         gate = attempt_verification(gate, IdentityClaim("すずきはなこ", RIGHT_BIRTHDAY), YUKI)
 
-    assert gate.status is IdentityStatus.LOCKED
+    assert gate.status is IdentityStatus.LOCKED_OUT
 
 
 def test_locked_gate_stays_locked_even_for_the_right_claim() -> None:
-    locked = IdentityGate(status=IdentityStatus.LOCKED, failed_attempts=3)
+    locked = IdentityGate(status=IdentityStatus.LOCKED_OUT, failed_attempts=3)
 
     after = attempt_verification(locked, IdentityClaim("さとうゆうき", RIGHT_BIRTHDAY), YUKI)
 

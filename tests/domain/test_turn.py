@@ -8,7 +8,7 @@ from kenji.domain.turn import (
     is_composed_of,
 )
 
-READING_TERMS = TurnPolicy(min_interruption_score=0.75)
+READING_TERMS = TurnPolicy(min_interruption_score=0.85)
 CONVERSING = TurnPolicy(min_interruption_score=0.5)
 
 
@@ -87,3 +87,19 @@ def test_is_composed_of_requires_full_coverage() -> None:
     assert is_composed_of("はいええ", words)
     assert not is_composed_of("はいえ", words)
     assert not is_composed_of("", words)
+
+
+@pytest.mark.parametrize("confirmation", ["間違いありません", "大丈夫です", "それで結構です"])
+def test_confirmations_over_the_read_back_do_not_interrupt(
+    classifier: LexiconBackchannelClassifier, confirmation: str
+) -> None:
+    assert classifier.classify(confirmation, READING_TERMS).verdict is TurnVerdict.BACKCHANNEL
+
+
+@pytest.mark.parametrize(
+    "correction", ["違います", "そうじゃなくて", "いいえ、10日です", "すみません、金額が違います"]
+)
+def test_corrections_over_the_read_back_interrupt(
+    classifier: LexiconBackchannelClassifier, correction: str
+) -> None:
+    assert classifier.classify(correction, READING_TERMS).verdict is TurnVerdict.INTERRUPTION

@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from enum import StrEnum
 
 COUNTER_OFFER_STEP_YEN = 1_000
+DEFAULT_FIRST_PAYMENT_AFTER_DAYS = 14
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +75,7 @@ def _violations(
     proposal: PaymentProposal, installment_count: int, negotiation: Negotiation
 ) -> tuple[TermsViolation, ...]:
     terms = negotiation.terms
-    latest_first_payment = negotiation.today + timedelta(days=terms.first_payment_within_days)
+    latest_first_payment = latest_first_payment_date(negotiation)
     paying_in_full = proposal.monthly_yen >= negotiation.balance_yen
     checks = (
         (
@@ -114,3 +115,11 @@ def smallest_acceptable_monthly(negotiation: Negotiation) -> int:
     )
     rounded = math.ceil(floor / COUNTER_OFFER_STEP_YEN) * COUNTER_OFFER_STEP_YEN
     return min(rounded, negotiation.balance_yen)
+
+
+def default_first_payment_date(negotiation: Negotiation) -> date:
+    return negotiation.today + timedelta(days=DEFAULT_FIRST_PAYMENT_AFTER_DAYS)
+
+
+def latest_first_payment_date(negotiation: Negotiation) -> date:
+    return negotiation.today + timedelta(days=negotiation.terms.first_payment_within_days)

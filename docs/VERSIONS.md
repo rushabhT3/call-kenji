@@ -29,9 +29,9 @@ Direct dependencies, declared in `pyproject.toml`:
 | onnxruntime | **1.24.4** | 2026-03-17 | [ONNX Runtime Python API](https://onnxruntime.ai/docs/api/python/) | **Not the latest.** pipecat-ai 1.12.0 requires `onnxruntime~=1.24.3`, so 1.30.0 (2026-09-10) cannot be co-installed. It is used for Silero VAD, smart-turn v3 and the optional ONNX classifier. |
 | numpy | **2.5.3** | 2026-09-06 | [numpy.org/doc](https://numpy.org/doc/stable/) | `requires-python >=3.12`. Compatible with numba 0.68.0 from pipecat-ai. |
 | opentelemetry-sdk | **1.45.0** | 2026-09-25 | [OTel Python](https://opentelemetry.io/docs/languages/python/) · [Pipecat tracing](https://docs.pipecat.ai/api-reference/server/utilities/opentelemetry) | Also pulled in by the `tracing` extra (`>=1.33.0,<2`). |
-| opentelemetry-exporter-otlp-proto-grpc | **1.45.0** | 2026-09-25 | [OTel exporters](https://opentelemetry.io/docs/languages/python/exporters/) | The exporter used in the Pipecat tracing setup example (Jaeger on `:4317`). For hosted OTLP backends that accept HTTP only, use `opentelemetry-exporter-otlp-proto-http==1.45.0` (same release date). |
+| opentelemetry-exporter-otlp-proto-http | **1.45.0** | 2026-09-25 | [OTel exporters](https://opentelemetry.io/docs/languages/python/exporters/) | OTLP over HTTP, which hosted backends accept. The gRPC exporter in Pipecat's Jaeger example is not needed. |
 | twilio | **9.11.2** | 2026-09-28 | [twilio-python](https://www.twilio.com/docs/libraries/reference/twilio-python/) · [Media Streams](https://www.twilio.com/docs/voice/media-streams) | For webhook signature validation (`RequestValidator`) and TwiML. `TwilioFrameSerializer` does not need it. |
-| httpx | **0.28.1** | 2024-12-06 | [python-httpx.org](https://www.python-httpx.org/) | The latest stable release. Everything since is a `1.0.devN` pre-release. See the HTTP client note. |
+| openai | **3.23.0** | 2026-10-01 | [openai-python](https://github.com/openai/openai-python) | Declared directly: the strategist and translator call Chat Completions with structured outputs. Also a pipecat-ai base dependency (`>=1.74.0,<4`). |
 
 Development dependencies (the `dev` group):
 
@@ -43,13 +43,13 @@ Development dependencies (the `dev` group):
 | ruff | **0.16.10** | 2026-10-01 | [docs.astral.sh/ruff](https://docs.astral.sh/ruff/) | |
 | mypy | **2.4.0** | 2026-10-01 | [mypy docs](https://mypy.readthedocs.io/en/stable/) | Run in strict mode. |
 | types-PyYAML | **6.0.12.20260906** | 2026-09-06 | [typeshed](https://github.com/python/typeshed) | Type stubs for pyyaml 6.0.x. |
+| onnx | **1.23.1** | 2026-09-29 | [onnx.ai](https://onnx.ai/onnx/) | Builds the tiny model the ONNX classifier tests load. The test model targets IR 9 / opset 17, which onnxruntime 1.24 runs. |
 
 Transitive dependencies, locked by `uv.lock` and not declared directly:
 
 | Package | Version | Released | Docs | Notes |
 | --- | --- | --- | --- | --- |
 | pipecat-ai-prebuilt | 1.2.2 | 2026-09-25 | [pipecat-prebuilt](https://github.com/pipecat-ai/pipecat-prebuilt) | Pulled in by the `runner` extra. It **replaces `pipecat-ai-small-webrtc-prebuilt`**, whose last release was 2.5.0 on 2026-04-22. That repo was renamed to `pipecat-prebuilt` and now serves every transport. |
-| openai | 3.23.0 | 2026-10-01 | [Pipecat OpenAI LLM](https://docs.pipecat.ai/api-reference/server/services/llm/openai) | A pipecat-ai base dependency (`>=1.74.0,<4`). The 3.x line depends on `httpx2`, not `httpx`. |
 | websockets | 17.1 | 2026-08-26 | — | Used by the Soniox and Cartesia services. Their extras add no packages. |
 | aiortc | 1.15.0 | 2026-07-13 | [SmallWebRTC transport](https://docs.pipecat.ai/api-reference/server/services/transport/small-webrtc) | Pulled in by the `webrtc` extra. |
 | av | 17.1.0 | 2026-06-07 | — | aiortc 1.15.0 caps it at `av<18`, so the latest av (19.0.0, released 2026-09-29) is not used. |
@@ -69,6 +69,7 @@ Not used:
 | pipecat-ai-small-webrtc-prebuilt | 2.5.0 (final) | 2026-04-22 | — | Superseded by `pipecat-ai-prebuilt`. |
 | python-json-logger | 4.2.0 | 2026-08-15 | [python-json-logger](https://nhairs.github.io/python-json-logger) | Not needed because loguru emits JSON natively. |
 | structlog | 26.1.0 | 2026-06-06 | — | Not needed, for the same reason. |
+| httpx | 0.28.1 | 2024-12-06 | — | Not needed: nothing in the app makes raw HTTP calls. openai 3.x brings `httpx2`. |
 | soniox | 2.9.0 | 2026-08-11 | — | The vendor SDK. Pipecat's Soniox service talks to the WebSocket API directly. |
 | cartesia | 4.2.0 | 2026-09-02 | — | The vendor SDK. Pipecat's Cartesia service talks to the WebSocket API directly. |
 
@@ -198,10 +199,10 @@ Some features need no extra:
 
 ### Tracing exporter
 
-Pipecat's tracing extra does not include an exporter, and the docs show both:
+Pipecat's tracing extra does not include an exporter. The project uses the HTTP one; the docs show both:
 
-- **gRPC:** `opentelemetry-exporter-otlp-proto-grpc`, for a local Jaeger or collector on `:4317`. This is the exporter pinned above.
-- **HTTP:** `opentelemetry-exporter-otlp-proto-http`, for Langfuse, LangSmith, SigNoz and other hosted OTLP endpoints, configured through `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_EXPORTER_OTLP_HEADERS`.
+- **gRPC:** `opentelemetry-exporter-otlp-proto-grpc`, for a local Jaeger or collector on `:4317`. Not used.
+- **HTTP:** `opentelemetry-exporter-otlp-proto-http` (pinned above), for Langfuse, LangSmith, SigNoz and other hosted OTLP endpoints, configured through `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_EXPORTER_OTLP_HEADERS`.
 
 Both are at 1.45.0. The `opentelemetry-exporter-otlp` meta-package installs both.
 
@@ -211,7 +212,7 @@ Pipecat's logging guide recommends loguru, which is already a pinned dependency.
 
 ### HTTP client
 
-openai 3.x depends on `httpx2` (pydantic's successor to httpx), and Starlette 1.7's `TestClient` prefers it. That means `httpx2` 2.13.1 is installed regardless. `httpx` 0.28.1 is pinned because it is the long-standing stable client. To keep a single HTTP client in the tree, depend on `httpx2==2.13.1` instead and drop `httpx`.
+No HTTP client is declared directly. openai 3.x depends on `httpx2` (pydantic's successor to httpx), and Starlette 1.7's `TestClient` prefers it.
 
 ### Node and local tooling
 

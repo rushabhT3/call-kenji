@@ -34,7 +34,7 @@ class ComplianceReport:
 
 _IDENTITY_CHECK = {
     IdentityStatus.VERIFIED: CheckStatus.PASSED,
-    IdentityStatus.LOCKED: CheckStatus.BLOCKED,
+    IdentityStatus.LOCKED_OUT: CheckStatus.BLOCKED,
     IdentityStatus.UNVERIFIED: CheckStatus.PENDING,
 }
 

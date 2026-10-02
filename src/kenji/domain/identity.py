@@ -15,6 +15,8 @@ class DebtorIdentity:
     family_name_kana: str
     given_name_kana: str
     written_name: str
+    family_name_written: str
+    family_name_latin: str
     date_of_birth: date
 
     def accepted_names(self) -> frozenset[str]:
@@ -37,7 +39,7 @@ class IdentityClaim:
 class IdentityStatus(StrEnum):
     UNVERIFIED = "unverified"
     VERIFIED = "verified"
-    LOCKED = "locked"
+    LOCKED_OUT = "locked_out"
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,6 +76,8 @@ def attempt_verification(
         return replace(gate, status=IdentityStatus.VERIFIED)
     failed_attempts = gate.failed_attempts + 1
     status = (
-        IdentityStatus.LOCKED if failed_attempts >= gate.max_attempts else IdentityStatus.UNVERIFIED
+        IdentityStatus.LOCKED_OUT
+        if failed_attempts >= gate.max_attempts
+        else IdentityStatus.UNVERIFIED
     )
     return replace(gate, status=status, failed_attempts=failed_attempts)

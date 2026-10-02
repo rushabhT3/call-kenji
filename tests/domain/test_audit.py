@@ -7,6 +7,7 @@ from kenji.domain.audit import (
     AuditEntry,
     AuditRecord,
     append_entry,
+    chain_head,
     record_from_json,
     verify_chain,
 )
@@ -47,6 +48,23 @@ def test_removed_record_fails_verify() -> None:
     del records[1]
 
     assert verify_chain(records).first_invalid_sequence == 1
+
+
+def test_deleting_the_last_record_is_caught_with_the_published_head() -> None:
+    records = _chain(3)
+    published_head = chain_head(records)
+
+    verification = verify_chain(records[:-1], expected_head=published_head)
+
+    assert not verification.is_valid
+    assert verification.first_invalid_sequence == 2
+
+
+def test_intact_chain_matches_its_published_head() -> None:
+    records = _chain(2)
+
+    assert verify_chain(records, expected_head=chain_head(records)).is_valid
+    assert chain_head([]) == GENESIS_HASH
 
 
 def test_json_round_trip_preserves_the_chain() -> None:

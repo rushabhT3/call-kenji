@@ -79,7 +79,13 @@ def record_from_json(raw: Mapping[str, JsonValue]) -> AuditRecord:
     )
 
 
-def verify_chain(records: Sequence[AuditRecord]) -> ChainVerification:
+def chain_head(records: Sequence[AuditRecord]) -> str:
+    return records[-1].hash if records else GENESIS_HASH
+
+
+def verify_chain(
+    records: Sequence[AuditRecord], expected_head: str | None = None
+) -> ChainVerification:
     expected_previous = GENESIS_HASH
     for expected_sequence, record in enumerate(records):
         is_linked = (
@@ -88,4 +94,6 @@ def verify_chain(records: Sequence[AuditRecord]) -> ChainVerification:
         if not is_linked or seal(record.previous_hash, record.body()) != record.hash:
             return ChainVerification(is_valid=False, first_invalid_sequence=expected_sequence)
         expected_previous = record.hash
+    if expected_head is not None and expected_previous != expected_head:
+        return ChainVerification(is_valid=False, first_invalid_sequence=len(records))
     return ChainVerification(is_valid=True)
