@@ -78,7 +78,11 @@ export function Transcript({ view }: { view: CallView }) {
   const startedAt = view.startedAt;
   return (
     <section className="transcript" aria-label="Call transcript">
-      <ScrollRegion contentKey={view.lines.length + (view.partial?.ja.length ?? 0)}>
+      <ScrollRegion
+        contentKey={
+          view.lines.length + Object.keys(view.subtitles).length + (view.partial?.ja.length ?? 0)
+        }
+      >
         <ol className="transcript__log" role="log" aria-live="polite" aria-relevant="additions">
           {view.lines.map((line) => (
             <TranscriptLine

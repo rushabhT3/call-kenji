@@ -17,11 +17,11 @@ function PromiseFactsRow({ promise }: { promise: PromiseFacts }) {
       </div>
       <div>
         <dt className="caption">Payments · 回数</dt>
-        <dd className="outcome__metric numeric">{promise.installments}</dd>
+        <dd className="outcome__fact numeric">{promise.installments}</dd>
       </div>
       <div>
         <dt className="caption">First payment · 初回</dt>
-        <dd className="outcome__metric numeric">{promise.firstPaymentOn}</dd>
+        <dd className="outcome__fact numeric">{promise.firstPaymentOn}</dd>
       </div>
     </dl>
   );

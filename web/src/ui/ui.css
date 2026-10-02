@@ -36,16 +36,25 @@
   font-size: var(--text-small);
 }
 
+/* Medium buttons are 14px mono, as measured on the primary reference. */
 .button--md {
   min-height: var(--button-height-md);
   padding: 0 var(--space-6);
-  font-size: var(--text-caption);
+  font-size: 0.875rem;
 }
 
 .button--sm {
+  position: relative;
   min-height: var(--button-height-sm);
   padding: 0 var(--space-4);
   font-size: var(--text-caption);
+}
+
+/* Small buttons look 32px tall but take a 44px hit area. */
+.button--sm::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--tap-target) - var(--button-height-sm)) / -2) 0;
 }
 
 .button--wide {
@@ -177,7 +186,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-4);
   align-items: baseline;
   padding-block: var(--space-3);
@@ -254,10 +263,37 @@
 
 .budget__marker-label {
   text-align: right;
+  text-transform: none;
 }
 
 @media (min-width: 1024px) {
   .card {
     padding: var(--space-6);
   }
+}
+
+.card > .pill,
+.card > .button {
+  justify-self: start;
+}
+
+.code-id {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.measures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.measures__item {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.measures dd {
+  margin: 0;
 }

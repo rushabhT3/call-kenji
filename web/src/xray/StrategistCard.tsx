@@ -42,7 +42,12 @@ export function StrategistCard({ advice, identityGate }: StrategistCardProps) {
   }
   const identity = identityGate ?? "pending";
   return (
-    <Card id="strategist" title="Strategist" titleJa="戦略" summary={advice.next_move}>
+    <Card
+      id="strategist"
+      title="Strategist"
+      titleJa="戦略"
+      summary={`Next move: ${advice.next_move}`}
+    >
       <dl className="rows">
         <Row label="Identity" labelJa="本人確認">
           <Pill tone={identity} label={IDENTITY_LABELS[identity]} context="Identity" />
@@ -55,9 +60,6 @@ export function StrategistCard({ advice, identityGate }: StrategistCardProps) {
         </Row>
         <Row isStacked label="Offers" labelJa="提案">
           <Offers offers={advice.offers} />
-        </Row>
-        <Row isStacked label="Caller" labelJa="相手">
-          {advice.identity}
         </Row>
       </dl>
     </Card>

@@ -17,6 +17,9 @@ function Landing({ feed, call }: { feed: CallFeed; call: BrowserCall }) {
   return (
     <>
       <SiteHeader>
+        <a className="caption site-header__link" href="#how-to-read">
+          How to read the X-ray
+        </a>
         <a className="caption site-header__link" href="/?demo=1">
           Watch a demo call
         </a>

@@ -3,9 +3,9 @@ import { formatCount } from "../format.ts";
 import { BudgetBar } from "../ui/BudgetBar.tsx";
 import { Card } from "../ui/Card.tsx";
 import { Pill } from "../ui/Pill.tsx";
+import { LatencyHistory } from "./LatencyHistory.tsx";
 
 const SCALE_MS = 2000;
-const HISTORY_TURNS = 12;
 
 function Stages({ latest, scale }: { latest: LatencyMeasured; scale: number }) {
   const stages = [
@@ -34,22 +34,6 @@ function Stages({ latest, scale }: { latest: LatencyMeasured; scale: number }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-function History({ turns }: { turns: readonly LatencyMeasured[] }) {
-  return (
-    <table className="visually-hidden">
-      <caption>Reply time per turn</caption>
-      <tbody>
-        {turns.slice(-HISTORY_TURNS).map((turn) => (
-          <tr key={turn.turn}>
-            <th scope="row">Turn {turn.turn}</th>
-            <td>{formatCount(turn.total_ms)} ms</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
 
@@ -104,7 +88,7 @@ export function LatencyCard({ turns }: { turns: readonly LatencyMeasured[] }) {
         P50 {formatCount(latest.p50_ms)} ms · P95 {formatCount(latest.p95_ms)} ms · {latest.turn}{" "}
         turns
       </p>
-      <History turns={turns} />
+      <LatencyHistory turns={turns} />
     </Card>
   );
 }

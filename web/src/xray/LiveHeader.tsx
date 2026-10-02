@@ -28,22 +28,25 @@ function Status({ view, elapsedMs }: Pick<LiveHeaderProps, "view" | "elapsedMs">
   );
 }
 
+function Controls({ call }: { call: BrowserCall }) {
+  return (
+    <span className="live-controls">
+      <Button icon="mic" aria-pressed={call.isMuted} onClick={call.toggleMute}>
+        {call.isMuted ? "Unmute" : "Mute"}
+      </Button>
+      <Button variant="danger" icon="end" onClick={() => void call.end()}>
+        End call
+      </Button>
+    </span>
+  );
+}
+
 export function LiveHeader({ view, elapsedMs, isDemo, call }: LiveHeaderProps) {
   const canControl = call?.state === "connected" && view.status === "live";
   return (
-    <SiteHeader>
-      <Status view={view} elapsedMs={elapsedMs} />
+    <SiteHeader isLive centre={<Status view={view} elapsedMs={elapsedMs} />}>
       {isDemo ? <Pill tone="info" label="Demo replay · 再生" /> : null}
-      {canControl ? (
-        <span className="live-controls">
-          <Button size="sm" icon="mic" aria-pressed={call.isMuted} onClick={call.toggleMute}>
-            {call.isMuted ? "Unmute" : "Mute"}
-          </Button>
-          <Button size="sm" variant="danger" icon="end" onClick={() => void call.end()}>
-            End call
-          </Button>
-        </span>
-      ) : null}
+      {canControl ? <Controls call={call} /> : null}
     </SiteHeader>
   );
 }

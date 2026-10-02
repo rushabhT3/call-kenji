@@ -12,6 +12,9 @@ const PATHS: Record<IconName, string> = {
   arrowDown: "M12 5v14M6 13l6 6 6-6",
 };
 
+/** The stroke reads as 1.5px at 20px; smaller icons get a proportionally heavier stroke. */
+const STROKE_AT_DEFAULT_SIZE = 30;
+
 interface IconProps {
   name: IconName;
   size?: number;
@@ -26,7 +29,7 @@ export function Icon({ name, size = 20 }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.5}
+      strokeWidth={STROKE_AT_DEFAULT_SIZE / size}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

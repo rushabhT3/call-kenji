@@ -1,17 +1,32 @@
+import { useState } from "react";
 import type { CallView } from "../call/callView.ts";
 import { nowSentence } from "../call/copy.ts";
 
 export function NowStrip({ view }: { view: CallView }) {
+  const [isJapaneseShown, setIsJapaneseShown] = useState(false);
   const sentence = nowSentence(view.status, view.node);
   return (
     <section className="now" aria-labelledby="now-title" aria-live="polite">
-      <h2 id="now-title" className="caption">
-        Now · <span lang="ja">いま</span>
-      </h2>
+      <div className="now__head">
+        <h2 id="now-title" className="caption">
+          Now · <span lang="ja">いま</span>
+        </h2>
+        <button
+          type="button"
+          className="caption now__toggle"
+          aria-expanded={isJapaneseShown}
+          aria-controls="now-ja"
+          onClick={() => {
+            setIsJapaneseShown(!isJapaneseShown);
+          }}
+        >
+          <span lang="ja">日本語</span>
+        </button>
+      </div>
       <p key={sentence.en} className="now__sentence">
         {sentence.en}
       </p>
-      <p className="now__ja" lang="ja">
+      <p id="now-ja" className={isJapaneseShown ? "now__ja now__ja--shown" : "now__ja"} lang="ja">
         {sentence.ja}
       </p>
     </section>

@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 
 interface SiteHeaderProps {
+  isLive?: boolean;
+  centre?: ReactNode;
   children?: ReactNode;
 }
 
-export function SiteHeader({ children }: SiteHeaderProps) {
+export function SiteHeader({ isLive = false, centre, children }: SiteHeaderProps) {
   return (
-    <header className="site-header">
+    <header className={isLive ? "site-header site-header--live" : "site-header"}>
       <div className="site-header__bar">
         <p className="site-header__brand">
           <span className="site-header__wordmark">
@@ -19,6 +21,7 @@ export function SiteHeader({ children }: SiteHeaderProps) {
           </span>
           <span className="caption site-header__note">Demo · fictional company</span>
         </p>
+        {centre ? <div className="site-header__centre">{centre}</div> : null}
         <div className="site-header__extra">{children}</div>
       </div>
     </header>

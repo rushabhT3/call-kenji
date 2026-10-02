@@ -30,27 +30,27 @@
       }
     },
     {
-      "offset_ms": 31,
+      "offset_ms": 32,
       "event": {
         "type": "transcript",
         "line_id": "kenji-1",
         "speaker": "kenji",
-        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。実在する方の個人情報は、おっしゃらないでください。ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
+        "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。こちらはデモ用の通話です。通話の内容は文字で記録し、30日後に削除いたします。実在する方の個人情報は、おっしゃらないでください。",
         "is_final": true,
         "is_backchannel": false,
         "at": "2026-10-02T15:00:00+09:00"
       }
     },
     {
-      "offset_ms": 31,
+      "offset_ms": 32,
       "event": {
         "type": "subtitle",
         "line_id": "kenji-1",
-        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. Please don't share any real person's personal information. To confirm who I'm speaking with, may I have your full name and date of birth?"
+        "en": "Thank you for calling. I'm Kenji, an AI assistant at Minato. This is a demo call. The conversation is kept as text and deleted after 30 days. Please don't share any real person's personal information."
       }
     },
     {
-      "offset_ms": 31,
+      "offset_ms": 32,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -61,7 +61,27 @@
       }
     },
     {
-      "offset_ms": 109,
+      "offset_ms": 32,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-2",
+        "speaker": "kenji",
+        "ja": "ご本人様確認のため、お名前と生年月日をお伺いしてもよろしいでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 32,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-2",
+        "en": "To confirm who I'm speaking with, may I have your full name and date of birth?"
+      }
+    },
+    {
+      "offset_ms": 78,
       "event": {
         "type": "flow_node",
         "node": "verify_identity"
@@ -71,7 +91,7 @@
       "offset_ms": 375,
       "event": {
         "type": "transcript",
-        "line_id": "caller-2",
+        "line_id": "caller-3",
         "speaker": "caller",
         "ja": "佐藤ゆうきです。平成2年7月14日生まれです。",
         "is_final": true,
@@ -94,12 +114,12 @@
       "offset_ms": 375,
       "event": {
         "type": "subtitle",
-        "line_id": "caller-2",
+        "line_id": "caller-3",
         "en": "[en] 佐藤ゆうきです。平成2年7月14日生まれです。"
       }
     },
     {
-      "offset_ms": 391,
+      "offset_ms": 375,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -110,41 +130,21 @@
       }
     },
     {
-      "offset_ms": 391,
+      "offset_ms": 375,
       "event": {
         "type": "flow_node",
         "node": "state_balance"
       }
     },
     {
-      "offset_ms": 469,
+      "offset_ms": 438,
       "event": {
         "type": "flow_node",
         "node": "listen"
       }
     },
     {
-      "offset_ms": 703,
-      "event": {
-        "type": "transcript",
-        "line_id": "kenji-3",
-        "speaker": "kenji",
-        "ja": "ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。口座番号の末尾7731のご契約について、9月30日が期日のお支払い、35,000円が、まだ確認できておりません。本日は、お支払いについてご相談させていただけますでしょうか。",
-        "is_final": true,
-        "is_backchannel": false,
-        "at": "2026-10-02T15:00:00+09:00"
-      }
-    },
-    {
-      "offset_ms": 703,
-      "event": {
-        "type": "subtitle",
-        "line_id": "kenji-3",
-        "en": "Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer. On the account ending 7731, the payment of ¥35,000 due on 30 Sep hasn't reached us yet. Could we talk about how to settle it today?"
-      }
-    },
-    {
-      "offset_ms": 750,
+      "offset_ms": 672,
       "event": {
         "type": "transcript",
         "line_id": "caller-4",
@@ -156,7 +156,7 @@
       }
     },
     {
-      "offset_ms": 750,
+      "offset_ms": 672,
       "event": {
         "type": "strategist",
         "identity": "Caller claims to be Yuki Sato.",
@@ -167,7 +167,7 @@
       }
     },
     {
-      "offset_ms": 750,
+      "offset_ms": 672,
       "event": {
         "type": "subtitle",
         "line_id": "caller-4",
@@ -175,10 +175,30 @@
       }
     },
     {
-      "offset_ms": 813,
+      "offset_ms": 735,
       "event": {
         "type": "transcript",
         "line_id": "kenji-5",
+        "speaker": "kenji",
+        "ja": "ご確認ありがとうございます。改めまして、みなと債権回収のケンジです。口座番号の末尾7731のご契約について、9月30日が期日のお支払い、35,000円が、まだ確認できておりません。本日は、お支払いについてご相談させていただけますでしょうか。",
+        "is_final": true,
+        "is_backchannel": false,
+        "at": "2026-10-02T15:00:00+09:00"
+      }
+    },
+    {
+      "offset_ms": 735,
+      "event": {
+        "type": "subtitle",
+        "line_id": "kenji-5",
+        "en": "Thank you for confirming. Let me introduce myself properly: I'm Kenji from Minato Servicer. On the account ending 7731, the payment of ¥35,000 due on 30 Sep hasn't reached us yet. Could we talk about how to settle it today?"
+      }
+    },
+    {
+      "offset_ms": 735,
+      "event": {
+        "type": "transcript",
+        "line_id": "kenji-6",
         "speaker": "kenji",
         "ja": "それはご心配ですね。 毎月どのくらいでしたらお支払いいただけそうでしょうか。",
         "is_final": true,
@@ -187,18 +207,18 @@
       }
     },
     {
-      "offset_ms": 828,
+      "offset_ms": 735,
       "event": {
         "type": "subtitle",
-        "line_id": "kenji-5",
+        "line_id": "kenji-6",
         "en": "[en] それはご心配ですね。 毎月どのくらいでしたらお支払いいただけそうでしょうか。"
       }
     },
     {
-      "offset_ms": 969,
+      "offset_ms": 922,
       "event": {
         "type": "transcript",
-        "line_id": "caller-6",
+        "line_id": "caller-7",
         "speaker": "caller",
         "ja": "3,000円なら払えると思います。",
         "is_final": true,
@@ -207,7 +227,7 @@
       }
     },
     {
-      "offset_ms": 969,
+      "offset_ms": 922,
       "event": {
         "type": "strategist",
         "identity": "Caller claims to be Yuki Sato.",
@@ -218,15 +238,15 @@
       }
     },
     {
-      "offset_ms": 969,
+      "offset_ms": 922,
       "event": {
         "type": "subtitle",
-        "line_id": "caller-6",
+        "line_id": "caller-7",
         "en": "[en] 3,000円なら払えると思います。"
       }
     },
     {
-      "offset_ms": 969,
+      "offset_ms": 922,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -237,17 +257,17 @@
       }
     },
     {
-      "offset_ms": 969,
+      "offset_ms": 922,
       "event": {
         "type": "flow_node",
         "node": "negotiate"
       }
     },
     {
-      "offset_ms": 984,
+      "offset_ms": 938,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-7",
+        "line_id": "kenji-8",
         "speaker": "kenji",
         "ja": "3,000円ですと、6回では完済に届きません。 毎月6,000円ではいかがでしょうか。",
         "is_final": true,
@@ -256,18 +276,18 @@
       }
     },
     {
-      "offset_ms": 984,
+      "offset_ms": 938,
       "event": {
         "type": "subtitle",
-        "line_id": "kenji-7",
+        "line_id": "kenji-8",
         "en": "[en] 3,000円ですと、6回では完済に届きません。 毎月6,000円ではいかがでしょうか。"
       }
     },
     {
-      "offset_ms": 1250,
+      "offset_ms": 1188,
       "event": {
         "type": "transcript",
-        "line_id": "caller-8",
+        "line_id": "caller-9",
         "speaker": "caller",
         "ja": "わかりました。6,000円でお願いします。",
         "is_final": true,
@@ -276,7 +296,7 @@
       }
     },
     {
-      "offset_ms": 1250,
+      "offset_ms": 1188,
       "event": {
         "type": "strategist",
         "identity": "Caller claims to be Yuki Sato.",
@@ -287,15 +307,15 @@
       }
     },
     {
-      "offset_ms": 1250,
+      "offset_ms": 1188,
       "event": {
         "type": "subtitle",
-        "line_id": "caller-8",
+        "line_id": "caller-9",
         "en": "[en] わかりました。6,000円でお願いします。"
       }
     },
     {
-      "offset_ms": 1250,
+      "offset_ms": 1188,
       "event": {
         "type": "compliance",
         "calling_hours": "pass",
@@ -306,17 +326,17 @@
       }
     },
     {
-      "offset_ms": 1250,
+      "offset_ms": 1188,
       "event": {
         "type": "flow_node",
         "node": "read_back"
       }
     },
     {
-      "offset_ms": 1469,
+      "offset_ms": 1407,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-9",
+        "line_id": "kenji-10",
         "speaker": "kenji",
         "ja": "それでは、お約束の内容を確認させていただきます。初回のお支払いは10月16日、毎月6,000円を6回、最終回は5,000円で、合計35,000円です。この内容でよろしいでしょうか。",
         "is_final": true,
@@ -325,18 +345,18 @@
       }
     },
     {
-      "offset_ms": 1469,
+      "offset_ms": 1407,
       "event": {
         "type": "subtitle",
-        "line_id": "kenji-9",
+        "line_id": "kenji-10",
         "en": "Let me read back what we've agreed. The first payment is on 16 Oct, then ¥6,000 a month for 6 payments, with a final payment of ¥5,000, ¥35,000 in total. Is that correct?"
       }
     },
     {
-      "offset_ms": 1531,
+      "offset_ms": 1469,
       "event": {
         "type": "transcript",
-        "line_id": "caller-10",
+        "line_id": "caller-11",
         "speaker": "caller",
         "ja": "はい、大丈夫です。",
         "is_final": true,
@@ -345,7 +365,7 @@
       }
     },
     {
-      "offset_ms": 1531,
+      "offset_ms": 1469,
       "event": {
         "type": "strategist",
         "identity": "Caller claims to be Yuki Sato.",
@@ -356,25 +376,25 @@
       }
     },
     {
-      "offset_ms": 1531,
+      "offset_ms": 1469,
       "event": {
         "type": "subtitle",
-        "line_id": "caller-10",
+        "line_id": "caller-11",
         "en": "[en] はい、大丈夫です。"
       }
     },
     {
-      "offset_ms": 1531,
+      "offset_ms": 1469,
       "event": {
         "type": "flow_node",
         "node": "close"
       }
     },
     {
-      "offset_ms": 1547,
+      "offset_ms": 1485,
       "event": {
         "type": "transcript",
-        "line_id": "kenji-11",
+        "line_id": "kenji-12",
         "speaker": "kenji",
         "ja": "ありがとうございます。お約束を承りました。確認のメッセージの内容は、画面でご覧いただけます。本日はお時間をいただき、ありがとうございました。失礼いたします。",
         "is_final": true,
@@ -383,15 +403,15 @@
       }
     },
     {
-      "offset_ms": 1547,
+      "offset_ms": 1485,
       "event": {
         "type": "subtitle",
-        "line_id": "kenji-11",
+        "line_id": "kenji-12",
         "en": "Thank you, your promise is recorded. You can see the confirmation message on the screen. Thank you for your time today. Goodbye."
       }
     },
     {
-      "offset_ms": 1563,
+      "offset_ms": 1485,
       "event": {
         "type": "call_ended",
         "outcome": "promise_to_pay",
@@ -399,7 +419,7 @@
       }
     },
     {
-      "offset_ms": 1563,
+      "offset_ms": 1485,
       "event": {
         "type": "sms_preview",
         "ja": "【みなと債権回収】佐藤様　お支払いのお約束を承りました。初回10月16日　6,000円、全6回（最終回5,000円、合計35,000円）。ご不明な点は本メッセージにご返信ください。",
@@ -408,7 +428,7 @@
       }
     },
     {
-      "offset_ms": 1578,
+      "offset_ms": 1500,
       "event": {
         "type": "audit",
         "is_chain_valid": true,

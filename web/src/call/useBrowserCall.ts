@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 export type BrowserCallState = "idle" | "connecting" | "connected" | "failed";
 
 export const OFFER_ENDPOINT = "/api/offer";
-const STUN_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+export const ICE_ENDPOINT = "/api/ice";
 
 export interface BrowserCall {
   client: PipecatClient;
@@ -17,9 +17,18 @@ export interface BrowserCall {
   toggleMute: () => void;
 }
 
+async function fetchIceServers(): Promise<RTCIceServer[]> {
+  const response = await fetch(ICE_ENDPOINT);
+  if (!response.ok) {
+    throw new Error(`ICE servers unavailable (${String(response.status)})`);
+  }
+  const body = (await response.json()) as { iceServers: RTCIceServer[] };
+  return body.iceServers;
+}
+
 function createClient(): PipecatClient {
   return new PipecatClient({
-    transport: new SmallWebRTCTransport({ iceServers: STUN_SERVERS }),
+    transport: new SmallWebRTCTransport(),
     enableMic: true,
     enableCam: false,
   });
@@ -35,8 +44,10 @@ export function useBrowserCall(viewerId: string | null): BrowserCall {
     setState("connecting");
     setError(null);
     try {
+      const iceServers = await fetchIceServers();
       await client.connect({
         webrtcRequestParams: { endpoint: OFFER_ENDPOINT, requestData: { viewer_id: viewerId } },
+        iceConfig: { iceServers },
       });
       setState("connected");
     } catch (cause) {
