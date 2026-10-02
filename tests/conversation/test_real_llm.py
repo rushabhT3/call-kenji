@@ -40,7 +40,7 @@ pytestmark = pytest.mark.real_llm
 
 async def _converse(call: TextCall, opening: Sequence[str], persist: str) -> CallOutcome:
     """Say the opening lines, then keep repeating `persist` until the call ends."""
-    await call.wait_for_node("verify_identity")
+    await call.opening_played()
     for line in opening:
         if not call.task.done():
             await call.reply(line)

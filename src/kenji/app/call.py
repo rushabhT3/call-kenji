@@ -4,6 +4,7 @@ transport -> STT -> turn handling -> Flows talker (+ strategist hint) -> kana TT
 """
 
 import asyncio
+import time
 from dataclasses import dataclass, replace
 
 from loguru import logger
@@ -60,6 +61,7 @@ class Call:
         self._talker = kit.voice.talker.create(self._parts.talker_instruction)
         self._context = LLMContext()
         self._pair = LLMContextAggregatorPair(self._context, user_params=self._user_params())
+        self._caller_heard_since: float | None = None
         self._worker = self._build_worker()
         self._flow_manager = FlowManager(
             worker=self._worker,
@@ -129,6 +131,8 @@ class Call:
     def _wire_events(self) -> None:
         self._transport.add_event_handler("on_client_connected", self._on_connected)
         self._transport.add_event_handler("on_client_disconnected", self._on_disconnected)
+        self._pair.user().add_event_handler("on_user_mute_stopped", self._on_caller_heard_again)
+        self._pair.user().add_event_handler("on_user_turn_started", self._on_user_turn_started)
         self._pair.user().add_event_handler("on_user_turn_stopped", self._on_user_turn_stopped)
         self._pair.assistant().add_event_handler(
             "on_assistant_turn_stopped", self._on_assistant_turn_stopped
@@ -139,6 +143,17 @@ class Call:
 
     async def _on_disconnected(self, _transport: BaseTransport, _client: object) -> None:
         await self._worker.cancel()
+
+    async def _on_caller_heard_again(self, _aggregator: LLMUserAggregator) -> None:
+        if self._caller_heard_since is None:
+            self._caller_heard_since = time.time()
+
+    async def _on_user_turn_started(
+        self, _aggregator: LLMUserAggregator, _strategy: object
+    ) -> None:
+        next_step = self._parts.flow.when_caller_speaks()
+        if next_step is not None:
+            await self._flow_manager.set_node_from_config(next_step)
 
     async def _on_user_turn_stopped(
         self, _aggregator: LLMUserAggregator, _strategy: object, message: UserTurnStoppedMessage
@@ -160,6 +175,9 @@ class Call:
             self._parts.session.mark_disclosure_given()
 
     async def _on_latency(self, _observer: object, breakdown: LatencyBreakdown) -> None:
+        started, heard_since = breakdown.user_turn_start_time, self._caller_heard_since
+        if started is None or heard_since is None or started < heard_since:
+            return  # timed from before the opening, when the caller was muted: not a turn
         llm_first_token = next(
             (ttfb.duration_secs for ttfb in breakdown.ttfb if "LLM" in ttfb.processor), None
         )

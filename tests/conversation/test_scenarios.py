@@ -29,8 +29,8 @@ def _last_compliance(call: TextCall) -> ComplianceUpdated:
 
 
 async def _verified(call: TextCall) -> None:
-    await call.wait_for_node("verify_identity")
-    await call.caller_says(IDENTITY_ANSWER, then_node="listen")
+    await call.opening_played()
+    await call.caller_says(IDENTITY_ANSWER, then_node="state_balance")
 
 
 async def test_normal_path_reaches_a_promise_with_every_safeguard_passed() -> None:
@@ -62,7 +62,7 @@ async def test_normal_path_reaches_a_promise_with_every_safeguard_passed() -> No
 
 async def test_spouse_hears_nothing_about_the_debt() -> None:
     call = await start_text_call([ToolCall("third_party_answered")])
-    await call.wait_for_node("verify_identity")
+    await call.opening_played()
     await call.caller_says("佐藤の妻です。主人はいま出かけています。")
 
     assert await call.finish() is CallOutcome.CALLBACK_REQUESTED

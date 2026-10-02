@@ -12,7 +12,7 @@ from pipecat.flows import (
     FlowsFunctionSchema,
     NodeConfig,
 )
-from pipecat.flows.types import FlowActionHandler
+from pipecat.frames.frames import TTSSpeakFrame
 
 from kenji.app.agreement import describe_balance, describe_read_back
 from kenji.app.script import Line, Script
@@ -31,6 +31,10 @@ _PARAMETER_TYPES = {
 }
 _OPTIONAL_PARAMETERS = frozenset({"first_payment_date"})
 _CLOSING_POLICY = TurnPolicy(min_interruption_score=0.85)
+# Flows' own tts_say counts as pending until its finish marker reaches the end of the
+# pipeline. An interruption drops that marker, and every later step that waits on pending
+# actions then waits forever, so scripted lines are queued as plain speech instead.
+_SAY_SCRIPTED = "say_scripted"
 
 type ToolRunner = Callable[[FlowArgs], ToolOutcome]
 type LineSpoken = Callable[[Line], None]
@@ -45,6 +49,10 @@ def _optional_text(args: FlowArgs, name: str) -> str | None:
     return str(value) if value else None
 
 
+async def _say_scripted(action: dict[str, Any], flow_manager: FlowManager) -> None:
+    await flow_manager.worker.queue_frame(TTSSpeakFrame(str(action["text"])))
+
+
 class CallFlow:
     def __init__(
         self, script: Script, session: CallSession, tools: CallTools, on_line: LineSpoken
@@ -53,10 +61,21 @@ class CallFlow:
         self._session = session
         self._tools = tools
         self._on_line = on_line
+        self._step_after_speech: NodeName | None = None
 
     def turn_policy(self) -> TurnPolicy:
         node = getattr(self._script.nodes, self._session.node, None)
         return _CLOSING_POLICY if node is None else node.turn_policy
+
+    def when_caller_speaks(self) -> NodeConfig | None:
+        """A step that ends with Kenji speaking gives way to the next when the caller replies.
+
+        The caller's reply, not the end of the speech, is the boundary: the strict turn policy
+        holds while Kenji is still talking, and the next step's tools are in place before the
+        model answers.
+        """
+        target = self._step_after_speech
+        return None if target is None else self._enter(target, respond=False)
 
     def initial_node(self) -> NodeConfig:
         return self._enter(NodeName.GREETING, respond=False)
@@ -75,6 +94,7 @@ class CallFlow:
         ]
 
     def _enter(self, name: NodeName, *, respond: bool) -> NodeConfig:
+        self._step_after_speech = None
         self._session.enter_node(name)
         builders: dict[NodeName, Callable[[bool], NodeConfig]] = {
             NodeName.GREETING: self._greeting,
@@ -190,16 +210,12 @@ class CallFlow:
         for line in spoken:
             self._on_line(line)
         if spoken:
-            config["pre_actions"] = [ActionConfig(type="tts_say", text=line.ja) for line in spoken]
-        if then is not None:
-            config["post_actions"] = [ActionConfig(type="function", handler=self._advance_to(then))]
+            config["pre_actions"] = [
+                ActionConfig(type=_SAY_SCRIPTED, text=line.ja, handler=_say_scripted)
+                for line in spoken
+            ]
+        self._step_after_speech = then
         return config
-
-    def _advance_to(self, target: NodeName) -> FlowActionHandler:
-        async def advance(_action: dict[str, Any], flow_manager: FlowManager) -> None:
-            await flow_manager.set_node_from_config(self._enter(target, respond=False))
-
-        return advance
 
     def _verify_identity_tool(self) -> FlowsFunctionSchema:
         return self._schema(

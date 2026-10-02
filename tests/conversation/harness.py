@@ -40,6 +40,7 @@ from tests.conversation.doubles import (
 WAIT_SECS = 8.0
 LIVE_WAIT_SECS = 45.0
 MAX_CALL_SECS = 300
+BROWSER_OPENING_LINES = 2
 
 __all__ = [
     "FixedClock",
@@ -75,6 +76,13 @@ class TextCall:
     async def wait_for_node(self, node: str) -> None:
         await wait_until(
             lambda: node in self.nodes(), f"node {node}; saw {self.nodes()}", self.wait_secs
+        )
+
+    async def opening_played(self) -> None:
+        await wait_until(
+            lambda: len(self.kenji_lines()) >= BROWSER_OPENING_LINES,
+            "the opening to play",
+            self.wait_secs,
         )
 
     async def caller_says(self, text: str, then_node: str | None = None) -> None:

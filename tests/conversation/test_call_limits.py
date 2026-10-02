@@ -47,8 +47,8 @@ async def test_a_strategist_that_never_answers_does_not_slow_kenji() -> None:
     advice = HangingAdvice()
     parts = build_text_kit([VERIFY, Say("ご事情をお聞かせいただけますか。")])
     call = await launch_text_call(replace(parts, kit=replace(parts.kit, advice_model=advice)))
-    await call.wait_for_node("verify_identity")
-    await call.caller_says(IDENTITY_ANSWER, then_node="listen")
+    await call.opening_played()
+    await call.caller_says(IDENTITY_ANSWER, then_node="state_balance")
     await call.bot_finishes_speaking()
 
     loop = asyncio.get_running_loop()
