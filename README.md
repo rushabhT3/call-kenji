@@ -31,9 +31,11 @@ Voice agents for collections live or die on three things a demo usually hides: *
   advice: identity, situation, ability to pay, offers and next move. The next move reaches the
   talker on the following turn, so the conversation never waits for it.
 - **Latency you can see.** Every turn is split into end-of-turn detection, the model's first
-  token and the first audio, against a 1,500 ms budget, with p50 and p95. On Muse Spark's
-  contributor tier the model's first token alone takes about 2.9 s, so turns run over budget,
-  and the card shows by how much.
+  token and the first audio, against a 1,500 ms budget, with p50 and p95. Kenji does not wait
+  on the model for turns the rules can answer: identity, an offer, a plain yes to a plan or to
+  the read-back. Every other turn opens with an instant 「はい、」 while the model works. On real
+  voice calls the caller hears Kenji after about 0.7 s (p50); Muse Spark's own answer still
+  takes 2 to 6 s on the turns it handles.
 
 ## Architecture
 
@@ -52,7 +54,9 @@ flowchart LR
         direction TB
         IN[transport in<br/>SmallWebRTC or Twilio] --> STT[Soniox STT<br/>Japanese]
         STT --> TURN[turn handling<br/>backchannel classifier]
-        TURN --> TALK[talker model<br/>Pipecat Flows + tools]
+        TURN --> FAST[fast path<br/>rules answer predictable turns]
+        FAST -- anything unsure, after はい --> TALK[talker model<br/>Pipecat Flows + tools]
+        FAST -- scripted line --> KANA
         TALK --> KANA[kana normaliser]
         KANA --> TTS[Cartesia TTS<br/>Japanese voice]
         TTS --> OUT[transport out]

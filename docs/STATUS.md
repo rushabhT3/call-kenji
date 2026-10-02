@@ -6,7 +6,7 @@ Last updated: 2026-10-02
 
 - [x] **1. Setup and research** — versions, docs, design references, `docs/DESIGN.md` draft; hexagonal skeleton, Makefile, `.env.example`, CI. Check: CI green on an empty suite.
 - [x] **2. Domain logic and tests** — Check: pytest green, 100% coverage of `domain/`, required cases included.
-- [ ] **3. Voice in the browser** — SmallWebRTC + prebuilt client. Check: normal path reaches a promise; spouse path discloses nothing; human request writes a handoff record; p50 latency < 1.5 s.
+- [x] **3. Voice in the browser** — SmallWebRTC + prebuilt client. Check: normal path reaches a promise; spouse path discloses nothing; human request writes a handoff record; p50 latency < 1.5 s.
 - [x] **4. Conversation tests** — text-mode flows with a fake LLM + real-LLM smoke. Check: real-LLM smoke passes 3 times in a row.
 - [x] **5. Live page** — per `docs/DESIGN.md`, wired to bot events, demo mode. Check: Playwright green on demo mode; screenshots at 1440/390; design review fixes applied.
 - [ ] **6. Phone line** — Twilio Media Streams, DTMF code linking. Check: real call shows only in the linked tab.
@@ -15,18 +15,29 @@ Last updated: 2026-10-02
 
 ## Current phase
 
-Phase 3 works end to end on real voice but misses its latency target. With Soniox, Muse Spark and
-Cartesia over a real WebRTC connection (`scripts/voice_check.py`, a second Cartesia voice as the
-caller), all three paths pass:
+Phase 3 passes on real voice. With Soniox, Muse Spark and Cartesia over a real WebRTC connection
+(`scripts/voice_check.py`, a second Cartesia voice as the caller), all three paths pass:
 
 - normal: a promise is recorded, the AI disclosure is given and the audit chain verifies;
 - spouse: Kenji says nothing about the debt and asks for a call back;
 - human request: the handoff record is written.
 
-Turn latency on those calls is p50 about 3.1 to 4.2 s against the 1.5 s budget. The model's first
-token alone takes about 2.9 s on Muse Spark's contributor tier (8 calls at `minimal`, network round
-trip 0.24 s; 7.7 s at `xhigh`). Meeting the budget needs a faster talker model, which is the owner's
-call.
+Turn latency on those calls: p50 760 ms, p95 931 ms (promise call); p50 704 ms, p95 890 ms
+(handoff and spouse calls). Measured from the caller's own audio, Kenji is heard about 0.93 s
+after the caller stops. Three changes got there (DECISIONS #29 to #31):
+
+- predictable turns are answered from rules, through the same tools, without the model;
+- every other turn opens with an instant 「はい、」, and Kenji keeps the floor until his answer;
+- a talker request that has not started streaming after 2.5 s is raced by a second one.
+
+Muse Spark's own answers still take 2 to 6 s on the turns it handles: its thinking cannot be
+switched off (`reasoning_effort` `none` returns HTTP 400 in both APIs), and Muse Glimmer is not on
+the Meta Model API.
+
+Correctness held. A nine-scenario test against the real model passed 27 of 27 runs, and the
+real-model suite passes. The nine scenarios: normal, 平成 birth date, spouse, ¥3,000 bargainer,
+handoff, stop contact, asking the amount before identity, three wrong birth dates, and a
+read-back correction.
 
 The real calls exposed bugs the text harness could not, all fixed:
 
@@ -63,14 +74,12 @@ The real calls exposed bugs the text harness could not, all fixed:
 
 ## Next
 
-1. Owner's decision on the talker model for the 1.5 s latency budget.
-2. One real browser call by a person during calling hours (08:00 to 21:00 Japan time).
-3. Buy the Twilio number (owner approval: a US local number, $1.15 a month) and make the real phone-call check.
-4. Deploy (owner approval), run the smoke test, one phone call and one browser call.
-5. Fresh-clone check of the README and the hiring-manager review.
+1. One real browser call by a person during calling hours (08:00 to 21:00 Japan time).
+2. Buy the Twilio number (owner approval: a US local number, $1.15 a month) and make the real phone-call check.
+3. Deploy (owner approval), run the smoke test, one phone call and one browser call.
+4. Fresh-clone check of the README and the hiring-manager review.
 
 ## Blockers
 
-- The 1.5 s p50 budget cannot be met with Muse Spark as the talker (about 2.9 s to the first token alone).
 - Number purchase and public deploy need the owner's go-ahead.
 - Local Windows: pnpm 10 cannot switch itself to the pinned pnpm 12, so use `npx pnpm@12.8.1` or `make PNPM="npx -y pnpm@12.8.1"`.
