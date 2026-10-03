@@ -4,8 +4,11 @@ import { SiteHeader } from "./SiteHeader.tsx";
 export function LandingHeader() {
   return (
     <SiteHeader homeHref="/">
-      <a className="caption site-header__link" href={SHOWCASE_PATH}>
-        Features
+      <a className="caption site-header__link features-link" href={SHOWCASE_PATH}>
+        <span className="features-link__plain" aria-hidden="true">
+          Features
+        </span>
+        <span className="features-link__comic">Features</span>
       </a>
       <a className="caption site-header__link" href="#how-to-read">
         <span className="site-header__link-long">How to read the X-ray</span>

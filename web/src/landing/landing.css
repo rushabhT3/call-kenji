@@ -1,4 +1,5 @@
 /* Landing area: DESIGN.md section 4.1. Mobile first; tokens only. */
+@import "@fontsource/permanent-marker/latin-400.css";
 
 .site-header {
   position: sticky;
@@ -57,6 +58,95 @@
   align-items: center;
   min-height: var(--tap-target);
   color: var(--color-text);
+}
+
+/* The Features link wears the features page's comic look: plain for a beat, then it flickers
+   into a badge and stays. The outline is an inset shadow so the badge costs no header width. */
+.features-link {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.features-link > span {
+  grid-area: 1 / 1;
+  animation-duration: var(--duration-flicker);
+  animation-timing-function: steps(1, end);
+  animation-fill-mode: forwards;
+}
+
+.features-link__plain {
+  text-decoration: underline;
+  animation-name: features-link-plain;
+}
+
+.features-link__comic {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--comic-paper);
+  box-shadow:
+    inset 0 0 0 var(--rule-width) var(--comic-ink),
+    var(--rule-width) var(--rule-width) 0 var(--comic-red);
+  color: var(--comic-ink);
+  font-family: var(--comic-font-display);
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0;
+  animation-name: features-link-comic;
+  transition:
+    transform var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
+}
+
+.features-link:hover .features-link__comic {
+  transform: translate(calc(var(--rule-width) / -2), calc(var(--rule-width) / -2));
+  box-shadow:
+    inset 0 0 0 var(--rule-width) var(--comic-ink),
+    calc(var(--rule-width) * 2) calc(var(--rule-width) * 2) 0 var(--comic-red);
+}
+
+@keyframes features-link-plain {
+  0% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0;
+  }
+  67% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 0;
+  }
+  77% {
+    opacity: 1;
+  }
+  83%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes features-link-comic {
+  0% {
+    opacity: 0;
+  }
+  62% {
+    opacity: 1;
+  }
+  67% {
+    opacity: 0;
+  }
+  72% {
+    opacity: 1;
+  }
+  77% {
+    opacity: 0;
+  }
+  83%,
+  100% {
+    opacity: 1;
+  }
 }
 
 .site-header__home {
@@ -437,6 +527,11 @@
 @media (min-width: 768px) {
   .site-header__note {
     display: inline;
+  }
+
+  .features-link__comic {
+    padding: 0 var(--space-2);
+    font-size: var(--text-small);
   }
 
   .site-header__extra {

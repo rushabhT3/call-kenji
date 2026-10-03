@@ -124,6 +124,21 @@
   --cursor-width: 0.5em;
   --rule-width: 2px;
 
+  /* Colour and type: the features page's comic look, sampled from the owner's reference */
+  --comic-paper: #f9d66a;
+  --comic-paper-deep: #f0c64f;
+  --comic-white: #fdfcf9;
+  --comic-ink: #1e191a;
+  --comic-ink-soft: #3a3233;
+  --comic-red: #d64b40;
+  --comic-orange: #e8954f;
+  --comic-green: #5fa06d;
+  --comic-teal: #66b1c4;
+  --comic-blue: #5ca8d4;
+
+  --comic-font-display: "Permanent Marker", "Yusei Magic", var(--font-mono);
+  --comic-font-ja: "Yusei Magic", "Noto Sans JP Variable", sans-serif;
+
   /* Radius */
   --radius-xs: 3px;
   --radius-sm: 5px;
@@ -150,6 +165,7 @@
   --duration-reveal: 1300ms;
   --duration-pulse: 2000ms;
   --duration-blink: 1000ms;
+  --duration-flicker: 1600ms;
   --distance-enter: 8px;
   --distance-reveal: 16px;
   --stagger-reveal: 120ms;
@@ -190,6 +206,7 @@
     --duration-reveal: 0ms;
     --duration-pulse: 0ms;
     --duration-blink: 0ms;
+    --duration-flicker: 0ms;
     --distance-enter: 0px;
     --distance-reveal: 0px;
     --stagger-reveal: 0ms;
