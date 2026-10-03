@@ -39,3 +39,7 @@ Thumbs.db
 
 # Downloaded models (scripts/fetch_emotion_model.py)
 models/
+
+# Trailer project (Remotion): dependencies and renders
+trailer/node_modules/
+trailer/out/

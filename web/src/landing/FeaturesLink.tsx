@@ -1,5 +1,5 @@
 import { burstPoints, toSvgPoints } from "../showcase/burstShape.ts";
-import { SHOWCASE_PATH } from "../showcase/route.ts";
+import { SHOWCASE_PATH } from "../pages.ts";
 
 const BOX_WIDTH = 100;
 const BOX_HEIGHT = 50;

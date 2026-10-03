@@ -3,11 +3,20 @@ import "./ui/ui.css";
 import "./landing/landing.css";
 import "./xray/xray.css";
 import "./aftercall/aftercall.css";
-import { StrictMode, Suspense } from "react";
+import { StrictMode, Suspense, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
+import { pageForPath, type Page } from "./pages.ts";
+import { LazyPitchPage } from "./pitch/LazyPitchPage.tsx";
 import { LazyShowcasePage } from "./showcase/LazyShowcasePage.tsx";
-import { isShowcasePath } from "./showcase/route.ts";
+import { LazyTrailerPage } from "./trailer/LazyTrailerPage.tsx";
+
+const PAGES: Record<Page, ReactNode> = {
+  call: <App />,
+  showcase: <LazyShowcasePage />,
+  pitch: <LazyPitchPage />,
+  trailer: <LazyTrailerPage />,
+};
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -16,12 +25,6 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    {isShowcasePath(window.location.pathname) ? (
-      <Suspense fallback={null}>
-        <LazyShowcasePage />
-      </Suspense>
-    ) : (
-      <App />
-    )}
+    <Suspense fallback={null}>{PAGES[pageForPath(window.location.pathname)]}</Suspense>
   </StrictMode>,
 );
