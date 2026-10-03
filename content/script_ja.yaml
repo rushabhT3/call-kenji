@@ -106,13 +106,6 @@ lines:
   no_agreement_close:
     ja: 本日はお話をお聞かせいただき、ありがとうございました。また改めてご相談させてください。失礼いたします。
     en: Thank you for talking with me today. Let's discuss this again another time. Goodbye.
-  outside_calling_hours:
-    ja: >-
-      お電話ありがとうございます。みなとのAIアシスタント、ケンジです。
-      申し訳ございません、ただいま受付時間外です。午前8時から午後9時の間に、改めておかけ直しください。失礼いたします。
-    en: >-
-      Thank you for calling. This is Kenji, an AI assistant at Minato.
-      I'm sorry, we're outside our hours. Please call again between 8 a.m. and 9 p.m. Japan time. Goodbye.
   daily_minutes_used_up:
     ja: 申し訳ございません。本日のデモ通話の受付は終了いたしました。また明日おかけください。失礼いたします。
     en: I'm sorry, today's demo calls are fully used. Please call again tomorrow. Goodbye.

@@ -17,6 +17,7 @@ class CheckStatus(StrEnum):
 @dataclass(frozen=True, slots=True)
 class CallFacts:
     started_at: datetime
+    is_inbound: bool
     identity_status: IdentityStatus
     latest_offer_accepted: bool | None
     ai_disclosed: bool
@@ -45,11 +46,14 @@ def _given(is_given: bool) -> CheckStatus:
     return CheckStatus.PASSED if is_given else CheckStatus.PENDING
 
 
+def _calling_hours(facts: CallFacts) -> CheckStatus:
+    is_allowed_now = facts.is_inbound or is_within_calling_hours(facts.started_at)
+    return CheckStatus.PASSED if is_allowed_now else CheckStatus.BLOCKED
+
+
 def assess_compliance(facts: CallFacts) -> ComplianceReport:
     return ComplianceReport(
-        calling_hours=(
-            CheckStatus.PASSED if is_within_calling_hours(facts.started_at) else CheckStatus.BLOCKED
-        ),
+        calling_hours=_calling_hours(facts),
         identity_gate=_IDENTITY_CHECK[facts.identity_status],
         offer_within_terms=_OFFER_CHECK[facts.latest_offer_accepted],
         ai_disclosure=_given(facts.ai_disclosed),

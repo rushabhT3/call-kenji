@@ -123,7 +123,7 @@ class Call:
 
     def _user_params(self) -> LLMUserAggregatorParams:
         params = self._kit.voice.turn_detection.user_params(
-            self._turn_strategy(), self._caller_hold
+            self._turn_strategy(), self._caller_hold, self._parts.io.sink.publish
         )
         # The opening carries the AI disclosure; the caller is heard again once it has played.
         mute = FirstSpeechUserMuteStrategy()  # type: ignore[no-untyped-call]

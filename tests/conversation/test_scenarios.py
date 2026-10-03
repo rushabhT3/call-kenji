@@ -59,7 +59,9 @@ async def test_normal_path_reaches_a_promise_with_every_safeguard_passed() -> No
     assert call.nodes() == [
         "greeting", "verify_identity", "state_balance", "listen", "negotiate", "read_back", "close"
     ]  # fmt: skip
-    assert set(vars(_last_compliance(call)).values()) - {"compliance"} == {CheckStatus.PASSED}
+    checks = _last_compliance(call).model_dump(exclude={"type", "calling_hours_note"})
+    assert set(checks.values()) == {CheckStatus.PASSED}
+    assert _last_compliance(call).calling_hours_note == "15:00 in Tokyo, inside 08:00–21:00."
     sms = cast(SmsPreview, call.recorder.of_type("sms_preview")[0])
     assert "6,000円" in sms.ja
     assert not sms.is_sent

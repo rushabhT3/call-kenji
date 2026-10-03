@@ -9,17 +9,17 @@ def _jst(hour: int, minute: int = 0) -> datetime:
     return datetime(2026, 10, 2, hour, minute, tzinfo=JAPAN_STANDARD_TIME)
 
 
-def test_call_at_21_10_japan_time_is_refused() -> None:
+def test_a_lender_may_not_ring_a_debtor_at_21_10_japan_time() -> None:
     assert not is_within_calling_hours(_jst(21, 10))
 
 
 @pytest.mark.parametrize(("hour", "minute"), [(8, 0), (12, 30), (20, 59)])
-def test_calls_inside_the_window_are_allowed(hour: int, minute: int) -> None:
+def test_ringing_inside_the_window_is_allowed(hour: int, minute: int) -> None:
     assert is_within_calling_hours(_jst(hour, minute))
 
 
 @pytest.mark.parametrize(("hour", "minute"), [(7, 59), (21, 0), (23, 30), (0, 0)])
-def test_calls_outside_the_window_are_refused(hour: int, minute: int) -> None:
+def test_ringing_outside_the_window_is_not(hour: int, minute: int) -> None:
     assert not is_within_calling_hours(_jst(hour, minute))
 
 

@@ -8,8 +8,8 @@ The caller's lines are spoken by a second Cartesia voice and sent as real audio 
 SmallWebRTC peer connection, so Soniox, the talker, the strategist and Cartesia all run for
 real. The caller answers by the step Kenji is at, read from the private viewer feed.
 
-The voice server runs in this process with its clock moved to 15:00 Japan time today,
-because calls outside 08:00 to 21:00 are refused; the calling-hours rule has its own tests.
+The voice server runs in this process with its clock moved to 15:00 Japan time today, so every
+run, and the demo it records, reads the same calling-hours note whatever the hour it is made.
 Each run keeps its records under var/voice-check/<run>/. A run costs a few cents.
 Exits non-zero if any conversation misses its expected outcome.
 

@@ -535,6 +535,12 @@
   display: grid;
 }
 
+.check__note {
+  grid-column: 1 / -1;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
 .check__reason {
   grid-column: 1 / -1;
   font-size: var(--text-small);

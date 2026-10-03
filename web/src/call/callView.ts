@@ -1,5 +1,6 @@
 import type {
   AuditPublished,
+  CallEnded,
   CallEvent,
   CallerToneHeard,
   CallOutcome,
@@ -12,6 +13,7 @@ import type {
   StrategistUpdated,
   Transport,
   TurnAssessed,
+  TurnEndJudged,
 } from "../contract/events.ts";
 
 export type CallStatus = "waiting" | "live" | "ended";
@@ -48,6 +50,8 @@ export interface CallView {
   /** How the caller sounded, per caller line that was heard. */
   tones: Readonly<Record<string, CallerToneHeard>>;
   turn: TurnAssessed | null;
+  /** How Kenji judged the end of the caller's latest turn. */
+  turnEnd: TurnEndJudged | null;
   strategist: StrategistUpdated | null;
   compliance: ComplianceUpdated | null;
   latency: LatencyMeasured[];
@@ -70,6 +74,7 @@ export const EMPTY_CALL: CallView = {
   subtitles: {},
   tones: {},
   turn: null,
+  turnEnd: null,
   strategist: null,
   compliance: null,
   latency: [],
@@ -112,6 +117,17 @@ function withCallStarted(view: CallView, event: CallStarted): CallView {
   };
 }
 
+function withCallEnded(view: CallView, event: CallEnded): CallView {
+  return {
+    ...view,
+    status: "ended",
+    outcome: event.outcome,
+    endedAt: event.ended_at,
+    partial: null,
+    speaking: null,
+  };
+}
+
 export function applyEvent(view: CallView, event: CallEvent): CallView {
   switch (event.type) {
     case "call_started":
@@ -129,6 +145,8 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
       return { ...view, node: event.node };
     case "turn":
       return { ...view, turn: event };
+    case "turn_end":
+      return { ...view, turnEnd: event };
     case "strategist":
       return { ...view, strategist: event };
     case "compliance":
@@ -140,14 +158,7 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
     case "sms_preview":
       return { ...view, sms: event };
     case "call_ended":
-      return {
-        ...view,
-        status: "ended",
-        outcome: event.outcome,
-        endedAt: event.ended_at,
-        partial: null,
-        speaking: null,
-      };
+      return withCallEnded(view, event);
     case "audit":
       return { ...view, audit: event };
   }

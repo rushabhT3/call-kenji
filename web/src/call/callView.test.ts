@@ -85,6 +85,19 @@ describe("applyEvents", () => {
     expect(view.latency.map((entry) => entry.turn)).toEqual([1, 2]);
   });
 
+  it("keeps how Kenji judged the end of the caller's latest turn", () => {
+    const turnEnd = (waitedMs: number): CallEvent => ({
+      type: "turn_end",
+      finished_probability: 0.23,
+      waited_for: "still_talking",
+      waited_ms: waitedMs,
+    });
+
+    const view = applyEvents(EMPTY_CALL, [turnEnd(1500), turnEnd(1520)]);
+
+    expect(view.turnEnd?.waited_ms).toBe(1520);
+  });
+
   it("ends the call with its outcome and clears speech in progress", () => {
     const view = applyEvents(EMPTY_CALL, [
       transcript("caller-3", "caller", "は", false),

@@ -22,6 +22,7 @@ NEGOTIATION = Negotiation(balance_yen=35_000, today=date(2026, 10, 2))
 
 FRESH_CALL = CallFacts(
     started_at=AFTERNOON,
+    is_inbound=True,
     identity_status=IdentityStatus.UNVERIFIED,
     latest_offer_accepted=None,
     ai_disclosed=False,
@@ -55,11 +56,29 @@ def test_completed_call_passes_every_check() -> None:
     assert set(astuple(report)) == {CheckStatus.PASSED}
 
 
+def test_a_call_the_caller_made_passes_calling_hours_at_any_hour() -> None:
+    report = assess_compliance(replace(FRESH_CALL, started_at=LATE_NIGHT))
+
+    assert report.calling_hours is CheckStatus.PASSED
+
+
+@pytest.mark.parametrize(
+    ("started_at", "status"), [(AFTERNOON, CheckStatus.PASSED), (LATE_NIGHT, CheckStatus.BLOCKED)]
+)
+def test_ringing_a_debtor_is_only_allowed_inside_calling_hours(
+    started_at: datetime, status: CheckStatus
+) -> None:
+    report = assess_compliance(replace(FRESH_CALL, started_at=started_at, is_inbound=False))
+
+    assert report.calling_hours is status
+
+
 def test_guardrails_that_fire_are_shown_as_blocked() -> None:
     report = assess_compliance(
         replace(
             FRESH_CALL,
             started_at=LATE_NIGHT,
+            is_inbound=False,
             identity_status=IdentityStatus.LOCKED_OUT,
             latest_offer_accepted=False,
         )

@@ -13,6 +13,12 @@ from kenji.app.events import (
 from kenji.app.ports import AuditLog, Clock, EventSink
 from kenji.domain.account import Account, AccountLocked, AccountSummary, summarize_account
 from kenji.domain.audit import AuditEntry, JsonValue
+from kenji.domain.calling_hours import (
+    CALLING_WINDOW_CLOSES,
+    CALLING_WINDOW_OPENS,
+    is_within_calling_hours,
+    to_japan_time,
+)
 from kenji.domain.compliance import CallFacts, ComplianceReport, assess_compliance
 from kenji.domain.contact import StopContactRequest
 from kenji.domain.identity import IdentityClaim, IdentityGate, IdentityStatus, attempt_verification
@@ -172,9 +178,12 @@ class CallSession:
         )
 
     def publish_compliance(self) -> None:
+        started_at = self.context.started_at
         report = assess_compliance(
             CallFacts(
-                started_at=self.context.started_at,
+                started_at=started_at,
+                # Every call reaches Kenji because the caller rang him.
+                is_inbound=True,
                 identity_status=self._gate.status,
                 latest_offer_accepted=self._latest_offer_accepted,
                 ai_disclosed=self._is_disclosure_given,
@@ -183,16 +192,25 @@ class CallSession:
         )
         if report != self._compliance:
             self._compliance = report
-            self._sink.publish(_compliance_event(report))
+            self._sink.publish(_compliance_event(report, calling_hours_note(started_at)))
 
 
-def _compliance_event(report: ComplianceReport) -> ComplianceUpdated:
+def calling_hours_note(started_at: datetime) -> str:
+    """What the calling-hours rule means at the hour the caller rang Kenji."""
+    hour = f"{to_japan_time(started_at):%H:%M} in Tokyo"
+    if is_within_calling_hours(started_at):
+        return f"{hour}, inside {CALLING_WINDOW_OPENS:%H:%M}–{CALLING_WINDOW_CLOSES:%H:%M}."
+    return f"{hour}. Kenji would never ring a debtor now; you rang him, so he answers."
+
+
+def _compliance_event(report: ComplianceReport, hours_note: str) -> ComplianceUpdated:
     return ComplianceUpdated(
         calling_hours=report.calling_hours,
         identity_gate=report.identity_gate,
         offer_within_terms=report.offer_within_terms,
         ai_disclosure=report.ai_disclosure,
         recording_notice=report.recording_notice,
+        calling_hours_note=hours_note,
     )
 
 

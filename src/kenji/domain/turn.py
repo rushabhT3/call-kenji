@@ -1,4 +1,4 @@
-"""Decide whether caller speech during Kenji's turn is aizuchi or a real interruption."""
+"""Decide if speech over Kenji is aizuchi or an interruption, and if a quiet caller has finished."""
 
 from dataclasses import dataclass
 from enum import StrEnum
@@ -60,12 +60,41 @@ UNFINISHED_ENDINGS = (
 )
 FINISHED_DESPITE_ENDING = ("こんにちは", "こんばんは", "ですが", "ますが", "ので", "んで")
 UNFINISHED_PHRASE_GRACE_SECS = 2.0
+# Smart Turn itself ends a turn it hears as unfinished after 3 s of silence. By the time the
+# speech service proposes the end, a good part of that silence has usually passed.
+STILL_TALKING_GRACE_SECS = 1.5
+# Above this, a reading of the caller's voice says they have finished, as Smart Turn's own does.
+FINISHED_ABOVE = 0.5
 _CLOSING_MARKS = "。．. "
 
 
 class TurnVerdict(StrEnum):
     BACKCHANNEL = "backchannel"
     INTERRUPTION = "interruption"
+
+
+class TurnEndWait(StrEnum):
+    """Why Kenji waited to answer after the speech service said the caller had finished."""
+
+    NONE = "none"
+    UNFINISHED_PHRASE = "unfinished_phrase"
+    STILL_TALKING = "still_talking"
+    CALLER_HOLD = "caller_hold"
+
+
+@dataclass(frozen=True, slots=True)
+class TurnEndGrace:
+    """How long Kenji waits for more from a caller who has not finished, before answering."""
+
+    unfinished_phrase_secs: float = UNFINISHED_PHRASE_GRACE_SECS
+    still_talking_secs: float = STILL_TALKING_GRACE_SECS
+
+    def secs(self, wait: TurnEndWait) -> float:
+        if wait is TurnEndWait.UNFINISHED_PHRASE:
+            return self.unfinished_phrase_secs
+        if wait is TurnEndWait.STILL_TALKING:
+            return self.still_talking_secs
+        return 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,6 +139,21 @@ def sounds_unfinished(transcript: str) -> bool:
     if not words or words.endswith(FINISHED_DESPITE_ENDING):
         return False
     return words.endswith(UNFINISHED_ENDINGS)
+
+
+def turn_end_wait(transcript: str, finished_probability: float | None) -> TurnEndWait:
+    """Whether to wait for more from a caller the speech service says has finished.
+
+    The words come first: a phrase left on a particle is unfinished however it sounds. Otherwise
+    the reading of the voice decides, and with no reading the speech service is taken at its word.
+    """
+    if finished_probability is not None and not 0.0 <= finished_probability <= 1.0:
+        raise ValueError(f"probability must be in [0, 1], got {finished_probability}")
+    if sounds_unfinished(transcript):
+        return TurnEndWait.UNFINISHED_PHRASE
+    if finished_probability is None or finished_probability > FINISHED_ABOVE:
+        return TurnEndWait.NONE
+    return TurnEndWait.STILL_TALKING
 
 
 def is_composed_of(text: str, words: frozenset[str]) -> bool:

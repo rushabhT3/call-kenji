@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import cast
 
+import pytest
 from loguru import logger
 
 from kenji.app.events import CallEnded, CallStarted, TranscriptLine
@@ -44,6 +45,7 @@ class MemoryUsage:
 
 
 LATE = datetime(2026, 10, 2, 21, 10, tzinfo=JAPAN_STANDARD_TIME)
+SMALL_HOURS = datetime(2026, 10, 3, 3, 12, tzinfo=JAPAN_STANDARD_TIME)
 TANAKA_IDENTITY = "田中けんたです。生年月日は、昭和60年3月2日です。"
 
 
@@ -91,23 +93,15 @@ async def _refused_call(
     return await asyncio.wait_for(task, 8), under_test.recorder
 
 
-async def test_call_at_21_10_japan_time_is_refused_politely() -> None:
-    outcome, recorder = await _refused_call(FixedClock(LATE), MemoryUsage())
-
-    assert outcome is CallOutcome.OUTSIDE_CALLING_HOURS
-    line = cast(TranscriptLine, recorder.of_type("transcript")[0])
-    assert "受付時間外" in line.ja
-    assert cast(CallEnded, recorder.of_type("call_ended")[0]).outcome is outcome
-    assert [record.entry.kind for record in recorder.records()] == ["call_refused"]
-
-
-async def test_fourth_call_of_the_day_from_one_caller_is_refused() -> None:
+async def test_fourth_call_of_the_day_from_one_caller_is_refused_politely() -> None:
     usage = MemoryUsage(calls_by_caller=3)
 
     outcome, recorder = await _refused_call(FixedClock(), usage)
 
     assert outcome is CallOutcome.DAILY_LIMIT_REACHED
     assert "上限" in cast(TranscriptLine, recorder.of_type("transcript")[0]).ja
+    assert cast(CallEnded, recorder.of_type("call_ended")[0]).outcome is outcome
+    assert [record.entry.kind for record in recorder.records()] == ["call_refused"]
     assert usage.calls == 3
 
 
@@ -130,18 +124,27 @@ async def test_admitted_call_is_counted_shown_to_its_tab_and_then_forgotten() ->
     assert late_tab.empty()
 
 
-async def test_late_phone_call_is_refused_before_it_is_answered() -> None:
-    under_test = launcher_for(FixedClock(LATE), MemoryUsage())
+async def test_phone_call_over_the_limit_is_refused_before_it_is_answered() -> None:
+    under_test = launcher_for(FixedClock(), MemoryUsage(calls_by_caller=3))
 
     line = await under_test.launcher.screen(CallRequest("phone", "caller-a", call_id="CA1"))
 
     assert line is not None
-    assert "受付時間外" in line.ja
+    assert "上限" in line.ja
     recorder = under_test.recorder
     assert [record.entry.kind for record in recorder.records()] == ["call_refused"]
     ended = cast(CallEnded, recorder.of_type("call_ended")[0])
-    assert ended.outcome is CallOutcome.OUTSIDE_CALLING_HOURS
+    assert ended.outcome is CallOutcome.DAILY_LIMIT_REACHED
     assert recorder.is_closed
+
+
+@pytest.mark.parametrize("rang_at", [LATE, SMALL_HOURS])
+async def test_a_debtor_who_rings_at_night_is_answered(rang_at: datetime) -> None:
+    under_test = launcher_for(FixedClock(rang_at), MemoryUsage())
+
+    line = await under_test.launcher.screen(CallRequest("phone", "caller-a", call_id="CA1"))
+
+    assert line is None
 
 
 async def test_phone_call_inside_the_limits_is_answered_without_a_record_yet() -> None:
@@ -207,7 +210,7 @@ async def test_an_unknown_persona_plays_the_default_and_is_logged() -> None:
 
 
 async def test_a_refused_call_still_names_its_persona() -> None:
-    under_test = launcher_for(FixedClock(LATE), MemoryUsage())
+    under_test = launcher_for(FixedClock(), MemoryUsage(calls_by_caller=3))
 
     await under_test.launcher.screen(CallRequest("phone", "caller-a", persona_id="ito"))
 

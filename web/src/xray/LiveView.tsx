@@ -41,7 +41,7 @@ function liveClasses(status: CallView["status"], hasCallBar: boolean): string {
 function Rail({ view }: { view: CallView }) {
   return (
     <div className="rail">
-      <TurnCard turn={view.turn} />
+      <TurnCard turn={view.turn} turnEnd={view.turnEnd} />
       <StrategistCard
         advice={view.strategist}
         identityGate={view.compliance?.identity_gate ?? null}

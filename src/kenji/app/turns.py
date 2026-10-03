@@ -4,9 +4,10 @@ Start: speech over Kenji only interrupts when it is more than aizuchi. Pipecat's
 strategy splits on spaces, which Japanese does not have, so the domain's BackchannelClassifier
 decides instead, with the current node's policy.
 
-End: the speech service proposes where a turn ends, and a phrase left hanging on a particle is
-held open a little longer before Kenji answers it. A caller who presses Hold keeps the turn
-open for as long as they like, and hands it over by pressing Done.
+End: the speech service proposes where a turn ends, and Smart Turn v3 gives a second opinion from
+the sound of the caller's voice. A phrase left hanging on a particle, or a pause Smart Turn hears
+as mid-sentence, is held open a little longer before Kenji answers it. A caller who presses Hold
+keeps the turn open for as long as they like, and hands it over by pressing Done.
 """
 
 import asyncio
@@ -14,33 +15,41 @@ import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from loguru import logger
+from pipecat.audio.turn.base_turn_analyzer import BaseTurnAnalyzer
 from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
     BotStoppedSpeakingFrame,
     Frame,
     FunctionCallsStartedFrame,
+    InputAudioRawFrame,
     InterimTranscriptionFrame,
     LLMFullResponseEndFrame,
     LLMTextFrame,
     ProposedUserStartedSpeakingFrame,
     TranscriptionFrame,
     VADUserStartedSpeakingFrame,
+    VADUserStoppedSpeakingFrame,
 )
-from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
+from pipecat.metrics.metrics import TurnMetricsData
+from pipecat.processors.frame_processor import FrameDirection, FrameProcessor, FrameProcessorSetup
 from pipecat.turns.types import ProcessFrameResult
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 from pipecat.turns.user_stop import ExternalUserTurnStopStrategy
 
+from kenji.app.events import TurnEndJudged
 from kenji.domain.turn import (
-    UNFINISHED_PHRASE_GRACE_SECS,
     BackchannelClassifier,
     TurnDecision,
+    TurnEndGrace,
+    TurnEndWait,
     TurnPolicy,
     TurnVerdict,
-    sounds_unfinished,
+    turn_end_wait,
 )
 
 type DecisionListener = Callable[[str, TurnDecision, float], None]
+type TurnEndListener = Callable[[TurnEndJudged], None]
 _SPEECH_RESUMED = (
     VADUserStartedSpeakingFrame,
     ProposedUserStartedSpeakingFrame,
@@ -195,79 +204,207 @@ class CallerHold:
             await listener()
 
 
-class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-untyped-call]
-    """Ends the turn where the speech service proposes, unless the words stop mid-phrase.
+class SmartTurnOpinion:
+    """Smart Turn v3's reading of the caller's voice: had they finished when they paused?
 
-    「生年月日は、」 followed by a breath is not a finished turn. It is held open for a grace
-    period: if the caller carries on, their words join the same turn; if not, it closes.
+    Each pause is judged as the VAD hears it, as Pipecat's own Smart Turn strategy does, so the
+    reading is usually ready by the time the speech service proposes that the turn has ended.
+    Pauses are only judged in the caller's own turn; while Kenji talks the model would only cost
+    time.
+    """
+
+    def __init__(self, analyzer: BaseTurnAnalyzer) -> None:
+        self._analyzer = analyzer
+        self._is_speaking = False
+        self._is_pause_judged = False
+        self._finished_probability: float | None = None
+
+    @property
+    def finished_probability(self) -> float | None:
+        """How likely the caller had finished at their latest pause; None with no reading."""
+        return self._finished_probability
+
+    async def judge_latest_pause(self) -> float | None:
+        """The reading of the latest pause, judged now if the VAD has not heard the pause yet."""
+        if not self._is_pause_judged:
+            await self._judge()
+        return self._finished_probability
+
+    async def hear(self, frame: Frame, *, is_callers_turn: bool) -> None:
+        if isinstance(frame, InputAudioRawFrame):
+            self._take_in(frame)
+        elif isinstance(frame, VADUserStartedSpeakingFrame):
+            self._is_speaking = True
+            self._forget_the_reading()
+            self._analyzer.update_vad_start_secs(frame.start_secs)
+        elif isinstance(frame, VADUserStoppedSpeakingFrame):
+            self._is_speaking = False
+            if is_callers_turn:
+                await self._judge()
+
+    def forget(self) -> None:
+        self._forget_the_reading()
+        self._analyzer.clear()  # type: ignore[no-untyped-call]
+
+    async def close(self) -> None:
+        await self._analyzer.cleanup()  # type: ignore[no-untyped-call]
+
+    def _take_in(self, frame: InputAudioRawFrame) -> None:
+        # Told the rate the audio really has, Smart Turn resamples it to the 16 kHz it was trained
+        # on, so a phone call's audio is never read at the wrong speed.
+        if self._analyzer.sample_rate != frame.sample_rate:
+            self._analyzer.set_sample_rate(frame.sample_rate)
+        self._analyzer.append_audio(frame.audio, self._is_speaking)
+
+    def _forget_the_reading(self) -> None:
+        self._is_pause_judged = False
+        self._finished_probability = None
+
+    async def _judge(self) -> None:
+        self._finished_probability = await self._read_the_voice()
+        self._is_pause_judged = True
+
+    async def _read_the_voice(self) -> float | None:
+        if not self._analyzer.speech_triggered:
+            return None
+        try:
+            _, metrics = await self._analyzer.analyze_end_of_turn()
+        except Exception:
+            logger.exception("Smart Turn could not judge a pause; the speech service decides alone")
+            return None
+        return metrics.probability if isinstance(metrics, TurnMetricsData) else None
+
+
+class UnfinishedPhraseHold(ExternalUserTurnStopStrategy):  # type: ignore[no-untyped-call]
+    """Ends the turn where the speech service proposes, unless the caller sounds unfinished.
+
+    「生年月日は、」 followed by a breath is not a finished turn, and nor is 「お支払いは来月の」
+    when Smart Turn hears the voice still going. Either is held open for a grace period: if the
+    caller carries on, their words join the same turn; if not, it closes. A pause Smart Turn hears
+    as the end of the turn closes at once, with no grace period added.
     """
 
     def __init__(
         self,
         *,
-        grace_secs: float = UNFINISHED_PHRASE_GRACE_SECS,
+        grace: TurnEndGrace | None = None,
         caller_hold: CallerHold | None = None,
+        smart_turn: Callable[[], BaseTurnAnalyzer] | None = None,
+        on_turn_end: TurnEndListener | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
-        self._grace_secs = grace_secs
+        self._grace = grace or TurnEndGrace()
+        self._load_smart_turn = smart_turn
+        self._smart_turn: SmartTurnOpinion | None = None
+        self._on_turn_end = on_turn_end
         self._heard = ""
+        self._is_callers_turn = False
+        self._proposed_at_ms = 0.0
+        self._ended_for: TurnEndWait | None = None
         self._hold: asyncio.Task[None] | None = None
         self._caller_hold = caller_hold
         self._closes_when_done: tuple[bool | None] | None = None
         if caller_hold is not None:
             caller_hold.when_released(self._close_after_done)
 
+    async def setup(self, setup: FrameProcessorSetup) -> None:  # type: ignore[override]
+        await super().setup(setup)
+        if self._load_smart_turn is not None and self._smart_turn is None:
+            # Loading the model takes a moment; off the event loop, other calls keep their audio.
+            analyzer = await asyncio.to_thread(self._load_smart_turn)
+            self._smart_turn = SmartTurnOpinion(analyzer)
+
+    async def cleanup(self) -> None:
+        await super().cleanup()  # type: ignore[no-untyped-call]
+        if self._smart_turn is not None:
+            await self._smart_turn.close()
+
     async def handle_user_turn_started(self) -> None:
         await super().handle_user_turn_started()  # type: ignore[no-untyped-call]
         self._start_listening_afresh()
+        self._is_callers_turn = True
 
     async def handle_user_turn_stopped(self) -> None:
         await super().handle_user_turn_stopped()  # type: ignore[no-untyped-call]
+        self._report_turn_end()
         self._start_listening_afresh()
+        self._is_callers_turn = False
+        if self._smart_turn is not None:
+            self._smart_turn.forget()
 
     async def process_frame(self, frame: Frame) -> ProcessFrameResult:
         if isinstance(frame, TranscriptionFrame):
             self._heard += frame.text
         elif isinstance(frame, _SPEECH_RESUMED):
             self._release_hold()
+        if self._smart_turn is not None:
+            await self._smart_turn.hear(frame, is_callers_turn=self._is_callers_turn)
         result: ProcessFrameResult = await super().process_frame(frame)
         return result
 
     async def trigger_user_turn_stopped(
         self, *, enable_user_speaking_frames: bool | None = None
     ) -> None:
-        if self._caller_hold is not None and self._caller_hold.is_on:
-            self._closes_when_done = (enable_user_speaking_frames,)
+        if self._hold is not None or self._closes_when_done is not None:
             return
-        if self._hold is not None:
-            return
-        if sounds_unfinished(self._heard):
-            self._hold = self.create_task(
-                self._close_after_grace(enable_user_speaking_frames), f"{self}::hold"
-            )
-            return
-        await super().trigger_user_turn_stopped(
-            enable_user_speaking_frames=enable_user_speaking_frames
+        self._proposed_at_ms = _monotonic_ms()
+        self._hold = self.create_task(
+            self._close_when_finished(enable_user_speaking_frames), f"{self}::hold"
         )
 
-    async def _close_after_grace(self, enable_user_speaking_frames: bool | None) -> None:
-        await asyncio.sleep(self._grace_secs)
+    async def _close_when_finished(self, enable_user_speaking_frames: bool | None) -> None:
+        """Ends the turn, after a grace period if the caller does not sound finished."""
+        wait = turn_end_wait(self._heard, await self._reading_of_the_voice())
+        if wait is not TurnEndWait.NONE and not self._is_on_hold():
+            await asyncio.sleep(self._grace.secs(wait))
         self._hold = None
-        await super().trigger_user_turn_stopped(
-            enable_user_speaking_frames=enable_user_speaking_frames
-        )
+        await self._close(enable_user_speaking_frames, wait)
+
+    async def _close(self, enable_user_speaking_frames: bool | None, wait: TurnEndWait) -> None:
+        if self._is_on_hold():
+            self._closes_when_done = (enable_user_speaking_frames,)
+            return
+        await self._end_turn(enable_user_speaking_frames, wait)
 
     async def _close_after_done(self) -> None:
         """The caller pressed Done: a turn that would have ended while on hold ends now."""
         pending, self._closes_when_done = self._closes_when_done, None
         if pending is not None:
-            await super().trigger_user_turn_stopped(enable_user_speaking_frames=pending[0])
+            await self._end_turn(pending[0], TurnEndWait.CALLER_HOLD)
+
+    async def _end_turn(self, enable_user_speaking_frames: bool | None, wait: TurnEndWait) -> None:
+        self._ended_for = wait
+        await super().trigger_user_turn_stopped(
+            enable_user_speaking_frames=enable_user_speaking_frames
+        )
+
+    def _report_turn_end(self) -> None:
+        """Says why Kenji answered when he did. A turn the watchdog closed has nothing to say."""
+        if self._on_turn_end is None or self._ended_for is None:
+            return
+        self._on_turn_end(
+            TurnEndJudged(
+                finished_probability=self._reported_reading(),
+                waited_for=self._ended_for,
+                waited_ms=max(0.0, _monotonic_ms() - self._proposed_at_ms),
+            )
+        )
+
+    async def _reading_of_the_voice(self) -> float | None:
+        return None if self._smart_turn is None else await self._smart_turn.judge_latest_pause()
+
+    def _reported_reading(self) -> float | None:
+        return None if self._smart_turn is None else self._smart_turn.finished_probability
+
+    def _is_on_hold(self) -> bool:
+        return self._caller_hold is not None and self._caller_hold.is_on
 
     def _start_listening_afresh(self) -> None:
         self._release_hold()
         self._heard = ""
         self._closes_when_done = None
+        self._ended_for = None
 
     def _release_hold(self) -> None:
         if self._hold is not None:

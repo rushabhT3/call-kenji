@@ -37,7 +37,8 @@ def test_real_speech_and_model_adapters_build_without_a_network(tmp_path: Path) 
     assert isinstance(kit.voice.speech_to_text.create(), SonioxSTTService)
     assert isinstance(kit.voice.text_to_speech.create(), CartesiaTTSService)
     assert isinstance(kit.voice.talker.create("You are Kenji."), OpenAILLMService)
-    assert kit.voice.turn_detection.user_params(strategy, CallerHold()).vad_analyzer is not None
+    params = kit.voice.turn_detection.user_params(strategy, CallerHold(), lambda _event: None)
+    assert params.vad_analyzer is not None
     assert isinstance(kit.advice_model, OpenAIAdviceModel)
     assert isinstance(kit.translator, OpenAITranslator)
 

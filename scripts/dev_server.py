@@ -1,12 +1,7 @@
 """Run the voice server on this machine for testing, optionally with the phone line.
 
-    uv run python scripts/dev_server.py                       # browser calls, like `kenji-server`
-    uv run python scripts/dev_server.py --afternoon-in-tokyo  # answer calls at any hour
-    uv run python scripts/dev_server.py --phone               # also open the phone line
-
---afternoon-in-tokyo moves the server's clock to 15:00 Japan time, so a call is answered whatever
-the hour. It is for testing only; the calling-hours rule has its own tests and the deployed
-server never moves its clock.
+    uv run python scripts/dev_server.py          # browser calls, like `kenji-server`
+    uv run python scripts/dev_server.py --phone  # also open the phone line
 
 --phone starts a Cloudflare quick tunnel (free, no account), points the softphone's TwiML App at
 it, and sets PUBLIC_BASE_URL to the tunnel. Then open the printed softphone page on this machine
@@ -26,7 +21,6 @@ from dataclasses import replace
 from typing import IO
 
 import uvicorn
-from afternoon_clock import AfternoonInTokyoClock
 from twilio.rest import Client
 
 from kenji.app.ports import IceServer
@@ -103,11 +97,8 @@ def _open_phone_line(settings: Settings) -> tuple[subprocess.Popen[str], Setting
     return tunnel, load_settings()
 
 
-def _serve(settings: Settings, *, is_afternoon_in_tokyo: bool) -> None:
+def _serve(settings: Settings) -> None:
     kit = build_kit(settings)
-    if is_afternoon_in_tokyo:
-        kit = replace(kit, clock=AfternoonInTokyoClock())
-        print("Testing: the clock reads 15:00 Japan time, so calls are answered", file=sys.stderr)
     configure_logging(settings.log_level)
     services = replace(build_services(settings, kit), ice=ThisMachineOnly())
     app = create_app(settings, services)
@@ -117,16 +108,13 @@ def _serve(settings: Settings, *, is_afternoon_in_tokyo: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phone", action="store_true", help="open the phone line through Twilio")
-    parser.add_argument(
-        "--afternoon-in-tokyo", action="store_true", help="answer calls at any hour, for testing"
-    )
     options = parser.parse_args()
     settings = load_settings()
     tunnel = None
     try:
         if options.phone:
             tunnel, settings = _open_phone_line(settings)
-        _serve(settings, is_afternoon_in_tokyo=options.afternoon_in_tokyo)
+        _serve(settings)
     finally:
         if tunnel is not None:
             tunnel.terminate()

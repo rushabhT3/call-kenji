@@ -37,10 +37,11 @@ from pipecat.utils.time import time_now_iso8601
 
 from kenji.app.events import CallEvent
 from kenji.app.ports import CallerTone, TurnAudio
-from kenji.app.turns import CallerHold, UnfinishedPhraseHold
+from kenji.app.turns import CallerHold, TurnEndListener, UnfinishedPhraseHold
 from kenji.domain.audit import AuditEntry, AuditRecord, append_entry
 from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
 from kenji.domain.contact import ContactPreferences, StopContactRequest, record_stop_contact
+from kenji.domain.turn import TurnEndGrace
 
 CONTENT = Path(__file__).resolve().parents[2] / "content"
 AFTERNOON_IN_TOKYO = datetime(2026, 10, 2, 15, 0, tzinfo=JAPAN_STANDARD_TIME)
@@ -226,9 +227,17 @@ class _Talker:
 
 class TextTurnDetection:
     def user_params(
-        self, start: BaseUserTurnStartStrategy, caller_hold: CallerHold
+        self,
+        start: BaseUserTurnStartStrategy,
+        caller_hold: CallerHold,
+        on_turn_end: TurnEndListener,
     ) -> LLMUserAggregatorParams:
-        stop = UnfinishedPhraseHold(timeout=0.05, grace_secs=0.3, caller_hold=caller_hold)
+        stop = UnfinishedPhraseHold(
+            timeout=0.05,
+            grace=TurnEndGrace(unfinished_phrase_secs=0.3, still_talking_secs=0.3),
+            caller_hold=caller_hold,
+            on_turn_end=on_turn_end,
+        )
         return LLMUserAggregatorParams(
             user_turn_strategies=UserTurnStrategies(start=[start], stop=[stop])
         )

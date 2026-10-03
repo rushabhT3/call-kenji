@@ -1,9 +1,14 @@
-import { nodeLabel } from "../call/copy.ts";
-import type { TurnAssessed } from "../contract/events.ts";
+import { nodeLabel, turnEndSentence } from "../call/copy.ts";
+import type { TurnAssessed, TurnEndJudged } from "../contract/events.ts";
 import { formatCount, formatScore } from "../format.ts";
 import { BudgetBar } from "../ui/BudgetBar.tsx";
 import { Card, Row } from "../ui/Card.tsx";
 import { Pill } from "../ui/Pill.tsx";
+
+interface TurnCardProps {
+  turn: TurnAssessed | null;
+  turnEnd: TurnEndJudged | null;
+}
 
 function summary(turn: TurnAssessed): string {
   const said = `You said 「${turn.utterance}」 while Kenji was talking.`;
@@ -42,18 +47,7 @@ function VerdictPill({ turn }: { turn: TurnAssessed }) {
   );
 }
 
-export function TurnCard({ turn }: { turn: TurnAssessed | null }) {
-  if (turn === null) {
-    return (
-      <Card
-        id="turn"
-        title="Turn"
-        titleJa="ターン"
-        summary="Nothing yet. Talk over Kenji and this card shows how he decides."
-        isEmpty
-      />
-    );
-  }
+function OverlapCard({ turn, turnEnd }: { turn: TurnAssessed; turnEnd: TurnEndJudged | null }) {
   const node = nodeLabel(turn.node);
   return (
     <Card
@@ -76,7 +70,30 @@ export function TurnCard({ turn }: { turn: TurnAssessed | null }) {
         <Row label="Flow step" labelJa="ステップ">
           {node.en} <code className="caption code-id">{turn.node}</code>
         </Row>
+        {turnEnd ? (
+          <Row label="End of your turn" labelJa="話し終わり" isStacked>
+            {turnEndSentence(turnEnd)}
+          </Row>
+        ) : null}
       </dl>
     </Card>
+  );
+}
+
+export function TurnCard({ turn, turnEnd }: TurnCardProps) {
+  if (turn !== null) {
+    return <OverlapCard turn={turn} turnEnd={turnEnd} />;
+  }
+  if (turnEnd !== null) {
+    return <Card id="turn" title="Turn" titleJa="ターン" summary={turnEndSentence(turnEnd)} />;
+  }
+  return (
+    <Card
+      id="turn"
+      title="Turn"
+      titleJa="ターン"
+      summary="Nothing yet. Speak, or talk over Kenji, and this card shows how he decides."
+      isEmpty
+    />
   );
 }

@@ -19,7 +19,7 @@ from kenji.app.events import CallEnded, CallEvent
 from kenji.app.hub import EventHub
 from kenji.app.linking import LinkRegistry
 from kenji.app.ports import CallRecorder, EventSink, UsageLedger
-from kenji.app.refusal import publish_refusal, refusal_line, refusal_outcome, speak_and_hang_up
+from kenji.app.refusal import publish_refusal, refusal_line, speak_and_hang_up
 from kenji.app.script import Line
 from kenji.app.session import CallContext
 from kenji.domain.guardrails import Admission, CallLimits, Refusal, admit_call, usage_day
@@ -101,7 +101,7 @@ class CallLauncher:
             if admission.refusal is None:
                 return None
             line = self._record_refusal(admission.refusal, attempt)
-            self._end_refused(admission.refusal, attempt)
+            self._end_refused(attempt)
             return line
 
     @asynccontextmanager
@@ -166,7 +166,7 @@ class CallLauncher:
             self._accounting.usage.usage_today, request.transport, request.caller_ref, attempt.day
         )
         limits = self._accounting.limits[request.transport]
-        return admit_call(attempt.context.started_at, usage, limits)
+        return admit_call(usage, limits)
 
     def _record_refusal(self, refusal: Refusal, attempt: _Attempt) -> Line:
         line = refusal_line(self._kit.script.lines, refusal)
@@ -178,9 +178,9 @@ class CallLauncher:
     ) -> CallOutcome:
         line = self._record_refusal(refusal, attempt)
         await speak_and_hang_up(transport, line, self._kit.voice.text_to_speech)
-        return self._end_refused(refusal, attempt)
+        return self._end_refused(attempt)
 
-    def _end_refused(self, refusal: Refusal, attempt: _Attempt) -> CallOutcome:
-        outcome = refusal_outcome(refusal)
+    def _end_refused(self, attempt: _Attempt) -> CallOutcome:
+        outcome = CallOutcome.DAILY_LIMIT_REACHED
         attempt.io.sink.publish(CallEnded(outcome=outcome, ended_at=self._kit.clock.now()))
         return outcome

@@ -6,7 +6,10 @@ import type {
   CallOutcome,
   CheckStatus,
   ComplianceUpdated,
+  TurnEndJudged,
+  TurnEndWait,
 } from "../contract/events.ts";
+import { formatMilliseconds } from "../format.ts";
 import type { CallStatus } from "./callView.ts";
 
 export interface Bilingual {
@@ -61,7 +64,6 @@ const ENDINGS: Readonly<Record<CallOutcome, Bilingual>> = {
   stop_contact: { en: "Further contact stopped", ja: "連絡停止" },
   callback_requested: { en: "Callback requested, nothing disclosed", ja: "折り返しのお願い" },
   identity_not_verified: { en: "Identity not confirmed", ja: "本人確認できず" },
-  outside_calling_hours: { en: "Outside calling hours", ja: "受付時間外" },
   daily_limit_reached: { en: "Demo limit reached", ja: "本日の受付終了" },
   no_agreement: { en: "No agreement this time", ja: "今回は合意なし" },
 };
@@ -182,14 +184,14 @@ export function transcriptSummary(status: CallStatus, lineCount: number): string
 }
 
 export const COMPLIANCE_CHECKS: readonly {
-  key: Exclude<keyof ComplianceUpdated, "type">;
+  key: Exclude<keyof ComplianceUpdated, "type" | "calling_hours_note">;
   label: Bilingual;
   blockedReason: string;
 }[] = [
   {
     key: "calling_hours",
     label: { en: "Calling hours", ja: "通話時間帯" },
-    blockedReason: "Outside 08:00–21:00 Japan time, so the call was refused.",
+    blockedReason: "Outside 08:00–21:00 Japan time, when a lender may not ring a debtor.",
   },
   {
     key: "identity_gate",
@@ -222,4 +224,31 @@ export function complianceSummary(compliance: ComplianceUpdated | null): string 
   const blocked = statuses.filter((status) => status === "blocked").length;
   const blockedNote = blocked > 0 ? ` ${String(blocked)} guardrail stopped something.` : "";
   return `${String(passing)} of ${String(statuses.length)} safeguards holding.${blockedNote}`;
+}
+
+const PERCENT = 100;
+
+const WAITS: Readonly<Record<Exclude<TurnEndWait, "none">, (waited: string) => string>> = {
+  still_talking: (waited) => `You were still talking, so Kenji waited ${waited}.`,
+  unfinished_phrase: (waited) =>
+    `Your words stopped mid-phrase, on a particle, so Kenji waited ${waited} for the rest.`,
+  caller_hold: (waited) => `You pressed Hold, so Kenji waited ${waited}, until you pressed Done.`,
+};
+
+function smartTurnReading(probability: number | null): string | null {
+  return probability === null
+    ? null
+    : `Smart Turn: ${String(Math.round(probability * PERCENT))}% sure you had finished`;
+}
+
+/** Why Kenji answered when he did, in one or two plain sentences. */
+export function turnEndSentence(turnEnd: TurnEndJudged): string {
+  const reading = smartTurnReading(turnEnd.finished_probability);
+  if (turnEnd.waited_for === "none") {
+    return reading === null
+      ? "Kenji answered as soon as the speech service heard you finish."
+      : `${reading}, so Kenji answered.`;
+  }
+  const waited = WAITS[turnEnd.waited_for](formatMilliseconds(turnEnd.waited_ms));
+  return reading === null ? waited : `${reading}. ${waited}`;
 }

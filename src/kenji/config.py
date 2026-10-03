@@ -59,7 +59,7 @@ class Settings(LanguageModelSettings):
     max_call_seconds: int = Field(default=300, gt=0)
     daily_phone_seconds: int = Field(default=3_600, gt=0)
     daily_browser_seconds: int = Field(default=3_600, gt=0)
-    calls_per_caller_per_day: int = Field(default=3, gt=0)
+    calls_per_caller_per_day: int = Field(default=10, gt=0)
     retention_days: int = Field(default=30, gt=0)
 
     data_dir: Path = Path("var")

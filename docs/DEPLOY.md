@@ -143,5 +143,5 @@ After that, make one phone call and one browser call.
 | Language model (Muse Spark contributor) | about 11k turns × ~5k tokens (talker, strategist, subtitles) at $0.10 / $0.20 per million | ~7 |
 | **Total** | | **≈ $69** |
 
-The guardrails cap usage: 5 minutes a call, 60 phone and 60 browser minutes a day, and 3 calls a
+The guardrails cap usage: 5 minutes a call, 60 phone and 60 browser minutes a day, and 10 calls a
 day per caller.

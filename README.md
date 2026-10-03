@@ -115,7 +115,7 @@ The guardrails cap usage:
 
 - 5 minutes a call;
 - 60 phone minutes and 60 browser minutes a day;
-- 3 calls a day per caller;
+- 10 calls a day per caller;
 - a $20 budget alert.
 
 The itemised table and the full hosting decision are in [docs/DEPLOY.md](docs/DEPLOY.md).
@@ -156,9 +156,9 @@ Japanese. The clips are recorded once with `uv run python scripts/phrase_clips.p
 Need time to think mid-sentence? Press **Hold**: Kenji waits, however long you pause, until
 you press **Done**.
 
-Kenji answers between 08:00 and 21:00 Japan time. To try him at any other hour, run
-`uv run python scripts/dev_server.py --afternoon-in-tokyo` in place of `make dev-server`: its
-clock reads 15:00 in Tokyo. It is for testing only; the deployed server never moves its clock.
+Kenji answers at any hour. Japan's 08:00 to 21:00 limit stops a lender ringing a debtor at
+night, not a debtor ringing Kenji, and the X-ray's **Calling hours** check says which side of
+the window your call fell on.
 
 The real-model smoke run drives the five test conversations through your provider:
 
@@ -184,7 +184,7 @@ for real. It costs about $0.008 a minute of Twilio credit:
    `TWILIO_API_KEY_SECRET`, `TWILIO_TWIML_APP_SID` and `PUBLIC_BASE_URL=http://127.0.0.1:7860`.
 3. Install [cloudflared][cloudflared] for a free quick tunnel. No Cloudflare account is needed.
 4. Run `uv run python scripts/dev_server.py --phone` and, in another terminal,
-   `cd web && pnpm dev`. Add `--afternoon-in-tokyo` to call outside Japanese calling hours.
+   `cd web && pnpm dev`.
 5. Open http://localhost:5173, choose who you play, and press **Call through the phone line
    (Twilio)**. The softphone rings Kenji as that character, types its own link code on the
    keypad, and shows the transcript beside the keypad.

@@ -1,12 +1,17 @@
 import pytest
 
 from kenji.domain.turn import (
+    STILL_TALKING_GRACE_SECS,
+    UNFINISHED_PHRASE_GRACE_SECS,
     LexiconBackchannelClassifier,
+    TurnEndGrace,
+    TurnEndWait,
     TurnPolicy,
     TurnVerdict,
     decide,
     is_composed_of,
     sounds_unfinished,
+    turn_end_wait,
 )
 
 READING_TERMS = TurnPolicy(min_interruption_score=0.85)
@@ -145,3 +150,41 @@ def test_speech_that_stops_on_a_particle_or_filler_is_unfinished(speech: str) ->
 )
 def test_speech_that_ends_like_a_turn_is_finished(speech: str) -> None:
     assert not sounds_unfinished(speech)
+
+
+def test_a_caller_who_sounds_finished_is_answered_at_once() -> None:
+    assert turn_end_wait("佐藤ゆうきです。", finished_probability=0.91) is TurnEndWait.NONE
+
+
+def test_a_caller_whose_voice_is_still_going_is_waited_for() -> None:
+    wait = turn_end_wait("お支払いは来月の。", finished_probability=0.23)
+
+    assert wait is TurnEndWait.STILL_TALKING
+
+
+def test_words_left_on_a_particle_are_waited_for_however_they_sound() -> None:
+    wait = turn_end_wait("生年月日は。", finished_probability=0.97)
+
+    assert wait is TurnEndWait.UNFINISHED_PHRASE
+
+
+def test_with_no_reading_of_the_voice_the_speech_service_is_trusted() -> None:
+    assert turn_end_wait("佐藤ゆうきです。", finished_probability=None) is TurnEndWait.NONE
+
+
+def test_an_even_reading_of_the_voice_is_not_taken_as_finished() -> None:
+    assert turn_end_wait("来月の。", finished_probability=0.5) is TurnEndWait.STILL_TALKING
+
+
+@pytest.mark.parametrize("probability", [-0.1, 1.1])
+def test_turn_end_wait_rejects_probability_outside_unit_interval(probability: float) -> None:
+    with pytest.raises(ValueError, match="probability"):
+        turn_end_wait("はい。", probability)
+
+
+def test_each_wait_has_its_own_grace() -> None:
+    grace = TurnEndGrace()
+
+    assert grace.secs(TurnEndWait.UNFINISHED_PHRASE) == UNFINISHED_PHRASE_GRACE_SECS
+    assert grace.secs(TurnEndWait.STILL_TALKING) == STILL_TALKING_GRACE_SECS
+    assert grace.secs(TurnEndWait.NONE) == 0.0

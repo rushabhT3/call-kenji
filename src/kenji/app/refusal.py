@@ -13,21 +13,13 @@ from kenji.app.script import Line, Lines
 from kenji.app.session import CallContext
 from kenji.domain.audit import AuditEntry
 from kenji.domain.guardrails import Refusal
-from kenji.domain.outcome import CallOutcome
 
 
 def refusal_line(lines: Lines, refusal: Refusal) -> Line:
     return {
-        Refusal.OUTSIDE_CALLING_HOURS: lines.outside_calling_hours,
         Refusal.DAILY_MINUTES_USED_UP: lines.daily_minutes_used_up,
         Refusal.CALLER_DAILY_LIMIT: lines.caller_daily_limit,
     }[refusal]
-
-
-def refusal_outcome(refusal: Refusal) -> CallOutcome:
-    if refusal is Refusal.OUTSIDE_CALLING_HOURS:
-        return CallOutcome.OUTSIDE_CALLING_HOURS
-    return CallOutcome.DAILY_LIMIT_REACHED
 
 
 async def speak_and_hang_up(

@@ -1,4 +1,8 @@
-"""Collection calls are only allowed between 08:00 and 21:00 Japan time."""
+"""A lender may only ring or visit a debtor between 08:00 and 21:00 Japan time.
+
+Japan's Money Lending Business Act (art. 21) restricts contact the lender starts. It does not stop
+Kenji answering a debtor who rings him, so the window governs outbound contact only.
+"""
 
 from datetime import datetime, time, timedelta, timezone
 

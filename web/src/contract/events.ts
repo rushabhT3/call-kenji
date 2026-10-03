@@ -14,7 +14,6 @@ export type CallOutcome =
   | "stop_contact"
   | "callback_requested"
   | "identity_not_verified"
-  | "outside_calling_hours"
   | "daily_limit_reached"
   | "no_agreement";
 
@@ -74,6 +73,17 @@ export interface TurnAssessed {
   verdict: TurnVerdict;
 }
 
+/** Why Kenji waited to answer after the speech service said the caller had finished. */
+export type TurnEndWait = "none" | "unfinished_phrase" | "still_talking" | "caller_hold";
+
+export interface TurnEndJudged {
+  type: "turn_end";
+  /** Smart Turn's reading of the caller's voice: how likely they had finished; null with none. */
+  finished_probability: number | null;
+  waited_for: TurnEndWait;
+  waited_ms: number;
+}
+
 export interface StrategistUpdated {
   type: "strategist";
   identity: string;
@@ -90,6 +100,8 @@ export interface ComplianceUpdated {
   offer_within_terms: CheckStatus;
   ai_disclosure: CheckStatus;
   recording_notice: CheckStatus;
+  /** What the calling-hours rule means at the hour of the call; absent in older recordings. */
+  calling_hours_note?: string;
 }
 
 /** How Kenji opened a reply: rules alone, an instant 「はい、」 while the model worked, or the model. */
@@ -144,6 +156,7 @@ export type CallEvent =
   | CallerToneHeard
   | FlowNodeEntered
   | TurnAssessed
+  | TurnEndJudged
   | StrategistUpdated
   | ComplianceUpdated
   | LatencyMeasured
@@ -182,6 +195,7 @@ const REQUIRED_FIELDS: Record<CallEvent["type"], Record<string, FieldKind>> = {
     threshold: "number",
     verdict: "string",
   },
+  turn_end: { waited_for: "string", waited_ms: "number" },
   strategist: {
     identity: "string",
     situation: "string",

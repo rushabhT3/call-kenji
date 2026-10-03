@@ -16,6 +16,31 @@ describe("parseCallEvent", () => {
     expect(parseCallEvent({ ...tone, sounds: "laughter" })).toBeNull();
   });
 
+  it("accepts a compliance update recorded before the calling-hours note", () => {
+    const compliance = {
+      type: "compliance",
+      calling_hours: "pass",
+      identity_gate: "pending",
+      offer_within_terms: "pending",
+      ai_disclosure: "pass",
+      recording_notice: "pass",
+    };
+
+    expect(parseCallEvent(compliance)).toEqual(compliance);
+  });
+
+  it("accepts a turn end that Smart Turn had no reading for", () => {
+    const turnEnd = {
+      type: "turn_end",
+      finished_probability: null,
+      waited_for: "none",
+      waited_ms: 0.4,
+    };
+
+    expect(parseCallEvent(turnEnd)).toEqual(turnEnd);
+    expect(parseCallEvent({ type: "turn_end", waited_for: "none" })).toBeNull();
+  });
+
   it("rejects unknown types and incomplete events", () => {
     expect(parseCallEvent({ type: "mystery" })).toBeNull();
     expect(parseCallEvent({ type: "flow_node" })).toBeNull();

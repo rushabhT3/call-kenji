@@ -9,7 +9,7 @@ from kenji.domain.audit import JsonValue
 from kenji.domain.compliance import CheckStatus
 from kenji.domain.identity import IdentityStatus
 from kenji.domain.outcome import CallOutcome
-from kenji.domain.turn import TurnVerdict
+from kenji.domain.turn import TurnEndWait, TurnVerdict
 
 
 class _Event(BaseModel):
@@ -72,6 +72,15 @@ class TurnAssessed(_Event):
     verdict: TurnVerdict
 
 
+class TurnEndJudged(_Event):
+    type: Literal["turn_end"] = "turn_end"
+    # Smart Turn's reading of the caller's voice: how likely they had finished. None when it had
+    # no pause to judge.
+    finished_probability: float | None
+    waited_for: TurnEndWait
+    waited_ms: float
+
+
 class StrategistUpdated(_Event):
     type: Literal["strategist"] = "strategist"
     identity: str
@@ -88,6 +97,8 @@ class ComplianceUpdated(_Event):
     offer_within_terms: CheckStatus
     ai_disclosure: CheckStatus
     recording_notice: CheckStatus
+    # What the calling-hours rule means at the hour of this call; absent in older recordings.
+    calling_hours_note: str = ""
 
 
 # How Kenji opened his reply: scripted from the rules, with an instant 「はい、」 while the model
@@ -144,6 +155,7 @@ CallEvent = Annotated[
     | CallerToneHeard
     | FlowNodeEntered
     | TurnAssessed
+    | TurnEndJudged
     | StrategistUpdated
     | ComplianceUpdated
     | LatencyMeasured

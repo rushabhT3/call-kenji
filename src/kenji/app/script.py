@@ -52,7 +52,6 @@ class Lines(_Content):
     handoff_close: Line
     stop_contact_close: Line
     no_agreement_close: Line
-    outside_calling_hours: Line
     daily_minutes_used_up: Line
     caller_daily_limit: Line
     time_up: Line

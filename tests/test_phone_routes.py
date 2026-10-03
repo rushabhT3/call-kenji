@@ -21,7 +21,7 @@ from kenji.config import Settings
 from kenji.container import PhoneLine, Services
 from kenji.domain.outcome import CallOutcome
 from kenji.server import create_app
-from tests.app.test_launcher import LATE, MemoryUsage, launcher_for
+from tests.app.test_launcher import MemoryUsage, launcher_for
 from tests.conversation.harness import FixedClock
 
 AUTH_TOKEN = "twilio-test-token"
@@ -101,11 +101,11 @@ def test_signed_webhook_streams_with_a_one_time_token(client: TestClient) -> Non
     assert FORM["From"] not in response.text
 
 
-def test_signed_webhook_outside_calling_hours_says_why_and_hangs_up(
+def test_signed_webhook_over_the_daily_limit_says_why_and_hangs_up(
     phone_services: Services, tmp_path: Path
 ) -> None:
-    late_launcher = launcher_for(FixedClock(LATE), MemoryUsage()).launcher
-    client = _client(replace(phone_services, launcher=late_launcher), tmp_path)
+    spent_launcher = launcher_for(FixedClock(), MemoryUsage(calls_by_caller=3)).launcher
+    client = _client(replace(phone_services, launcher=spent_launcher), tmp_path)
 
     with client:
         response = client.post(
@@ -114,7 +114,7 @@ def test_signed_webhook_outside_calling_hours_says_why_and_hangs_up(
 
     assert response.status_code == 200
     assert '<Say voice="Polly.Takumi" language="ja-JP">' in response.text
-    assert "受付時間外" in response.text
+    assert "上限" in response.text
     assert response.text.endswith("<Hangup/></Response>")
     assert "<Stream" not in response.text
 
@@ -166,11 +166,11 @@ def test_the_softphones_persona_is_played_on_the_media_stream(
 def test_a_refused_softphone_call_names_its_persona(
     phone_services: Services, tmp_path: Path
 ) -> None:
-    late = launcher_for(FixedClock(LATE), MemoryUsage())
-    client = _client(replace(phone_services, launcher=late.launcher), tmp_path)
+    spent = launcher_for(FixedClock(), MemoryUsage(calls_by_caller=3))
+    client = _client(replace(phone_services, launcher=spent.launcher), tmp_path)
 
     with client:
         _signed_voice_webhook(client, FORM | {"persona": "ito"})
 
-    started = cast(CallStarted, late.recorder.of_type("call_started")[0])
+    started = cast(CallStarted, spent.recorder.of_type("call_started")[0])
     assert started.persona_id == "ito"
