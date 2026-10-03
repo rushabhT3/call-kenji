@@ -3,3 +3,7 @@ node_modules
 playwright-report
 test-results
 pnpm-lock.yaml
+
+# Written by scripts (export_personas.py, voice_check.py --record-demo); a test checks their content.
+public/personas.json
+public/demo/call.json
