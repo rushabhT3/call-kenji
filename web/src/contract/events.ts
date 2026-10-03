@@ -23,6 +23,8 @@ export interface CallStarted {
   call_id: string;
   transport: Transport;
   started_at: string;
+  /** The persona the caller plays, from /personas.json; absent in older recordings. */
+  persona_id?: string | null;
 }
 
 export interface TranscriptLine {

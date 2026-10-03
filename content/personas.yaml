@@ -1,0 +1,334 @@
+# The fictional debtors a caller can play. No real person or account.
+# Each persona's lines are offered on the page at the steps listed, and can be spoken for the
+# caller. Amounts follow the terms: at least ¥5,000 a month and at most 6 payments.
+default: sato
+personas:
+  - id: sato
+    debtor:
+      family_name_kana: さとう
+      given_name_kana: ゆうき
+      written_name: 佐藤ゆうき
+      family_name_written: 佐藤
+      family_name_latin: Sato
+      date_of_birth: 1990-07-14
+    name_en: Yuki Sato
+    birth_date_ja: 平成2年7月14日
+    account_suffix: "7731"
+    balance_yen: 35000
+    overdue_since: 2026-09-30
+    situation:
+      en: Your hours were cut this month. You want to pay, but only a little at a time.
+      ja: 今月は勤務時間が減りました。払う気はありますが、少しずつしか払えません。
+    mood:
+      en: Cooperative, a little embarrassed.
+      ja: 協力的で、少し気まずそう。
+    phrases:
+      - id: identity
+        steps: [greeting, verify_identity]
+        label: Say who I am
+        ja: 佐藤ゆうきです。生年月日は、平成2年7月14日です。
+        en: I'm Yuki Sato. My date of birth is July 14, 1990.
+      - id: wrong_birthday
+        steps: [greeting, verify_identity]
+        label: Give a wrong birthday
+        ja: 佐藤ゆうきです。生年月日は、平成2年7月24日です。
+        en: I'm Yuki Sato. My date of birth is July 24, 1990.
+      - id: family
+        steps: [greeting, verify_identity]
+        label: Answer as a family member
+        ja: 佐藤の家族です。本人はいま出かけています。
+        en: I'm a family member. Yuki is out right now.
+      - id: story
+        steps: [state_balance, listen]
+        label: Explain my situation
+        ja: 今月は勤務時間が減ってしまって、少し厳しいんです。
+        en: My hours were cut this month, so things are a bit tight.
+      - id: too_little
+        steps: [state_balance, listen, negotiate]
+        label: Offer ¥3,000 a month
+        ja: 月3,000円なら払えます。
+        en: I can pay 3,000 yen a month.
+      - id: accept
+        steps: [negotiate]
+        label: Agree to ¥6,000 a month
+        ja: わかりました。では、月6,000円でお願いします。
+        en: All right. 6,000 yen a month, then.
+      - id: ask_person
+        steps: [state_balance, listen, negotiate]
+        label: Ask for a person
+        ja: 担当者の方と直接お話ししたいです。
+        en: I'd like to speak with a person directly.
+      - id: stop_calling
+        steps: [state_balance, listen, negotiate]
+        label: Ask him to stop calling
+        ja: もう電話してこないでください。
+        en: Please don't call me again.
+      - id: confirm
+        steps: [read_back]
+        label: Confirm the plan
+        ja: はい、間違いありません。
+        en: Yes, that's right.
+
+  - id: tanaka
+    debtor:
+      family_name_kana: たなか
+      given_name_kana: けんた
+      written_name: 田中けんた
+      family_name_written: 田中
+      family_name_latin: Tanaka
+      date_of_birth: 1985-03-02
+    name_en: Kenta Tanaka
+    birth_date_ja: 昭和60年3月2日
+    account_suffix: "4410"
+    balance_yen: 52000
+    overdue_since: 2026-08-31
+    situation:
+      en: You lost your job last month and money is very tight.
+      ja: 先月、仕事を失い、お金にかなり余裕がありません。
+    mood:
+      en: Stressed and defensive. Push for the smallest amount you can.
+      ja: ストレスを感じていて、身構えている。できるだけ少ない金額を求める。
+    phrases:
+      - id: identity
+        steps: [greeting, verify_identity]
+        label: Say who I am
+        ja: 田中けんたです。生年月日は、昭和60年3月2日です。
+        en: I'm Kenta Tanaka. My date of birth is March 2, 1985.
+      - id: wrong_birthday
+        steps: [greeting, verify_identity]
+        label: Give a wrong birthday
+        ja: 田中けんたです。生年月日は、昭和60年3月12日です。
+        en: I'm Kenta Tanaka. My date of birth is March 12, 1985.
+      - id: family
+        steps: [greeting, verify_identity]
+        label: Answer as a family member
+        ja: 田中の家族です。本人はいま出かけています。
+        en: I'm a family member. Kenta is out right now.
+      - id: story
+        steps: [state_balance, listen]
+        label: Explain my situation
+        ja: 先月仕事を失ってしまって、正直かなり厳しいです。
+        en: I lost my job last month, and honestly it's very hard.
+      - id: too_little
+        steps: [state_balance, listen, negotiate]
+        label: Offer ¥5,000 a month
+        ja: 月5,000円が限界です。
+        en: 5,000 yen a month is the most I can do.
+      - id: accept
+        steps: [negotiate]
+        label: Agree to ¥9,000 a month
+        ja: わかりました。月9,000円でお願いします。
+        en: All right. 9,000 yen a month, please.
+      - id: ask_person
+        steps: [state_balance, listen, negotiate]
+        label: Ask for a person
+        ja: 担当者の方と直接お話ししたいです。
+        en: I'd like to speak with a person directly.
+      - id: stop_calling
+        steps: [state_balance, listen, negotiate]
+        label: Ask him to stop calling
+        ja: もう電話してこないでください。
+        en: Please don't call me again.
+      - id: confirm
+        steps: [read_back]
+        label: Confirm the plan
+        ja: はい、それで大丈夫です。
+        en: Yes, that's fine.
+
+  - id: suzuki
+    debtor:
+      family_name_kana: すずき
+      given_name_kana: はるか
+      written_name: 鈴木はるか
+      family_name_written: 鈴木
+      family_name_latin: Suzuki
+      date_of_birth: 1996-11-23
+    name_en: Haruka Suzuki
+    birth_date_ja: 平成8年11月23日
+    account_suffix: "2087"
+    balance_yen: 18000
+    overdue_since: 2026-09-15
+    situation:
+      en: You moved house and simply forgot the payment. You can pay soon.
+      ja: 引っ越しで支払いをうっかり忘れていました。すぐに払えます。
+    mood:
+      en: Apologetic, wants to settle it quickly.
+      ja: 申し訳なさそうで、早く片付けたい。
+    phrases:
+      - id: identity
+        steps: [greeting, verify_identity]
+        label: Say who I am
+        ja: 鈴木はるかです。生年月日は、平成8年11月23日です。
+        en: I'm Haruka Suzuki. My date of birth is November 23, 1996.
+      - id: wrong_birthday
+        steps: [greeting, verify_identity]
+        label: Give a wrong birthday
+        ja: 鈴木はるかです。生年月日は、平成8年11月3日です。
+        en: I'm Haruka Suzuki. My date of birth is November 3, 1996.
+      - id: family
+        steps: [greeting, verify_identity]
+        label: Answer as a family member
+        ja: 鈴木の家族です。本人はいま出かけています。
+        en: I'm a family member. Haruka is out right now.
+      - id: story
+        steps: [state_balance, listen]
+        label: Explain my situation
+        ja: 引っ越しでバタバタしていて、うっかり忘れていました。すみません。
+        en: I was busy moving house and simply forgot. I'm sorry.
+      - id: too_little
+        steps: [state_balance, listen, negotiate]
+        label: Offer ¥3,000 a month
+        ja: 月3,000円ずつでもいいですか。
+        en: Could I pay 3,000 yen a month?
+      - id: accept
+        steps: [negotiate]
+        label: Agree to ¥5,000 a month
+        ja: はい、月5,000円でお願いします。
+        en: Yes, 5,000 yen a month, please.
+      - id: ask_person
+        steps: [state_balance, listen, negotiate]
+        label: Ask for a person
+        ja: 担当者の方と直接お話ししたいです。
+        en: I'd like to speak with a person directly.
+      - id: stop_calling
+        steps: [state_balance, listen, negotiate]
+        label: Ask him to stop calling
+        ja: もう電話してこないでください。
+        en: Please don't call me again.
+      - id: confirm
+        steps: [read_back]
+        label: Confirm the plan
+        ja: はい、間違いありません。
+        en: Yes, that's right.
+
+  - id: ito
+    debtor:
+      family_name_kana: いとう
+      given_name_kana: まさる
+      written_name: 伊藤まさる
+      family_name_written: 伊藤
+      family_name_latin: Ito
+      date_of_birth: 1972-05-09
+    name_en: Masaru Ito
+    birth_date_ja: 昭和47年5月9日
+    account_suffix: "6652"
+    balance_yen: 90000
+    overdue_since: 2026-07-31
+    situation:
+      en: Hospital bills piled up after a stay in hospital. You are tired of these calls.
+      ja: 入院で医療費がかさみました。督促の電話にはうんざりしています。
+    mood:
+      en: Tired and irritated. You may ask for a person, or for the calls to stop.
+      ja: 疲れていて、いらいらしている。担当者との会話や、連絡の停止を求めるかもしれない。
+    phrases:
+      - id: identity
+        steps: [greeting, verify_identity]
+        label: Say who I am
+        ja: 伊藤まさるです。生年月日は、昭和47年5月9日です。
+        en: I'm Masaru Ito. My date of birth is May 9, 1972.
+      - id: wrong_birthday
+        steps: [greeting, verify_identity]
+        label: Give a wrong birthday
+        ja: 伊藤まさるです。生年月日は、昭和47年5月19日です。
+        en: I'm Masaru Ito. My date of birth is May 19, 1972.
+      - id: family
+        steps: [greeting, verify_identity]
+        label: Answer as a family member
+        ja: 伊藤の家族です。本人はいま出かけています。
+        en: I'm a family member. Masaru is out right now.
+      - id: story
+        steps: [state_balance, listen]
+        label: Explain my situation
+        ja: 入院していて、医療費がかさんでしまったんです。
+        en: I was in hospital, and the medical bills piled up.
+      - id: too_little
+        steps: [state_balance, listen, negotiate]
+        label: Offer ¥10,000 a month
+        ja: 月10,000円なら何とか払えます。
+        en: I could manage 10,000 yen a month.
+      - id: accept
+        steps: [negotiate]
+        label: Agree to ¥15,000 a month
+        ja: わかりました。月15,000円でお願いします。
+        en: All right. 15,000 yen a month, please.
+      - id: ask_person
+        steps: [state_balance, listen, negotiate]
+        label: Ask for a person
+        ja: 機械じゃなくて、担当者の方と話させてください。
+        en: Let me talk to a person, not a machine.
+      - id: stop_calling
+        steps: [state_balance, listen, negotiate]
+        label: Ask him to stop calling
+        ja: もう電話してこないでください。
+        en: Please don't call me again.
+      - id: confirm
+        steps: [read_back]
+        label: Confirm the plan
+        ja: はい、それでお願いします。
+        en: Yes, let's do that.
+
+  - id: yamamoto
+    debtor:
+      family_name_kana: やまもと
+      given_name_kana: あや
+      written_name: 山本あや
+      family_name_written: 山本
+      family_name_latin: Yamamoto
+      date_of_birth: 2000-01-30
+    name_en: Aya Yamamoto
+    birth_date_ja: 平成12年1月30日
+    account_suffix: "3318"
+    balance_yen: 24000
+    overdue_since: 2026-09-20
+    situation:
+      en: You are a student with a part-time job, and you are not sure what the bill is for.
+      ja: アルバイトをしている学生で、何の請求なのかよく分かっていません。
+    mood:
+      en: Confused, asks questions before agreeing to anything.
+      ja: 戸惑っていて、合意する前にいろいろ質問する。
+    phrases:
+      - id: identity
+        steps: [greeting, verify_identity]
+        label: Say who I am
+        ja: 山本あやです。生年月日は、平成12年1月30日です。
+        en: I'm Aya Yamamoto. My date of birth is January 30, 2000.
+      - id: wrong_birthday
+        steps: [greeting, verify_identity]
+        label: Give a wrong birthday
+        ja: 山本あやです。生年月日は、平成12年1月13日です。
+        en: I'm Aya Yamamoto. My date of birth is January 13, 2000.
+      - id: family
+        steps: [greeting, verify_identity]
+        label: Answer as a family member
+        ja: 山本の家族です。本人はいま出かけています。
+        en: I'm a family member. Aya is out right now.
+      - id: story
+        steps: [state_balance, listen]
+        label: Ask what the bill is for
+        ja: すみません、これは何のお支払いなんでしょうか。
+        en: Sorry, what is this payment for?
+      - id: too_little
+        steps: [state_balance, listen, negotiate]
+        label: Offer ¥3,000 a month
+        ja: 学生なので、月3,000円くらいしか払えないです。
+        en: I'm a student, so I can only pay about 3,000 yen a month.
+      - id: accept
+        steps: [negotiate]
+        label: Agree to ¥5,000 a month
+        ja: じゃあ、月5,000円でお願いします。
+        en: Then 5,000 yen a month, please.
+      - id: ask_person
+        steps: [state_balance, listen, negotiate]
+        label: Ask for a person
+        ja: 担当者の方と直接お話ししたいです。
+        en: I'd like to speak with a person directly.
+      - id: stop_calling
+        steps: [state_balance, listen, negotiate]
+        label: Ask him to stop calling
+        ja: もう電話してこないでください。
+        en: Please don't call me again.
+      - id: confirm
+        steps: [read_back]
+        label: Confirm the plan
+        ja: はい、大丈夫です。
+        en: Yes, that's fine.

@@ -21,6 +21,8 @@ class CallStarted(_Event):
     call_id: str
     transport: Literal["phone", "browser"]
     started_at: datetime
+    # The persona the caller plays (content/personas.yaml); absent in older recordings.
+    persona_id: str | None = None
 
 
 class TranscriptLine(_Event):
