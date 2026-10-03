@@ -1,5 +1,8 @@
 import type { TranscriptEntry } from "../call/callView.ts";
+import { toneBadge } from "../call/copy.ts";
+import type { CallerToneHeard } from "../contract/events.ts";
 import { formatClock, isoDuration } from "../format.ts";
+import { Pill } from "../ui/Pill.tsx";
 
 interface TranscriptLineProps {
   line: TranscriptEntry;
@@ -9,6 +12,8 @@ interface TranscriptLineProps {
   isCurrent: boolean;
   /** Kenji is still saying this line: its English may follow when he finishes. */
   isSpeaking?: boolean;
+  /** How the caller sounded on this line, once it has been heard. */
+  tone?: CallerToneHeard | undefined;
 }
 
 const SPEAKERS = {
@@ -36,8 +41,10 @@ export function TranscriptLine({
   subtitle,
   isCurrent,
   isSpeaking = false,
+  tone,
 }: TranscriptLineProps) {
   const speaker = SPEAKERS[line.speaker];
+  const badge = tone ? toneBadge(tone) : null;
   const classes = [
     "line",
     `line--${line.speaker}`,
@@ -52,6 +59,7 @@ export function TranscriptLine({
           {speaker.en} <span lang="ja">{speaker.ja}</span>
         </span>
         <time dateTime={isoDuration(offsetMs)}>{formatClock(offsetMs)}</time>
+        {badge ? <Pill tone="info" label={badge} context="Tone" /> : null}
       </p>
       <div className="line__text">
         <p className="line__ja" lang="ja">

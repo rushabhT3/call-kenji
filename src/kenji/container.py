@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from loguru import logger
+
 from kenji.adapters.clock import SystemClock
 from kenji.adapters.content import load_personas, load_script
 from kenji.adapters.onnx_classifier import OnnxBackchannelClassifier
@@ -15,6 +17,7 @@ from kenji.adapters.openai_models import (
     OpenAITalker,
     OpenAITranslator,
 )
+from kenji.adapters.sense_voice import SenseVoiceEmotionClassifier, has_sense_voice_model
 from kenji.adapters.speech import (
     CartesiaTextToSpeech,
     SonioxEndpointTurnDetection,
@@ -28,7 +31,13 @@ from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting, TransportKind
 from kenji.app.linking import LinkRegistry
 from kenji.app.personas import PersonaCatalog
-from kenji.app.ports import CallRecorder, Clock, IceServerSource, TalkerFactory
+from kenji.app.ports import (
+    CallerEmotionClassifier,
+    CallRecorder,
+    Clock,
+    IceServerSource,
+    TalkerFactory,
+)
 from kenji.app.script import Script
 from kenji.app.stream_tokens import StreamTokens
 from kenji.config import LanguageModelSettings, Settings
@@ -80,6 +89,19 @@ def build_classifier(settings: Settings) -> BackchannelClassifier:
     return LexiconBackchannelClassifier()
 
 
+def build_emotion_classifier(settings: Settings) -> CallerEmotionClassifier | None:
+    model_dir = settings.caller_emotion_model_dir
+    if model_dir is None:
+        return None
+    if not has_sense_voice_model(model_dir):
+        logger.warning(
+            "no SenseVoice model in {model_dir}; Kenji will not hear how callers sound",
+            model_dir=str(model_dir),
+        )
+        return None
+    return SenseVoiceEmotionClassifier(model_dir)
+
+
 def load_or_create_salt(path: Path) -> bytes:
     if path.exists():
         return path.read_bytes()
@@ -124,6 +146,7 @@ def build_kit(settings: Settings) -> CallKit:
         classifier=build_classifier(settings),
         contacts=JsonContactStore(settings.data_dir / "contacts.json"),
         clock=SystemClock(),
+        emotion_classifier=build_emotion_classifier(settings),
     )
 
 

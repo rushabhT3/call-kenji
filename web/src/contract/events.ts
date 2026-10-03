@@ -45,6 +45,19 @@ export interface Subtitle {
   is_unavailable?: boolean;
 }
 
+/** How the caller's voice sounded on a turn, as a speech-emotion model hears it. */
+export type CallerEmotion =
+  "neutral" | "happy" | "sad" | "angry" | "fearful" | "disgusted" | "surprised" | "unknown";
+export type CallerSound = "laughter" | "crying" | "coughing" | "sneezing";
+
+export interface CallerToneHeard {
+  type: "caller_tone";
+  /** The caller's transcript line this turn's tone belongs to. */
+  line_id: string;
+  emotion: CallerEmotion;
+  sounds: CallerSound[];
+}
+
 export interface FlowNodeEntered {
   type: "flow_node";
   node: string;
@@ -128,6 +141,7 @@ export type CallEvent =
   | CallStarted
   | TranscriptLine
   | Subtitle
+  | CallerToneHeard
   | FlowNodeEntered
   | TurnAssessed
   | StrategistUpdated
@@ -157,6 +171,7 @@ const REQUIRED_FIELDS: Record<CallEvent["type"], Record<string, FieldKind>> = {
     at: "string",
   },
   subtitle: { line_id: "string", en: "string" },
+  caller_tone: { line_id: "string", emotion: "string", sounds: "array" },
   flow_node: { node: "string" },
   turn: {
     node: "string",

@@ -9,6 +9,13 @@ describe("parseCallEvent", () => {
     expect(rejected).toEqual([]);
   });
 
+  it("accepts how the caller sounded on a line, and needs its sounds", () => {
+    const tone = { type: "caller_tone", line_id: "caller-3", emotion: "angry", sounds: [] };
+
+    expect(parseCallEvent(tone)).toEqual(tone);
+    expect(parseCallEvent({ ...tone, sounds: "laughter" })).toBeNull();
+  });
+
   it("rejects unknown types and incomplete events", () => {
     expect(parseCallEvent({ type: "mystery" })).toBeNull();
     expect(parseCallEvent({ type: "flow_node" })).toBeNull();

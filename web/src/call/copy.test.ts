@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { ComplianceUpdated } from "../contract/events.ts";
+import type { CallerToneHeard, ComplianceUpdated } from "../contract/events.ts";
 import {
   LINE_UNREACHABLE,
+  callerSounds,
   complianceSummary,
   microphoneProblem,
   nodeLabel,
   nowSentence,
   outcomeLabel,
+  toneBadge,
   transcriptSummary,
 } from "./copy.ts";
 
@@ -87,5 +89,29 @@ describe("transcriptSummary", () => {
       "The whole call: 13 lines, Japanese with English underneath.",
     );
     expect(transcriptSummary("ended", 1)).toContain("1 line,");
+  });
+});
+
+describe("how the caller sounds", () => {
+  const tone = (
+    emotion: CallerToneHeard["emotion"],
+    sounds: CallerToneHeard["sounds"] = [],
+  ): CallerToneHeard => ({ type: "caller_tone", line_id: "caller-2", emotion, sounds });
+
+  it("badges a line with what stands out in the caller's voice", () => {
+    expect(toneBadge(tone("angry"))).toBe("Sounds frustrated");
+    expect(toneBadge(tone("sad", ["crying"]))).toBe("Sounds upset · cries");
+    expect(toneBadge(tone("unknown", ["laughter"]))).toBe("Laughs");
+  });
+
+  it("leaves a calm or unclear line without a badge", () => {
+    expect(toneBadge(tone("neutral"))).toBeNull();
+    expect(toneBadge(tone("unknown"))).toBeNull();
+  });
+
+  it("tells the strategist card how the caller sounded, calm included", () => {
+    expect(callerSounds(tone("neutral"))).toBe("Calm");
+    expect(callerSounds(tone("angry", ["laughter"]))).toBe("Frustrated · laughs");
+    expect(callerSounds(tone("unknown"))).toBe("Hard to tell");
   });
 });

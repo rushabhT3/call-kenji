@@ -42,6 +42,8 @@ class Settings(LanguageModelSettings):
 
     backchannel_classifier: Literal["lexicon", "onnx"] = "lexicon"
     backchannel_onnx_path: FilePath | None = None
+    # SenseVoice for how the caller sounds (scripts/fetch_emotion_model.py); unset or empty is off.
+    caller_emotion_model_dir: Path | None = None
 
     cloudflare_turn_key_id: str | None = None
     cloudflare_turn_api_token: SecretStr | None = None

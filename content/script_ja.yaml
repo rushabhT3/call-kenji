@@ -166,6 +166,7 @@ prompts:
     The smallest acceptable monthly amount is ¥{smallest_monthly}.
     Plans already checked against the terms: {suggested_plans}.
     The conversation so far and the current step of the call follow.
+    A last line may say how the caller's voice sounded; if they sound angry, sad, fearful or are crying, make next_move calm things first: acknowledge the feeling and slow down before any amount.
     Return JSON only, with these fields, each written in short plain English:
     identity: who the caller seems to be and whether identity is verified.
     situation: the caller's circumstances in one sentence.

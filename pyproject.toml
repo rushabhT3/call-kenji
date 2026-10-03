@@ -18,6 +18,9 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-http==1.45.0",
     "twilio==9.11.2",
     "httpx==0.28.1",
+    "sherpa-onnx==1.13.8",
+    # sherpa-onnx's native libraries; uv reads its dependencies from a wheel that omits them.
+    "sherpa-onnx-core==1.13.8",
 ]
 
 [project.scripts]
@@ -86,7 +89,9 @@ source = ["src/kenji"]
 
 # These packages ship no type information.
 [[tool.mypy.overrides]]
-module = ["onnxruntime", "onnxruntime.*", "pipecat_ai_prebuilt.*", "twilio.*"]
+module = [
+    "onnxruntime", "onnxruntime.*", "pipecat_ai_prebuilt.*", "sherpa_onnx", "sherpa_onnx.*", "twilio.*"
+]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

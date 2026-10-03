@@ -1,5 +1,5 @@
 import { PostCall } from "../aftercall/PostCall.tsx";
-import { finishedCallMs, type CallView } from "../call/callView.ts";
+import { finishedCallMs, latestCallerTone, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
 import type { DemoSound } from "../call/useDemoSound.ts";
 import type { Persona } from "../contract/personas.ts";
@@ -47,6 +47,7 @@ function Rail({ view }: { view: CallView }) {
       <StrategistCard
         advice={view.strategist}
         identityGate={view.compliance?.identity_gate ?? null}
+        callerTone={latestCallerTone(view)}
       />
       <ComplianceCard compliance={view.compliance} />
       <LatencyCard turns={view.latency} />

@@ -9,7 +9,7 @@ from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.services.llm_service import LLMService
 from pipecat.turns.user_start import BaseUserTurnStartStrategy
 
-from kenji.app.events import CallEvent
+from kenji.app.events import CallerEmotion, CallerSound, CallEvent
 from kenji.app.turns import CallerHold
 from kenji.domain.audit import AuditEntry, AuditRecord
 from kenji.domain.contact import ContactPreferences, StopContactRequest
@@ -94,3 +94,27 @@ class TurnDetection(Protocol):
 
 class TalkerFactory(Protocol):
     def create(self, system_instruction: str) -> LLMService[Any]: ...
+
+
+@dataclass(frozen=True, slots=True)
+class TurnAudio:
+    """What the caller said in one turn, as 16-bit mono PCM."""
+
+    pcm: bytes
+    sample_rate: int
+
+    @property
+    def seconds(self) -> float:
+        return len(self.pcm) / (2 * self.sample_rate)
+
+
+@dataclass(frozen=True, slots=True)
+class CallerTone:
+    emotion: CallerEmotion
+    sounds: tuple[CallerSound, ...] = ()
+
+
+class CallerEmotionClassifier(Protocol):
+    """Hears how a turn sounded. It blocks while the model runs, so callers use a thread."""
+
+    def classify(self, audio: TurnAudio) -> CallerTone: ...

@@ -4,6 +4,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from kenji.app.agreement import describe_plan_en, format_date_en, format_yen
+from kenji.app.caller_tone import CallerToneListener
 from kenji.app.events import StrategistUpdated
 from kenji.app.fast_path import FastPathParts, FastPathPlanner
 from kenji.app.flows import CallFlow
@@ -12,6 +13,7 @@ from kenji.app.personas import PersonaCatalog
 from kenji.app.ports import (
     AdviceModel,
     AuditLog,
+    CallerEmotionClassifier,
     Clock,
     ContactStore,
     EventSink,
@@ -48,6 +50,8 @@ class CallKit:
     classifier: BackchannelClassifier
     contacts: ContactStore
     clock: Clock
+    # Hears how the caller sounds; without a model the feature is off.
+    emotion_classifier: CallerEmotionClassifier | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +71,7 @@ class CallParts:
     planner: FastPathPlanner
     latency: LatencyTracker
     talker_instruction: str
+    caller_tone: CallerToneListener | None = None
 
     def conversation(self, messages: Sequence[object]) -> str:
         return render_conversation(
@@ -136,4 +141,9 @@ def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallPart
         planner=planner,
         latency=LatencyTracker(io.sink),
         talker_instruction=prompts.talker_role.format_map(fields),
+        caller_tone=(
+            None
+            if kit.emotion_classifier is None
+            else CallerToneListener(kit.emotion_classifier, io.sink)
+        ),
     )

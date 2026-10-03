@@ -1,5 +1,12 @@
 import type { DeviceErrorReason } from "@pipecat-ai/client-js";
-import type { CallOutcome, CheckStatus, ComplianceUpdated } from "../contract/events.ts";
+import type {
+  CallerEmotion,
+  CallerSound,
+  CallerToneHeard,
+  CallOutcome,
+  CheckStatus,
+  ComplianceUpdated,
+} from "../contract/events.ts";
 import type { CallStatus } from "./callView.ts";
 
 export interface Bilingual {
@@ -114,6 +121,53 @@ export function nowSentence(status: CallStatus, node: string | null): Bilingual 
       ja: nodeLabel(node ?? "greeting").ja,
     }
   );
+}
+
+const TONE_FEELINGS: Readonly<Record<CallerEmotion, string | null>> = {
+  neutral: "calm",
+  happy: "cheerful",
+  sad: "upset",
+  angry: "frustrated",
+  fearful: "anxious",
+  disgusted: "annoyed",
+  surprised: "surprised",
+  unknown: null,
+};
+
+const TONE_SOUNDS: Readonly<Record<CallerSound, string>> = {
+  laughter: "laughs",
+  crying: "cries",
+  coughing: "coughs",
+  sneezing: "sneezes",
+};
+
+function feelingWord(emotion: string): string | null {
+  return Object.hasOwn(TONE_FEELINGS, emotion) ? TONE_FEELINGS[emotion as CallerEmotion] : null;
+}
+
+function soundWords(sounds: readonly string[]): string[] {
+  return sounds.flatMap((sound) =>
+    Object.hasOwn(TONE_SOUNDS, sound) ? [TONE_SOUNDS[sound as CallerSound]] : [],
+  );
+}
+
+function sentenceCase(parts: readonly string[]): string {
+  const text = parts.join(" · ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The badge on a caller's line: only what stands out, so a calm or unclear line has none. */
+export function toneBadge(tone: CallerToneHeard): string | null {
+  const feeling = tone.emotion === "neutral" ? null : feelingWord(tone.emotion);
+  const parts = [...(feeling ? [`sounds ${feeling}`] : []), ...soundWords(tone.sounds)];
+  return parts.length > 0 ? sentenceCase(parts) : null;
+}
+
+/** How the caller sounded on their latest turn, calm included, as the strategist heard it. */
+export function callerSounds(tone: CallerToneHeard): string {
+  const feeling = feelingWord(tone.emotion);
+  const parts = [...(feeling ? [feeling] : []), ...soundWords(tone.sounds)];
+  return parts.length > 0 ? sentenceCase(parts) : "Hard to tell";
 }
 
 export function transcriptSummary(status: CallStatus, lineCount: number): string {

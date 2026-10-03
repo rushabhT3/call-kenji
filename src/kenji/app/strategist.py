@@ -16,7 +16,7 @@ from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from kenji.app.ports import AdviceModel
+from kenji.app.ports import AdviceModel, CallerTone
 
 STRATEGIST_TIMEOUT_SECS = 8.0
 _TURNS_KEPT = 2
@@ -52,6 +52,15 @@ def render_conversation(messages: Sequence[object], step: str, identity: str) ->
         if speaker and isinstance(content, str) and content:
             lines.append(f"{speaker}: {content}")
     return "\n".join(lines)
+
+
+def with_caller_tone(conversation: str, tone: CallerTone | None) -> str:
+    """Add how the caller's voice sounded on the turn just finished, which the words can miss."""
+    if tone is None:
+        return conversation
+    emotion = "no clear emotion" if tone.emotion == "unknown" else tone.emotion
+    heard = "; ".join([emotion, *tone.sounds])
+    return f"{conversation}\nThe caller's voice on that last turn: {heard}."
 
 
 class Strategist:

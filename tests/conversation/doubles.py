@@ -14,6 +14,7 @@ from pipecat.frames.frames import (
     BotStoppedSpeakingFrame,
     Frame,
     FunctionCallFromLLM,
+    InputAudioRawFrame,
     LLMContextFrame,
     LLMFullResponseEndFrame,
     LLMFullResponseStartFrame,
@@ -35,6 +36,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.utils.time import time_now_iso8601
 
 from kenji.app.events import CallEvent
+from kenji.app.ports import CallerTone, TurnAudio
 from kenji.app.turns import CallerHold, UnfinishedPhraseHold
 from kenji.domain.audit import AuditEntry, AuditRecord, append_entry
 from kenji.domain.calling_hours import JAPAN_STANDARD_TIME
@@ -43,6 +45,8 @@ from kenji.domain.contact import ContactPreferences, StopContactRequest, record_
 CONTENT = Path(__file__).resolve().parents[2] / "content"
 AFTERNOON_IN_TOKYO = datetime(2026, 10, 2, 15, 0, tzinfo=JAPAN_STANDARD_TIME)
 PLAYOUT_SECS = 0.05
+MICROPHONE_SAMPLE_RATE = 16_000
+MICROPHONE_FRAMES_PER_SEC = 50
 
 
 @dataclass(frozen=True)
@@ -189,6 +193,16 @@ class TextTransport(BaseTransport):
     async def disconnect(self) -> None:
         await self._call_event_handler("on_client_disconnected", None)
 
+    async def caller_speaks_for(self, seconds: float) -> None:
+        """Audio from the caller's microphone, in 20 ms frames; what it holds does not matter."""
+        frame_bytes = MICROPHONE_SAMPLE_RATE // MICROPHONE_FRAMES_PER_SEC * 2
+        for _ in range(round(seconds * MICROPHONE_FRAMES_PER_SEC)):
+            await self._input.push_frame(
+                InputAudioRawFrame(
+                    audio=bytes(frame_bytes), sample_rate=MICROPHONE_SAMPLE_RATE, num_channels=1
+                )
+            )
+
     async def caller_says(self, text: str) -> None:
         await self._input.push_frame(
             TranscriptionFrame(text=text, user_id="caller", timestamp=time_now_iso8601())
@@ -283,6 +297,21 @@ class CannedAdvice:
                 "next_move": self._next_move,
             }
         )
+
+
+ANGRY_AND_LAUGHING = CallerTone(emotion="angry", sounds=("laughter",))
+
+
+class FixedToneClassifier:
+    """Hears every turn the same way, and keeps the audio it was given."""
+
+    def __init__(self, tone: CallerTone = ANGRY_AND_LAUGHING) -> None:
+        self.heard: list[TurnAudio] = []
+        self._tone = tone
+
+    def classify(self, audio: TurnAudio) -> CallerTone:
+        self.heard.append(audio)
+        return self._tone
 
 
 class EchoTranslator:

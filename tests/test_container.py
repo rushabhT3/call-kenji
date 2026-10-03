@@ -11,7 +11,7 @@ from kenji.adapters.openai_models import OpenAIAdviceModel, OpenAITranslator
 from kenji.adapters.turn import CloudflareTurn, StunOnly
 from kenji.app.turns import BackchannelTurnStartStrategy, CallerHold
 from kenji.config import Settings
-from kenji.container import build_kit, build_services
+from kenji.container import build_emotion_classifier, build_kit, build_services
 from kenji.domain.turn import LexiconBackchannelClassifier, TurnPolicy
 
 
@@ -100,3 +100,15 @@ def test_softphone_settings_switch_the_softphone_on(tmp_path: Path) -> None:
 
 def test_without_softphone_settings_there_is_no_softphone(tmp_path: Path) -> None:
     assert build_services(_settings(tmp_path)).softphone is None
+
+
+def test_without_an_emotion_model_kenji_does_not_hear_how_callers_sound(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, caller_emotion_model_dir=None)
+
+    assert build_kit(settings).emotion_classifier is None
+
+
+def test_an_emotion_model_dir_without_the_model_leaves_the_feature_off(tmp_path: Path) -> None:
+    settings = _settings(tmp_path, caller_emotion_model_dir=tmp_path / "sense-voice")
+
+    assert build_emotion_classifier(settings) is None

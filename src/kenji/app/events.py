@@ -42,6 +42,20 @@ class Subtitle(_Event):
     is_unavailable: bool = False
 
 
+# How the caller's voice sounded on a turn, as a speech-emotion model hears it from the audio.
+type CallerEmotion = Literal[
+    "neutral", "happy", "sad", "angry", "fearful", "disgusted", "surprised", "unknown"
+]
+type CallerSound = Literal["laughter", "crying", "coughing", "sneezing"]
+
+
+class CallerToneHeard(_Event):
+    type: Literal["caller_tone"] = "caller_tone"
+    line_id: str
+    emotion: CallerEmotion
+    sounds: list[CallerSound]
+
+
 class FlowNodeEntered(_Event):
     type: Literal["flow_node"] = "flow_node"
     node: str
@@ -127,6 +141,7 @@ CallEvent = Annotated[
     CallStarted
     | TranscriptLine
     | Subtitle
+    | CallerToneHeard
     | FlowNodeEntered
     | TurnAssessed
     | StrategistUpdated

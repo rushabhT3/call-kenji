@@ -95,6 +95,8 @@ so a native speaker can review one file.
 | The live view shows your call and only your call | `?demo=1` replays a recorded call, with its sound, with no backend; the caller in it is a synthetic voice |
 | Transcripts and events are kept for 30 days, then deleted | Audio is never stored |
 
+How the caller sounds is heard by [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) (FunAudioLLM), run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (k2-fsa).
+
 The language model runs on Meta's Muse Spark contributor tier. Meta may use that traffic to
 improve its models, which is one more reason the page asks callers not to share real details.
 

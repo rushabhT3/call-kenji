@@ -86,6 +86,7 @@ function TranscriptLog({ view, lines }: TranscriptLogProps) {
             offsetMs={offset(line)}
             subtitle={view.subtitles[line.lineId]}
             isCurrent={line.lineId === currentId}
+            tone={view.tones[line.lineId]}
           />
         ))}
         {speaking ? (

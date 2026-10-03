@@ -41,6 +41,19 @@ def test_required_keys_are_enough(monkeypatch: pytest.MonkeyPatch) -> None:
     assert not settings.is_phone_enabled
 
 
+def test_hearing_how_callers_sound_is_off_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, REQUIRED_KEYS)
+    monkeypatch.delenv("CALLER_EMOTION_MODEL_DIR", raising=False)
+
+    assert Settings().caller_emotion_model_dir is None
+
+
+def test_the_emotion_model_dir_comes_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set(monkeypatch, {**REQUIRED_KEYS, "CALLER_EMOTION_MODEL_DIR": "models/sense-voice"})
+
+    assert Settings().caller_emotion_model_dir == Path("models/sense-voice")
+
+
 def test_onnx_classifier_needs_a_model_path(monkeypatch: pytest.MonkeyPatch) -> None:
     _set(monkeypatch, {**REQUIRED_KEYS, "BACKCHANNEL_CLASSIFIER": "onnx"})
 

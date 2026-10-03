@@ -1,4 +1,5 @@
-import type { CheckStatus, StrategistUpdated } from "../contract/events.ts";
+import { callerSounds } from "../call/copy.ts";
+import type { CallerToneHeard, CheckStatus, StrategistUpdated } from "../contract/events.ts";
 import { Card, Row } from "../ui/Card.tsx";
 import { Pill } from "../ui/Pill.tsx";
 
@@ -11,6 +12,8 @@ const IDENTITY_LABELS: Record<CheckStatus, string> = {
 interface StrategistCardProps {
   advice: StrategistUpdated | null;
   identityGate: CheckStatus | null;
+  /** How the caller sounded on their latest heard turn; null until one is heard. */
+  callerTone: CallerToneHeard | null;
 }
 
 function Offers({ offers }: { offers: readonly string[] }) {
@@ -28,7 +31,18 @@ function Offers({ offers }: { offers: readonly string[] }) {
   );
 }
 
-export function StrategistCard({ advice, identityGate }: StrategistCardProps) {
+function CallerSoundsRow({ tone }: { tone: CallerToneHeard | null }) {
+  if (tone === null) {
+    return null;
+  }
+  return (
+    <Row label="Caller sounds" labelJa="声の様子">
+      {callerSounds(tone)}
+    </Row>
+  );
+}
+
+export function StrategistCard({ advice, identityGate, callerTone }: StrategistCardProps) {
   if (advice === null) {
     return (
       <Card
@@ -55,6 +69,7 @@ export function StrategistCard({ advice, identityGate }: StrategistCardProps) {
         <Row isStacked label="Situation" labelJa="状況">
           {advice.situation}
         </Row>
+        <CallerSoundsRow tone={callerTone} />
         <Row isStacked label="Ability to pay" labelJa="支払い能力">
           {advice.ability_to_pay}
         </Row>

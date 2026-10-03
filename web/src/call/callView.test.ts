@@ -6,6 +6,7 @@ import {
   currentKenjiLineId,
   elapsedMs,
   finishedCallMs,
+  latestCallerTone,
   latestKenjiLineId,
 } from "./callView.ts";
 
@@ -164,5 +165,37 @@ describe("subtitles", () => {
     ]);
 
     expect(view.subtitles["kenji-2"]).toBeNull();
+  });
+});
+
+describe("how the caller sounds", () => {
+  const tone = (lineId: string, emotion: "angry" | "neutral") =>
+    ({ type: "caller_tone", line_id: lineId, emotion, sounds: [] }) satisfies CallEvent;
+
+  it("keeps each tone with the caller's line it was heard on", () => {
+    const view = applyEvents(EMPTY_CALL, [
+      transcript("caller-2", "caller", "今月は少し厳しいです。"),
+      tone("caller-2", "angry"),
+    ]);
+
+    expect(view.tones["caller-2"]?.emotion).toBe("angry");
+  });
+
+  it("gives the tone of the latest caller line that was heard", () => {
+    const view = applyEvents(EMPTY_CALL, [
+      transcript("caller-2", "caller", "今月は少し厳しいです。"),
+      tone("caller-2", "angry"),
+      transcript("caller-4", "caller", "来月なら払えます。"),
+      tone("caller-4", "neutral"),
+      transcript("caller-6", "caller", "はい。"),
+    ]);
+
+    expect(latestCallerTone(view)?.line_id).toBe("caller-4");
+  });
+
+  it("has no tone before a caller line is heard", () => {
+    const view = applyEvents(EMPTY_CALL, [transcript("caller-2", "caller", "はい。")]);
+
+    expect(latestCallerTone(view)).toBeNull();
   });
 });

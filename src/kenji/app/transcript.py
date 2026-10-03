@@ -92,12 +92,14 @@ class TranscriptFeed:
             self._caller_line_id = self._next_id("caller")
         self._publish(self._caller_line_id, "caller", japanese, is_final=False)
 
-    def caller_said(self, japanese: str) -> None:
+    def caller_said(self, japanese: str) -> str:
+        """Publish the caller's finished turn, and return the id of its line."""
         self._finish_interrupted_line()
         line_id = self._caller_line_id or self._next_id("caller")
         self._caller_line_id = None
         self._publish(line_id, "caller", japanese, is_final=True)
         self._translate_later(line_id, japanese)
+        return line_id
 
     def caller_backchannel(self, japanese: str) -> None:
         line_id = self._caller_line_id or self._next_id("caller")

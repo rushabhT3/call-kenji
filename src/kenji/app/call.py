@@ -40,14 +40,16 @@ from pipecat.turns.user_mute.first_speech_user_mute_strategy import (
 from pipecat.workers.runner import WorkerRunner
 
 from kenji.app.call_parts import CallIO, CallKit, CallParts, build_call_parts
+from kenji.app.caller_tone import TurnAudioRecorder
 from kenji.app.debrief import publish_debrief
 from kenji.app.events import CallStarted, TurnAssessed
 from kenji.app.fast_path import Acknowledgement, FastPath
 from kenji.app.latency import split_turn_latency
 from kenji.app.narration import HandoverNarrationFilter
 from kenji.app.observers import InterimTranscriptObserver, SpokenSentenceObserver
+from kenji.app.ports import CallerTone, TurnAudio
 from kenji.app.session import CallContext
-from kenji.app.strategist import count_caller_turns
+from kenji.app.strategist import count_caller_turns, with_caller_tone
 from kenji.app.turns import AnswerWatch, BackchannelTurnStartStrategy, CallerHold, Floor
 from kenji.domain.outcome import CallOutcome
 from kenji.domain.turn import TurnDecision, TurnVerdict
@@ -88,6 +90,7 @@ class Call:
         self._context = LLMContext()
         self._pair = LLMContextAggregatorPair(self._context, user_params=self._user_params())
         self._caller_heard_since: float | None = None
+        self._turn_audio = TurnAudioRecorder() if self._parts.caller_tone is not None else None
         self._worker = self._build_worker()
         self._flow_manager = FlowManager(
             worker=self._worker,
@@ -146,9 +149,11 @@ class Call:
 
     def _build_worker(self) -> PipelineWorker:
         voice = self._kit.voice
+        recorders = () if self._turn_audio is None else (self._turn_audio,)
         processors: list[FrameProcessor] = [
             self._transport.input(),
             *self._input_processors,
+            *recorders,
             voice.speech_to_text.create(),
             self._pair.user(),
             self._fast_path,
@@ -213,6 +218,8 @@ class Call:
     async def _on_user_turn_started(
         self, _aggregator: LLMUserAggregator, _strategy: object
     ) -> None:
+        if self._turn_audio is not None:
+            self._turn_audio.start_turn()
         next_step = self._parts.flow.when_caller_speaks()
         if next_step is not None:
             await self._flow_manager.set_node_from_config(next_step)
@@ -220,12 +227,23 @@ class Call:
     async def _on_user_turn_stopped(
         self, _aggregator: LLMUserAggregator, _strategy: object, message: UserTurnStoppedMessage
     ) -> None:
+        audio = None if self._turn_audio is None else self._turn_audio.take_turn_audio()
         if not message.content:
             return
         parts = self._parts
-        parts.feed.caller_said(message.content)
+        line_id = parts.feed.caller_said(message.content)
         messages = self._context.get_messages()
-        await parts.strategist.advise(parts.conversation(messages), count_caller_turns(messages))
+        conversation, caller_turn = parts.conversation(messages), count_caller_turns(messages)
+        tone = await self._hear_tone(line_id, message.content, audio)
+        await parts.strategist.advise(with_caller_tone(conversation, tone), caller_turn)
+
+    async def _hear_tone(
+        self, line_id: str, utterance: str, audio: TurnAudio | None
+    ) -> CallerTone | None:
+        listener = self._parts.caller_tone
+        if listener is None or audio is None:
+            return None
+        return await listener.hear(line_id, utterance, audio)
 
     async def _on_assistant_turn_stopped(
         self, _aggregator: LLMAssistantAggregator, message: AssistantTurnStoppedMessage

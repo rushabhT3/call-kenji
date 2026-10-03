@@ -1,6 +1,7 @@
 import type {
   AuditPublished,
   CallEvent,
+  CallerToneHeard,
   CallOutcome,
   CallStarted,
   ComplianceUpdated,
@@ -44,6 +45,8 @@ export interface CallView {
   speaking: PartialLine | null;
   /** English per line; null when the translation failed for good. */
   subtitles: Readonly<Record<string, string | null>>;
+  /** How the caller sounded, per caller line that was heard. */
+  tones: Readonly<Record<string, CallerToneHeard>>;
   turn: TurnAssessed | null;
   strategist: StrategistUpdated | null;
   compliance: ComplianceUpdated | null;
@@ -65,6 +68,7 @@ export const EMPTY_CALL: CallView = {
   partial: null,
   speaking: null,
   subtitles: {},
+  tones: {},
   turn: null,
   strategist: null,
   compliance: null,
@@ -119,6 +123,8 @@ export function applyEvent(view: CallView, event: CallEvent): CallView {
         ...view,
         subtitles: { ...view.subtitles, [event.line_id]: event.is_unavailable ? null : event.en },
       };
+    case "caller_tone":
+      return { ...view, tones: { ...view.tones, [event.line_id]: event } };
     case "flow_node":
       return { ...view, node: event.node };
     case "turn":
@@ -159,6 +165,12 @@ export function currentKenjiLineId(view: CallView): string | null {
 export function latestKenjiLineId(view: CallView): string | null {
   const kenjiLines = view.lines.filter((line) => line.speaker === "kenji");
   return kenjiLines.at(-1)?.lineId ?? null;
+}
+
+/** How the caller sounded on the latest of their lines that was heard. */
+export function latestCallerTone(view: CallView): CallerToneHeard | null {
+  const heard = view.lines.flatMap((line) => view.tones[line.lineId] ?? []);
+  return heard.at(-1) ?? null;
 }
 
 export function elapsedMs(from: string, to: string): number {
