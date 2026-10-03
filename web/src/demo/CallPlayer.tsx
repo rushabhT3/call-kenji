@@ -41,7 +41,7 @@ function PlayButton({ player, canPlay }: CallPlayerProps & { canPlay: boolean })
   return (
     <Button
       variant="primary"
-      icon={player.isPlaying ? "pause" : "sound"}
+      icon={player.isPlaying ? "pause" : "play"}
       isBusy={!canPlay && player.recording !== "failed"}
       aria-disabled={!canPlay}
       onClick={canPlay ? player.togglePlay : undefined}

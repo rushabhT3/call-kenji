@@ -13,7 +13,7 @@ interface LiveHeaderProps {
   call: BrowserCall | null;
 }
 
-function Status({ view, elapsedMs }: Pick<LiveHeaderProps, "view" | "elapsedMs">) {
+function Status({ view, elapsedMs, isDemo }: Omit<LiveHeaderProps, "call">) {
   const clock = <time className="metric-sm">{formatClock(elapsedMs)}</time>;
   if (view.status === "ended") {
     return <span className="live-status">Call ended · {clock}</span>;
@@ -21,8 +21,14 @@ function Status({ view, elapsedMs }: Pick<LiveHeaderProps, "view" | "elapsedMs">
   const channel = view.transport === "phone" ? "Phone call" : "Browser call";
   return (
     <span className="live-status">
-      <span className="live-status__dot" aria-hidden="true" />
-      <span className="caption live-status__live">Live</span>
+      {isDemo ? (
+        <span className="caption">Replay</span>
+      ) : (
+        <>
+          <span className="live-status__dot" aria-hidden="true" />
+          <span className="caption live-status__live">Live</span>
+        </>
+      )}
       {clock}
       <span className="live-status__channel">{channel}</span>
     </span>
@@ -49,7 +55,7 @@ export function LiveHeader({ view, elapsedMs, isDemo, call }: LiveHeaderProps) {
     <SiteHeader
       isLive
       homeHref={canControl ? undefined : "/"}
-      centre={<Status view={view} elapsedMs={elapsedMs} />}
+      centre={<Status view={view} elapsedMs={elapsedMs} isDemo={isDemo} />}
     >
       {isDemo ? <Pill tone="info" label="Demo replay · 再生" /> : null}
       {canControl ? <Controls call={call} /> : null}

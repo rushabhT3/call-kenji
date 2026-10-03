@@ -15,8 +15,10 @@ interface PostCallProps {
 export function PostCall({ view, isDemo }: PostCallProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    headingRef.current?.focus();
-  }, []);
+    if (!isDemo) {
+      headingRef.current?.focus();
+    }
+  }, [isDemo]);
   if (view.outcome === null) {
     return null;
   }
