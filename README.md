@@ -40,6 +40,9 @@ Voice agents for collections live or die on three things a demo usually hides: *
   voice calls the caller hears Kenji after about 0.7 s (p50); Muse Spark's own answer still
   takes 2 to 6 s on the turns it handles.
 
+The **Features** page (`/features`) explains how it was built, for engineers, founders and
+hiring managers.
+
 ## Architecture
 
 ```mermaid
@@ -99,7 +102,8 @@ so a native speaker can review one file.
 
 How the caller sounds is heard by [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) (FunAudioLLM), run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (k2-fsa). Whether a pause
 ends the caller's turn is also judged by [Smart Turn v3](https://github.com/pipecat-ai/smart-turn)
-(Pipecat), and the demo plays through [wavesurfer.js](https://github.com/katspaugh/wavesurfer.js).
+(Pipecat), the demo plays through [wavesurfer.js](https://github.com/katspaugh/wavesurfer.js),
+and [GSAP](https://github.com/greensock/GSAP) animates the features page.
 
 The language model runs on Meta's Muse Spark contributor tier. Meta may use that traffic to
 improve its models, which is one more reason the page asks callers not to share real details.

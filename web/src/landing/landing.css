@@ -32,6 +32,7 @@
 .site-header__wordmark {
   color: var(--color-text-strong);
   font-size: var(--text-body);
+  white-space: nowrap;
 }
 
 .site-header__long,
@@ -43,7 +44,12 @@
 .site-header__extra {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+}
+
+.site-header__extra .site-header__link {
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .site-header__link {
@@ -431,6 +437,14 @@
 @media (min-width: 768px) {
   .site-header__note {
     display: inline;
+  }
+
+  .site-header__extra {
+    gap: var(--space-4);
+  }
+
+  .site-header__extra .site-header__link {
+    letter-spacing: var(--tracking-label);
   }
 
   .site-header--live .site-header__brand {

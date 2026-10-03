@@ -1,0 +1,219 @@
+/* The features page's diagrams: inline SVG drawn as comic panels. Sizes are SVG user units, so
+   they scale with each figure's viewBox. Animation hooks (set by the page at runtime):
+   .diagram-step[data-step], .diagram-draw, .latency-bar[data-row], .latency-callout. */
+
+.diagram {
+  --diagram-max-width: 560px;
+  --diagram-text-title: 17px;
+  --diagram-text-label: 15px;
+  --diagram-text-note: 13px;
+  --diagram-text-small: 13px;
+  --diagram-text-big: 28px;
+  --diagram-stroke: 3px;
+  --diagram-stroke-thin: 2px;
+  --diagram-stroke-hair: 1.5px;
+  --diagram-halo: 5px;
+  --diagram-dash: 6px 5px;
+  --diagram-dots: 0.5px 7px;
+
+  max-width: var(--diagram-max-width);
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.diagram__panel {
+  fill: var(--comic-white);
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+}
+
+.diagram__narration {
+  fill: var(--comic-paper);
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+}
+
+.diagram__shadow--ink {
+  fill: var(--comic-ink);
+}
+
+.diagram__shadow--red {
+  fill: var(--comic-red);
+}
+
+.diagram__box {
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+  stroke-linejoin: round;
+}
+
+.diagram__box--white {
+  fill: var(--comic-white);
+}
+
+.diagram__box--paper {
+  fill: var(--comic-paper);
+}
+
+.diagram__box--orange {
+  fill: var(--comic-orange);
+}
+
+.diagram__box--green {
+  fill: var(--comic-green);
+}
+
+.diagram__box--blue {
+  fill: var(--comic-blue);
+}
+
+.diagram__box--teal {
+  fill: var(--comic-teal);
+}
+
+.diagram__text {
+  fill: var(--comic-ink);
+}
+
+.diagram__text--title,
+.diagram__text--label,
+.diagram__text--big {
+  font-family: var(--comic-font-display);
+}
+
+.diagram__text--title {
+  font-size: var(--diagram-text-title);
+}
+
+.diagram__text--label {
+  font-size: var(--diagram-text-label);
+}
+
+.diagram__text--big {
+  font-size: var(--diagram-text-big);
+}
+
+.diagram__text--note {
+  font-family: var(--font-serif);
+  font-size: var(--diagram-text-note);
+}
+
+.diagram__text--small {
+  font-family: var(--font-mono);
+  font-size: var(--diagram-text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.diagram__text [lang="ja"] {
+  font-family: var(--comic-font-ja);
+}
+
+.diagram__text--halo {
+  paint-order: stroke;
+  stroke: var(--comic-white);
+  stroke-width: var(--diagram-halo);
+  stroke-linejoin: round;
+}
+
+.diagram__arrow {
+  fill: none;
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.diagram__arrow--dashed {
+  stroke-dasharray: var(--diagram-dash);
+}
+
+.diagram__arrowhead {
+  fill: var(--comic-ink);
+}
+
+.diagram__frame {
+  fill: var(--comic-paper);
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+}
+
+/* Latency chart */
+
+.latency-bar {
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.diagram__silence {
+  fill: none;
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke-thin);
+  stroke-dasharray: var(--diagram-dash);
+}
+
+.diagram__band-base {
+  fill: var(--comic-white);
+}
+
+.diagram__band {
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke);
+}
+
+.diagram__hatch {
+  stroke: var(--comic-blue);
+  stroke-width: var(--diagram-stroke-thin);
+}
+
+.diagram__floor {
+  fill: none;
+  stroke: var(--comic-orange);
+  stroke-width: var(--diagram-stroke);
+  stroke-linecap: round;
+  stroke-dasharray: var(--diagram-dots);
+}
+
+.diagram__axis {
+  fill: none;
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke-thin);
+}
+
+.diagram__budget {
+  fill: none;
+  stroke: var(--comic-red);
+  stroke-width: var(--diagram-stroke-thin);
+  stroke-dasharray: var(--diagram-dash);
+}
+
+.diagram__guide {
+  fill: none;
+  stroke: var(--comic-ink);
+  stroke-width: var(--diagram-stroke-hair);
+  stroke-dasharray: var(--diagram-dots);
+  stroke-linecap: round;
+}
+
+/* Doodle accents, after the coloured lines in the reference */
+
+.diagram__doodle {
+  fill: none;
+  stroke-width: var(--diagram-stroke);
+  stroke-linecap: round;
+}
+
+.diagram__doodle--orange {
+  stroke: var(--comic-orange);
+}
+
+.diagram__doodle--green {
+  stroke: var(--comic-green);
+}
+
+.diagram__doodle--teal {
+  stroke: var(--comic-teal);
+}
+
+.diagram__doodle--blue {
+  stroke: var(--comic-blue);
+}

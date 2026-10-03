@@ -181,6 +181,15 @@ importers:
       '@fontsource-variable/red-hat-mono':
         specifier: 5.3.0
         version: 5.3.0
+      '@fontsource/permanent-marker':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/yusei-magic':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@gsap/react':
+        specifier: 2.1.2
+        version: 2.1.2(gsap@3.15.0)(react@19.3.0)
       '@pipecat-ai/client-js':
         specifier: 1.13.1
         version: 1.13.1
@@ -190,6 +199,9 @@ importers:
       '@pipecat-ai/small-webrtc-transport':
         specifier: 1.10.8
         version: 1.10.8(@pipecat-ai/client-js@1.13.1)
+      gsap:
+        specifier: 3.15.0
+        version: 3.15.0
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -393,6 +405,18 @@ packages:
 
   '@fontsource-variable/red-hat-mono@5.3.0':
     resolution: {integrity: sha512-/mEvTCcruJY64xRgx1gsmsYuGR7MtOduOsuyeHVJ07p+2gGvCqROauIwaTCcVHL4eBGi+Lns4EUIjrPZLCn5gQ==}
+
+  '@fontsource/permanent-marker@5.3.0':
+    resolution: {integrity: sha512-ZO/NtYW4SCc/iY8N3dmjWyDITcXJ/vhWZFgnwRcvzwCKKnScMrM/a2/6VHlsjCVuIgmPzNrCFbedEYhv+/jJBg==}
+
+  '@fontsource/yusei-magic@5.3.0':
+    resolution: {integrity: sha512-1gSpUCpFQUmCUfh7YkKTjBC89wXnijwKZO3cfIMBx/Rlb7WjfHfIjK8PilB2/tOeq68ezAd8ODWNrg/zere2JA==}
+
+  '@gsap/react@2.1.2':
+    resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
+    peerDependencies:
+      gsap: ^3.12.5
+      react: '>=17'
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -914,6 +938,9 @@ packages:
   globals@17.13.0:
     resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
     engines: {node: '>=18'}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   hashery@1.5.1:
     resolution: {integrity: sha512-iZyKG96/JwPz1N55vj2Ie2vXbhu440zfUfJvSwEqEbeLluk7NnapfGqa7LH0mOsnDxTF85Mx8/dyR6HfqcbmbQ==}
@@ -1572,6 +1599,15 @@ snapshots:
 
   '@fontsource-variable/red-hat-mono@5.3.0': {}
 
+  '@fontsource/permanent-marker@5.3.0': {}
+
+  '@fontsource/yusei-magic@5.3.0': {}
+
+  '@gsap/react@2.1.2(gsap@3.15.0)(react@19.3.0)':
+    dependencies:
+      gsap: 3.15.0
+      react: 19.3.0
+
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -2062,6 +2098,8 @@ snapshots:
       is-glob: 4.0.3
 
   globals@17.13.0: {}
+
+  gsap@3.15.0: {}
 
   hashery@1.5.1:
     dependencies:
