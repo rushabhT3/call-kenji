@@ -1,15 +1,10 @@
-import { SHOWCASE_PATH } from "../showcase/route.ts";
+import { FeaturesLink } from "./FeaturesLink.tsx";
 import { SiteHeader } from "./SiteHeader.tsx";
 
 export function LandingHeader() {
   return (
     <SiteHeader homeHref="/">
-      <a className="caption site-header__link features-link" href={SHOWCASE_PATH}>
-        <span className="features-link__plain" aria-hidden="true">
-          Features
-        </span>
-        <span className="features-link__comic">Features</span>
-      </a>
+      <FeaturesLink />
       <a className="caption site-header__link" href="#how-to-read">
         <span className="site-header__link-long">How to read the X-ray</span>
         <span className="site-header__link-short">How it works</span>

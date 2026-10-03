@@ -67,6 +67,7 @@
   --text-metric: clamp(2rem, 1.8143rem + 0.7619vw, 2.5rem); /* 32 -> 40 */
   --text-metric-sm: clamp(0.9375rem, 0.9143rem + 0.0952vw, 1rem); /* 15 -> 16 */
   --text-code: 0.8125rem; /* 13 */
+  --text-burst: 0.6875rem; /* 11, a word inside a header starburst */
   --text-digit: 2.5rem; /* 40 */
 
   /* Typography: line height */
@@ -165,7 +166,7 @@
   --duration-reveal: 1300ms;
   --duration-pulse: 2000ms;
   --duration-blink: 1000ms;
-  --duration-flicker: 1600ms;
+  --duration-tube-light: 10000ms;
   --distance-enter: 8px;
   --distance-reveal: 16px;
   --stagger-reveal: 120ms;
@@ -206,7 +207,7 @@
     --duration-reveal: 0ms;
     --duration-pulse: 0ms;
     --duration-blink: 0ms;
-    --duration-flicker: 0ms;
+    --duration-tube-light: 0ms;
     --distance-enter: 0px;
     --distance-reveal: 0px;
     --stagger-reveal: 0ms;
