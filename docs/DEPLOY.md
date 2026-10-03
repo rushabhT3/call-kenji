@@ -23,15 +23,17 @@ Checked on 2026-10-02 against the providers' current docs and price pages:
   single-use stream tokens, the daily counters, the SmallWebRTC offer endpoints and the private
   viewer feed. Pipecat Cloud only exposes routes per running session, so the webhook and the
   counters would need a second host anyway.
-- **Cost.** One always-warm Cloud Run instance (1 vCPU, 1 GiB, request-based billing) costs about
-  $12 a month. A warm Pipecat Cloud agent costs about $48.60 a month at the same usage.
+- **Cost.** The service scales to zero, so an idle month costs nothing beyond the free tier. An
+  always-warm instance (1 vCPU, 1 GiB) would cost about $12 a month, and a warm Pipecat Cloud
+  agent about $48.60. The price of scaling to zero is a start-up wait for the first visitor after
+  a quiet spell; startup CPU boost is on to shorten it, and the page wakes the server as it opens.
 - **CPU stays allocated during calls.** Each live call holds a WebSocket open: the viewer feed for
   browser calls, the media stream for phone calls. Cloud Run counts an instance with an open
   WebSocket as active, so request-based billing still gives the call CPU.
 - **TURN is free at this volume.** Cloud Run takes no inbound UDP, so browser media relays through
   Cloudflare TURN. The first 1,000 GB a month is free, and we use about 1 GB.
-- **One instance only.** The WebRTC peer connections live in memory, so `--min-instances 1
-  --max-instances 1` keeps every request for a call on the same instance.
+- **One instance at most.** The WebRTC peer connections live in memory, so `--max-instances 1`
+  keeps every request for a call on the same instance.
 
 Sources: Cloud Run pricing and WebSocket docs, Cloudflare Realtime TURN pricing, Pipecat Cloud pricing
 and Session API docs. The links are in `docs/VERSIONS.md` and the vendor notes behind `docs/DECISIONS.md`.
@@ -133,7 +135,7 @@ After that, make one phone call and one browser call.
 
 | Item | Basis | $/month |
 |---|---|---|
-| Cloud Run, 1 warm instance | request-based billing, mostly idle | ~12 |
+| Cloud Run, scales to zero | request-based billing; idle costs nothing | ~0 to 3 |
 | Cloudflare TURN and Workers | well under the free tiers | 0 |
 | Twilio US local number | | 1.15 |
 | Twilio inbound voice | 1,800 min × $0.0085 | 15.30 |
@@ -141,7 +143,7 @@ After that, make one phone call and one browser call.
 | Soniox real-time STT | 45 h × $0.12 | 5.40 |
 | Cartesia Sonic | about 324k characters a month | ~20 |
 | Language model (Muse Spark contributor) | about 11k turns × ~5k tokens (talker, strategist, subtitles) at $0.10 / $0.20 per million | ~7 |
-| **Total** | | **≈ $69** |
+| **Total** | | **≈ $58** |
 
 The guardrails cap usage: 5 minutes a call, 60 phone and 60 browser minutes a day, and 25 calls a
 day per caller.

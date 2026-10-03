@@ -1,0 +1,11 @@
+# The voice server's build upload: never local secrets, call data or models, and nothing the
+# Dockerfile does not copy.
+.gcloudignore
+.git
+.github
+#!include:.gitignore
+web/
+docs/
+tests/
+plan.md
+.qodo/
