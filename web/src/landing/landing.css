@@ -264,6 +264,17 @@
   font-size: var(--text-small);
 }
 
+.call-panel__softphone {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* The label wraps in a narrow panel, so it keeps centred with room above and below. */
+.call-panel__softphone .button {
+  padding-block: var(--space-2);
+  text-align: center;
+}
+
 .link-code {
   display: grid;
   gap: var(--space-3);

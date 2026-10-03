@@ -13,6 +13,8 @@ from kenji.container import Services
 from kenji.server import create_app
 
 LOCAL_BASE_URL = "http://127.0.0.1:7860"
+WEB_DEV_SERVER_BASE_URL = "http://localhost:5173"
+VOICE_SERVER_PORT = 8123
 LOOPBACK_CLIENT = ("127.0.0.1", 50000)
 CREDENTIALS = SoftphoneCredentials(
     account_sid="AC123",
@@ -35,6 +37,7 @@ def _client(
         soniox_api_key=SecretStr("test"),
         cartesia_api_key=SecretStr("test"),
         data_dir=tmp_path,
+        port=VOICE_SERVER_PORT,
     )
     return TestClient(create_app(settings, services), base_url=base_url, client=client)
 
@@ -55,6 +58,25 @@ def test_a_browser_on_this_machine_gets_the_page_and_a_token(
     assert "Twilio.Device" in page.text
     assert token.status_code == 200
     assert token.json()["token"].count(".") == 2
+
+
+def test_the_home_page_is_told_the_softphone_address_on_the_voice_server(
+    softphone_services: Services, tmp_path: Path
+) -> None:
+    with _client(softphone_services, tmp_path, base_url=WEB_DEV_SERVER_BASE_URL) as client:
+        response = client.get("/api/softphone")
+
+    assert response.status_code == 200
+    assert response.json() == {"url": f"http://127.0.0.1:{VOICE_SERVER_PORT}/dev/softphone"}
+
+
+def test_the_public_site_is_not_told_the_softphone_address(
+    softphone_services: Services, tmp_path: Path
+) -> None:
+    with _client(softphone_services, tmp_path) as client:
+        response = client.get("/api/softphone", headers={"X-Kenji-Proxy": "proxy-secret"})
+
+    assert response.status_code == 404
 
 
 @pytest.mark.parametrize(
@@ -85,10 +107,13 @@ def test_another_machine_is_not_answered(softphone_services: Services, tmp_path:
     assert response.status_code == 404
 
 
+@pytest.mark.parametrize(
+    ("method", "path"), [("POST", "/dev/softphone/token"), ("GET", "/api/softphone")]
+)
 def test_without_softphone_settings_there_is_no_softphone(
-    services: Services, tmp_path: Path
+    services: Services, tmp_path: Path, method: str, path: str
 ) -> None:
     with _client(services, tmp_path) as client:
-        response = client.post("/dev/softphone/token")
+        response = client.request(method, path)
 
     assert response.status_code == 404

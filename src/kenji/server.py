@@ -89,7 +89,7 @@ def create_app(settings: Settings, services: Services | None = None) -> FastAPI:
     if services.phone is not None:
         add_phone_routes(app, services, services.phone)
     if services.softphone is not None:
-        add_softphone_routes(app, services.softphone)
+        add_softphone_routes(app, services.softphone, settings.port)
     if settings.enable_dev_client:
         _add_dev_client(app, services, webrtc, background)
     return app

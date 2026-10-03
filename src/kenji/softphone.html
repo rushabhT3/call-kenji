@@ -28,17 +28,36 @@
         --color-success-text: #2e5a34;
         --font-serif: "Newsreader", "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
         --font-mono: "Red Hat Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        --text-h3: clamp(1.375rem, 1.2821rem + 0.381vw, 1.625rem);
+        --text-line: clamp(1.0625rem, 1.0161rem + 0.1905vw, 1.1875rem);
+        --text-subtitle: clamp(0.9375rem, 0.9143rem + 0.0952vw, 1rem);
+        --text-caption: clamp(0.75rem, 0.7268rem + 0.0952vw, 0.8125rem);
+        --leading-subtitle: 1.5;
+        --leading-ja: 1.8;
+        --tracking-label: 0.06em;
+        --space-1: 4px;
         --space-2: 8px;
         --space-3: 12px;
         --space-4: 16px;
         --space-6: 24px;
         --space-8: 32px;
+        --container-max: 85rem;
+        --measure-ja: 36em;
+        --rule-width: 2px;
         --radius-md: 10px;
         --radius-pill: 999px;
         --duration-fast: 120ms;
+
+        /* This page's own layout. */
+        --phone-width: 360px;
+        --transcript-max-height: 70vh;
+        --tracking-digits: 0.3em;
       }
       * {
         box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
       }
       body {
         margin: 0;
@@ -51,29 +70,50 @@
         font-family: var(--font-serif);
       }
       main {
-        width: min(100%, 360px);
+        width: min(100%, var(--phone-width));
         display: grid;
-        gap: var(--space-6);
+        gap: var(--space-4);
+      }
+      .phone,
+      .transcript {
         padding: var(--space-8) var(--space-6);
         background: var(--color-surface);
         border: 1px solid var(--color-border-subtle);
         border-radius: var(--radius-md);
       }
-      h1 {
+      .phone {
+        display: grid;
+        gap: var(--space-6);
+      }
+      h1,
+      h2 {
         margin: 0;
         color: var(--color-text-strong);
-        font-size: 1.75rem;
         font-weight: 500;
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      h2 {
+        font-size: var(--text-h3);
       }
       p {
         margin: 0;
         line-height: 1.5;
       }
+      .caption {
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+        letter-spacing: var(--tracking-label);
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+      }
       .note {
         color: var(--color-text-muted);
         font-size: 0.95rem;
       }
-      .status {
+      .status,
+      .link-status {
         font-family: var(--font-mono);
         font-size: 0.9rem;
         color: var(--color-text-muted);
@@ -89,7 +129,8 @@
         cursor: pointer;
         transition: background-color var(--duration-fast) ease;
       }
-      button:focus-visible {
+      button:focus-visible,
+      .log:focus-visible {
         outline: 2px solid var(--color-accent);
         outline-offset: 2px;
       }
@@ -125,45 +166,212 @@
       .typed {
         min-height: 1.5em;
         font-family: var(--font-mono);
-        letter-spacing: 0.3em;
+        letter-spacing: var(--tracking-digits);
         color: var(--color-text-strong);
         text-align: center;
+      }
+      .transcript {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        max-height: var(--transcript-max-height);
+      }
+      .transcript__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-4);
+      }
+      .transcript__code {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+      }
+      .link-status {
+        min-height: 1.5em;
+      }
+      .code {
+        font-family: var(--font-mono);
+        font-size: var(--text-h3);
+        letter-spacing: var(--tracking-digits);
+        color: var(--color-text-strong);
+        font-variant-numeric: tabular-nums;
+      }
+      .log {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: grid;
+        align-content: start;
+        gap: var(--space-4);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      .empty {
+        color: var(--color-text-muted);
+      }
+      .lines {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .line {
+        display: grid;
+        gap: var(--space-1);
+        min-width: 0;
+      }
+      .line--caller .line__speaker {
+        color: var(--color-accent);
+      }
+      .line__text {
+        display: grid;
+        gap: var(--space-1);
+        max-width: var(--measure-ja);
+      }
+      .line--caller .line__text {
+        padding-left: var(--space-3);
+        border-left: var(--rule-width) solid var(--color-accent);
+      }
+      .line__ja {
+        font-size: var(--text-line);
+        line-height: var(--leading-ja);
+        color: var(--color-text);
+        overflow-wrap: anywhere;
+      }
+      .line--live .line__ja {
+        color: var(--color-text-muted);
+      }
+      .line__en {
+        font-size: var(--text-subtitle);
+        line-height: var(--leading-subtitle);
+        color: var(--color-text-muted);
+      }
+      .line__en:empty {
+        display: none;
+      }
+      .ending {
+        display: grid;
+        gap: var(--space-1);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border-subtle);
+      }
+      .ending__outcome {
+        font-size: var(--text-line);
+        color: var(--color-text-strong);
+      }
+      @media (min-width: 900px) {
+        main {
+          width: min(100%, var(--container-max));
+          grid-template-columns: var(--phone-width) minmax(0, 1fr);
+          align-items: start;
+        }
+        .transcript {
+          height: calc(100vh - 2 * var(--space-4));
+          max-height: none;
+        }
       }
     </style>
   </head>
   <body data-state="idle">
     <main>
-      <h1>Kenji softphone</h1>
-      <p class="note">
-        Calls the phone line through Twilio, the way a phone would. Open the X-ray page first, and
-        type its four-digit code on the keypad when Kenji asks.
-      </p>
-      <p class="status" id="status" role="status" aria-live="polite">Ready</p>
-      <button class="call" id="call" type="button">Call Kenji</button>
-      <div class="keypad" role="group" aria-label="Keypad">
-        <button type="button" data-key="1" disabled>1</button>
-        <button type="button" data-key="2" disabled>2</button>
-        <button type="button" data-key="3" disabled>3</button>
-        <button type="button" data-key="4" disabled>4</button>
-        <button type="button" data-key="5" disabled>5</button>
-        <button type="button" data-key="6" disabled>6</button>
-        <button type="button" data-key="7" disabled>7</button>
-        <button type="button" data-key="8" disabled>8</button>
-        <button type="button" data-key="9" disabled>9</button>
-        <button type="button" data-key="*" disabled>*</button>
-        <button type="button" data-key="0" disabled>0</button>
-        <button type="button" data-key="#" disabled>#</button>
-      </div>
-      <p class="typed" id="typed" aria-label="Digits sent"></p>
+      <section class="phone" aria-labelledby="phone-title">
+        <h1 id="phone-title">Kenji softphone</h1>
+        <p class="note">
+          Calls the phone line through Twilio, the way a phone would. Once Kenji answers, this page
+          keys in its own code, so the call's transcript shows here.
+        </p>
+        <p class="status" id="status" role="status" aria-live="polite">Ready</p>
+        <button class="call" id="call" type="button">Call Kenji</button>
+        <div class="keypad" role="group" aria-label="Keypad">
+          <button type="button" data-key="1" disabled>1</button>
+          <button type="button" data-key="2" disabled>2</button>
+          <button type="button" data-key="3" disabled>3</button>
+          <button type="button" data-key="4" disabled>4</button>
+          <button type="button" data-key="5" disabled>5</button>
+          <button type="button" data-key="6" disabled>6</button>
+          <button type="button" data-key="7" disabled>7</button>
+          <button type="button" data-key="8" disabled>8</button>
+          <button type="button" data-key="9" disabled>9</button>
+          <button type="button" data-key="*" disabled>*</button>
+          <button type="button" data-key="0" disabled>0</button>
+          <button type="button" data-key="#" disabled>#</button>
+        </div>
+        <p class="typed" id="typed" aria-label="Digits sent"></p>
+      </section>
+      <section class="transcript" aria-labelledby="transcript-title">
+        <header class="transcript__header">
+          <h2 id="transcript-title">Transcript <span lang="ja">通話記録</span></h2>
+          <p class="transcript__code">
+            <span class="caption">This page's code</span>
+            <span class="code" id="code"></span>
+          </p>
+        </header>
+        <p class="link-status" id="link-status" role="status" aria-live="polite"></p>
+        <div
+          class="log"
+          id="log"
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-label="Call transcript"
+          tabindex="0"
+        >
+          <p class="empty" id="empty">Kenji's words show here once the call is linked.</p>
+          <ol class="lines" id="lines"></ol>
+          <div class="ending" id="ending" hidden>
+            <p class="caption">Call ended</p>
+            <p class="ending__outcome" id="outcome"></p>
+          </div>
+        </div>
+      </section>
     </main>
     <script>
+      // The phone line's media stream needs a moment after the answer before it hears the keypad.
+      const LINK_DELAY_MS = 1500;
+      // A log scrolled to within about a line of its end still follows the newest line.
+      const FOLLOW_SLACK_PX = 48;
+      const NO_CODE = "····";
+      const AIZUCHI = "Aizuchi while Kenji spoke. He kept going.";
+      const SPEAKERS = { kenji: ["Kenji", "ケンジ"], caller: ["You", "あなた"] };
+      // Words from web/src/call/copy.ts.
+      const OUTCOMES = {
+        promise_to_pay: "Payment plan agreed",
+        human_handoff: "Handed over to a person",
+        stop_contact: "Further contact stopped",
+        callback_requested: "Callback requested, nothing disclosed",
+        identity_not_verified: "Identity not confirmed",
+        outside_calling_hours: "Outside calling hours",
+        daily_limit_reached: "Demo limit reached",
+        no_agreement: "No agreement this time",
+      };
+      const CALL_EVENT_HANDLERS = {
+        transcript: showLine,
+        subtitle: showSubtitle,
+        call_ended: showEnding,
+      };
+
       const statusText = document.getElementById("status");
       const callButton = document.getElementById("call");
       const typedDigits = document.getElementById("typed");
       const keys = document.querySelectorAll("[data-key]");
+      const codeText = document.getElementById("code");
+      const linkStatus = document.getElementById("link-status");
+      const log = document.getElementById("log");
+      const emptyNote = document.getElementById("empty");
+      const lineList = document.getElementById("lines");
+      const ending = document.getElementById("ending");
+      const outcomeText = document.getElementById("outcome");
+      const lines = new Map();
+      const subtitles = new Map();
       let device = null;
       let call = null;
       let failure = null;
+      let feed = null;
+      let viewerCode = null;
+      let linkTimer = null;
+      let isLinkDue = false;
 
       function show(state, message) {
         document.body.dataset.state = state;
@@ -174,6 +382,7 @@
       }
 
       function finish(message) {
+        stopLinking();
         call = null;
         device?.destroy();
         device = null;
@@ -186,18 +395,29 @@
         return (await response.json()).token;
       }
 
+      function connectOptions() {
+        const persona = new URLSearchParams(window.location.search).get("persona");
+        return persona ? { params: { persona } } : {};
+      }
+
       async function startCall() {
         failure = null;
         typedDigits.textContent = "";
+        clearTranscript();
+        // A code links one call only, so every call gets a fresh feed and code.
+        openFeed();
         show("connecting", "Connecting through Twilio…");
         try {
           device = new Twilio.Device(await fetchToken(), { codecPreferences: ["opus", "pcmu"] });
           device.on("error", (error) => {
             failure = `Twilio error ${error.code}: ${error.message}`;
           });
-          call = await device.connect();
+          call = await device.connect(connectOptions());
           show("connecting", "Ringing…");
-          call.on("accept", () => show("connected", "On the call"));
+          call.on("accept", () => {
+            show("connected", "On the call");
+            linkSoon();
+          });
           call.on("error", (error) => {
             failure = `Twilio error ${error.code}: ${error.message}`;
           });
@@ -215,6 +435,143 @@
         typedDigits.textContent += key;
       }
 
+      function linkSoon() {
+        linkTimer = setTimeout(() => {
+          isLinkDue = true;
+          linkByKeypad();
+        }, LINK_DELAY_MS);
+      }
+
+      function stopLinking() {
+        clearTimeout(linkTimer);
+        isLinkDue = false;
+      }
+
+      function linkByKeypad() {
+        if (!isLinkDue || call === null || viewerCode === null) return;
+        isLinkDue = false;
+        call.sendDigits(viewerCode);
+        linkStatus.textContent = `Linked by keypad: ${viewerCode}`;
+      }
+
+      function viewerSocketUrl() {
+        const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+        return `${scheme}://${window.location.host}/ws/viewer`;
+      }
+
+      function openFeed() {
+        feed?.close();
+        const socket = new WebSocket(viewerSocketUrl());
+        feed = socket;
+        showCode(null);
+        socket.addEventListener("message", (message) => {
+          if (socket === feed) receive(JSON.parse(message.data));
+        });
+        socket.addEventListener("close", () => {
+          if (socket === feed) showFeedLost();
+        });
+      }
+
+      function showFeedLost() {
+        showCode(null);
+        linkStatus.textContent = "Not connected to the voice server. Calling connects again.";
+      }
+
+      function showCode(code) {
+        viewerCode = code;
+        codeText.textContent = code ?? NO_CODE;
+        linkByKeypad();
+      }
+
+      function receive(message) {
+        if (message.type === "viewer_ready") {
+          showCode(message.code);
+        } else if (Object.hasOwn(CALL_EVENT_HANDLERS, message.type)) {
+          keepingNewestInView(() => CALL_EVENT_HANDLERS[message.type](message));
+        }
+      }
+
+      function keepingNewestInView(update) {
+        const isAtEnd = log.scrollHeight - log.scrollTop - log.clientHeight <= FOLLOW_SLACK_PX;
+        update();
+        if (isAtEnd) log.scrollTop = log.scrollHeight;
+      }
+
+      function element(tag, className, text = "") {
+        const node = document.createElement(tag);
+        node.className = className;
+        node.textContent = text;
+        return node;
+      }
+
+      function createLine(speaker) {
+        const [english, japanese] = SPEAKERS[speaker];
+        const label = element("p", "caption line__speaker", `${english} `);
+        const labelJa = element("span", "", japanese);
+        labelJa.lang = "ja";
+        label.append(labelJa);
+        const ja = element("p", "line__ja");
+        ja.lang = "ja";
+        const en = element("p", "line__en");
+        const text = element("div", "line__text");
+        text.append(ja, en);
+        const item = element("li", `line line--${speaker}`);
+        item.append(label, text);
+        return { item, ja, en, isFinal: false, isBackchannel: false };
+      }
+
+      function lineFor(event) {
+        if (!lines.has(event.line_id)) {
+          const line = createLine(event.speaker);
+          lines.set(event.line_id, line);
+          lineList.append(line.item);
+          emptyNote.hidden = true;
+        }
+        return lines.get(event.line_id);
+      }
+
+      function showLine(event) {
+        const line = lineFor(event);
+        line.isFinal = event.is_final;
+        line.isBackchannel = event.is_backchannel;
+        line.ja.textContent = event.ja;
+        line.item.classList.toggle("line--live", !event.is_final);
+        showEnglish(event.line_id);
+      }
+
+      function showSubtitle(event) {
+        subtitles.set(event.line_id, event.is_unavailable ? null : event.en);
+        showEnglish(event.line_id);
+      }
+
+      function showEnglish(lineId) {
+        const line = lines.get(lineId);
+        if (line) line.en.textContent = englishFor(line, subtitles.get(lineId));
+      }
+
+      function englishFor(line, subtitle) {
+        if (line.isBackchannel) return AIZUCHI;
+        if (subtitle === null) return "No English for this line.";
+        return subtitle ?? (line.isFinal ? "Translating…" : "");
+      }
+
+      function showEnding(event) {
+        const outcome = String(event.outcome);
+        outcomeText.textContent = Object.hasOwn(OUTCOMES, outcome)
+          ? OUTCOMES[outcome]
+          : outcome.replaceAll("_", " ");
+        ending.hidden = false;
+      }
+
+      function clearTranscript() {
+        lines.clear();
+        subtitles.clear();
+        lineList.replaceChildren();
+        ending.hidden = true;
+        emptyNote.hidden = false;
+        linkStatus.textContent = "";
+      }
+
       callButton.addEventListener("click", () => (call ? call.disconnect() : startCall()));
       for (const key of keys) key.addEventListener("click", () => press(key.dataset.key));
       document.addEventListener("keydown", (event) => {
@@ -222,6 +579,7 @@
           press(event.key);
         }
       });
+      openFeed();
     </script>
   </body>
 </html>

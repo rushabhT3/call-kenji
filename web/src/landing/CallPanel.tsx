@@ -1,5 +1,6 @@
 import type { BrowserCallState } from "../call/useBrowserCall.ts";
 import { Button } from "../ui/Button.tsx";
+import { ButtonLink } from "../ui/ButtonLink.tsx";
 import { LinkCode } from "./LinkCode.tsx";
 
 interface CallPanelProps {
@@ -9,6 +10,8 @@ interface CallPanelProps {
   callError: string | null;
   canCall: boolean;
   onCall: () => void;
+  /** The dev softphone, offered only to a browser on the voice server's own machine. */
+  softphoneUrl?: string | null | undefined;
 }
 
 function PhoneNumber({ phoneNumber }: { phoneNumber: string | null }) {
@@ -19,6 +22,19 @@ function PhoneNumber({ phoneNumber }: { phoneNumber: string | null }) {
     <a className="call-panel__number numeric" href={`tel:${phoneNumber.replaceAll(" ", "")}`}>
       {phoneNumber}
     </a>
+  );
+}
+
+function SoftphoneLink({ url }: { url: string }) {
+  return (
+    <div className="call-panel__softphone">
+      <ButtonLink href={url} target="_blank" rel="noopener">
+        Call through the phone line (Twilio)
+      </ButtonLink>
+      <p className="call-panel__note">
+        Rings Kenji through Twilio&apos;s network, the way a phone would. On this machine only.
+      </p>
+    </div>
   );
 }
 
@@ -48,6 +64,7 @@ export function CallPanel(props: CallPanelProps) {
         {isConnecting ? "Connecting…" : "Call from browser"}
       </Button>
       {props.callError ? <p className="call-panel__error">{props.callError}</p> : null}
+      {props.softphoneUrl ? <SoftphoneLink url={props.softphoneUrl} /> : null}
       <LinkCode code={props.code} />
     </section>
   );

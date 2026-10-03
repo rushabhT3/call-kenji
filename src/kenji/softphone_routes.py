@@ -13,6 +13,7 @@ from kenji.adapters.twilio import SoftphoneTokens
 
 SOFTPHONE_PATH = "/dev/softphone"
 TOKEN_PATH = "/dev/softphone/token"  # noqa: S105 - a URL path, not a secret
+LINK_PATH = "/api/softphone"
 PAGE = Path(__file__).with_name("softphone.html")
 LOOPBACK_ADDRESSES = frozenset({"127.0.0.1", "::1"})
 LOCAL_HOSTNAMES = frozenset({"127.0.0.1", "localhost", "::1"})
@@ -32,8 +33,14 @@ def _require_this_machine(http: Request) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
-def add_softphone_routes(app: FastAPI, tokens: SoftphoneTokens) -> None:
+def add_softphone_routes(app: FastAPI, tokens: SoftphoneTokens, port: int) -> None:
     page = PAGE.read_text(encoding="utf-8")
+    page_url = f"http://127.0.0.1:{port}{SOFTPHONE_PATH}"
+
+    @app.get(LINK_PATH)
+    async def softphone_link(http: Request) -> dict[str, str]:
+        _require_this_machine(http)
+        return {"url": page_url}
 
     @app.get(SOFTPHONE_PATH, response_class=HTMLResponse)
     async def softphone(http: Request) -> HTMLResponse:
