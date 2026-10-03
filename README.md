@@ -22,11 +22,13 @@ Voice agents for collections live or die on three things a demo usually hides: *
   Word-count interruption rules split on spaces, and Japanese has none. Kenji counts characters,
   knows the aizuchi lexicon, and is stricter while reading the agreement back. はい keeps him
   going; ちょっと待ってください stops him. A pause is not the end of a turn either: Soniox judges
-  the end from the words and intonation, and a phrase left on a particle, like 「生年月日は、」,
-  is held open so the date that follows joins the same turn.
-- **Compliance as code.** Calling hours (08:00 to 21:00 Japan time), an identity gate before
-  any account detail, repayment terms (at least ¥5,000 a month, at most 6 payments, first one
-  within 45 days) and stop-contact are pure, fully tested functions. The model can only reach them
+  the end from the words and intonation, Smart Turn v3 listens to the voice itself, and a
+  phrase left on a particle, like 「生年月日は、」, is held open so the date that follows
+  joins the same turn.
+- **Compliance as code.** Calling hours (Kenji never rings anyone outside 08:00 to 21:00
+  Japan time, though he answers at any hour), an identity gate before any account detail,
+  repayment terms (at least ¥5,000 a month, at most 6 payments, first one within 45 days) and
+  stop-contact are pure, fully tested functions. The model can only reach them
   through tools, so it cannot promise ¥3,000 a month however persuasive the caller is.
 - **A strategist that never blocks.** After each caller turn a second model writes structured
   advice: identity, situation, ability to pay, offers and next move. The next move reaches the
@@ -95,7 +97,9 @@ so a native speaker can review one file.
 | The live view shows your call and only your call | `?demo=1` replays a recorded call, with its sound, with no backend; the caller in it is a synthetic voice |
 | Transcripts and events are kept for 30 days, then deleted | Audio is never stored |
 
-How the caller sounds is heard by [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) (FunAudioLLM), run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (k2-fsa).
+How the caller sounds is heard by [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) (FunAudioLLM), run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (k2-fsa). Whether a pause
+ends the caller's turn is also judged by [Smart Turn v3](https://github.com/pipecat-ai/smart-turn)
+(Pipecat), and the demo plays through [wavesurfer.js](https://github.com/katspaugh/wavesurfer.js).
 
 The language model runs on Meta's Muse Spark contributor tier. Meta may use that traffic to
 improve its models, which is one more reason the page asks callers not to share real details.

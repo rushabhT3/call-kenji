@@ -62,6 +62,7 @@ The real calls exposed bugs the text harness could not, all fixed:
 - Owner's review (2026-10-03), all done and checked on live browser calls with a synthetic caller: a Hold button (DECISIONS #38; a 7 s pause on hold stayed one turn), Kenji's line shown as he starts it with 「はい、」 folded into the answer (#39), announcements before scripted steps dropped (#40), a subtitle that fails says so (#41), the transcript as a card with no scroll box inside the page (#42), the audit record as a timeline (#43), and a way home from every page. Real-model check after all of it: 24 of 24, twice.
 - The demo replay is now a recorded voice call with sound on request (DECISIONS #44), recorded on the new code: Kenji's lines appear as he starts them.
 - Five personas, the character card on screen with Say it, and the softphone's own transcript (DECISIONS #45 to #47), built in three parallel branches and merged one at a time. Checked: a live browser call as 田中けんた driven only by Say it reached a promise with his own figures; the real-model check passed 24 of 24 twice.
+- Any-hour calls, ten calls a day, Smart Turn as a second opinion on turn ends, a demo you can play, pause and scrub with both voices, and the caller's tone from SenseVoice (DECISIONS #48 to #52), built in parallel branches and merged one at a time. Checked: the real-model check passed 24 of 24; 620 Python tests, 118 web unit tests and 75 Playwright tests pass.
 - Phase 7 (prepared): Dockerfile (built in CI), Cloudflare Worker, manual Deploy workflow, `docs/DEPLOY.md`, `scripts/smoke.py`.
 - Phase 8 (draft): README with pitch, diagram, real vs simulated, cost, run steps, recording script and launch post.
 - Interim gate review (Phases 3 to 8), all findings fixed:
@@ -80,7 +81,7 @@ The real calls exposed bugs the text harness could not, all fixed:
 
 ## Next
 
-1. One real browser call by a person during calling hours (08:00 to 21:00 Japan time).
+1. One real browser call by a person, to hear Smart Turn and the caller's tone on a real voice.
 2. Buy the Twilio number (owner approval: a US local number, $1.15 a month) and make the real phone-call check.
 3. Deploy (owner approval), run the smoke test, one phone call and one browser call.
 4. Fresh-clone check of the README and the hiring-manager review.

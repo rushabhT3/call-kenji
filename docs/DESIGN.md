@@ -595,7 +595,7 @@ Values update in place. They never count up or tween, and a new turn replaces th
   - Mono caption "OUTCOME · 結果" in `text`, not `text-muted`, because it sits on peach.
   - The outcome at `--text-h2` in `text-strong`, with the Japanese beneath at `--text-h3` (Noto Serif JP, 1.7).
   - Key facts in a row: amount (`--text-metric`, tabular), first payment date and schedule.
-  - Supports every domain outcome: promise to pay, human handoff, stop contact, callback requested, identity not verified, outside calling hours, no agreement.
+  - Supports every domain outcome: promise to pay, human handoff, stop contact, callback requested, identity not verified, no agreement.
   - No celebratory colour or confetti: a promise to pay is stated, not cheered.
 - **SMS preview.** A standard card.
   - Header pill "NOT SENT · 未送信" (info).
