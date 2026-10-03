@@ -96,7 +96,7 @@ export async function serveRecordingWithEveryCard(page: Page): Promise<void> {
   });
 }
 
-/** The recorded call lasts about 140 s: speed 4 leaves time to inspect it mid-call. */
+/** The recorded call lasts about 115 s: speed 4 leaves time to inspect it mid-call. */
 export const MID_CALL_URL = "/?demo=1&speed=4";
 export const DEMO_URL = "/?demo=1&speed=40";
 /** At normal speed the replay has its sound, and waits for the visitor to press Play. */

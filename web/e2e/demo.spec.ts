@@ -141,7 +141,7 @@ test.describe("demo replay", () => {
     await expect(player.getByRole("button", { name: "Play", exact: true })).toBeVisible();
     await expect(player.getByRole("slider", { name: "Position in the call" })).toHaveAttribute(
       "aria-valuetext",
-      "00:00 of 02:15",
+      "00:00 of 01:55",
     );
     await expect(player.locator("canvas").first()).toBeVisible();
     await expect(player.locator(".speaker-bands__band--kenji")).toHaveCount(7);
@@ -157,14 +157,14 @@ test.describe("demo replay", () => {
 
     await clickAlong(position, 0.95);
 
-    await expect(position).toHaveAttribute("aria-valuetext", /^02:0\d of 02:15$/);
-    await expect(log).toContainText("はい、間違いありません。");
+    await expect(position).toHaveAttribute("aria-valuetext", /^01:4\d of 01:55$/);
+    await expect(log).toContainText("はい、それで大丈夫です。");
     await expect(page.locator("#strategist")).toContainText("Next move");
 
     await clickAlong(position, 0.2);
 
-    await expect(position).toHaveAttribute("aria-valuetext", /^00:2\d of 02:15$/);
-    await expect(log).not.toContainText("間違いありません");
+    await expect(position).toHaveAttribute("aria-valuetext", /^00:2\d of 01:55$/);
+    await expect(log).not.toContainText("それで大丈夫");
     await expect(page.locator("#strategist")).toContainText("Waiting for your first turn");
   });
 
@@ -175,7 +175,7 @@ test.describe("demo replay", () => {
     await position.focus();
 
     await page.keyboard.press("ArrowRight");
-    await expect(position).toHaveAttribute("aria-valuetext", "00:05 of 02:15");
+    await expect(position).toHaveAttribute("aria-valuetext", "00:05 of 01:55");
 
     await page.keyboard.press("End");
     await expect(page.getByRole("heading", { name: /What happened/ })).toBeVisible();
@@ -195,7 +195,7 @@ test.describe("demo replay", () => {
       .filter({ hasText: "今月はちょっと厳しくて" })
       .click();
 
-    await expect(position).toHaveAttribute("aria-valuetext", /^01:0\d of 02:15$/);
+    await expect(position).toHaveAttribute("aria-valuetext", /^01:0\d of 01:55$/);
     await expect(page.getByRole("heading", { name: /What happened/ })).toHaveCount(0);
     await expect(page.getByRole("log")).not.toContainText("わかりました。では");
     await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
