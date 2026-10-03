@@ -10,12 +10,22 @@ import { Hero } from "./landing/Hero.tsx";
 import { RoleCard } from "./landing/RoleCard.tsx";
 import { SiteHeader } from "./landing/SiteHeader.tsx";
 import { useScrollToHash } from "./landing/useScrollToHash.ts";
+import { personaIdForCall, personaShownOnCall } from "./persona/catalog.ts";
+import { usePersonaCatalog, type PersonaCatalogLoad } from "./persona/usePersonaCatalog.ts";
+import { usePersonaChoice, type PersonaChoice } from "./persona/usePersonaChoice.ts";
 import { LiveView } from "./xray/LiveView.tsx";
 
 const PHONE_NUMBER: string | null =
   (import.meta.env.VITE_PHONE_NUMBER as string | undefined) ?? null;
 
-function Landing({ feed, call }: { feed: CallFeed; call: BrowserCall }) {
+interface LandingProps {
+  feed: CallFeed;
+  call: BrowserCall;
+  personas: PersonaCatalogLoad;
+  choice: PersonaChoice;
+}
+
+function Landing({ feed, call, personas, choice }: LandingProps) {
   useScrollToHash();
   return (
     <>
@@ -32,7 +42,13 @@ function Landing({ feed, call }: { feed: CallFeed; call: BrowserCall }) {
       <main className="container landing">
         <Hero />
         <div className="play">
-          <RoleCard />
+          <RoleCard
+            catalog={personas.catalog}
+            chosen={choice.chosen}
+            onChoose={choice.choose}
+            onSurprise={choice.surprise}
+            onRetry={personas.retry}
+          />
           <CallPanel
             phoneNumber={PHONE_NUMBER}
             code={feed.code}
@@ -57,9 +73,15 @@ export function App() {
     [],
   );
   const feed = useCallFeed(options);
-  const call = useBrowserCall(feed.viewerId);
+  const personas = usePersonaCatalog();
+  const choice = usePersonaChoice(personas.catalog);
+  const call = useBrowserCall(feed.viewerId, personaIdForCall(personas.catalog, choice.chosenId));
   const demoSound = useDemoSound(feed.demoAudio);
   const showsLive = options.isDemo || feed.view.status !== "waiting";
+  const persona = personaShownOnCall(personas.catalog, {
+    startedId: feed.view.personaId,
+    chosenId: options.isDemo ? null : choice.chosenId,
+  });
   return (
     <PipecatClientProvider client={call.client}>
       <PipecatClientAudio />
@@ -72,9 +94,10 @@ export function App() {
           startedAtMs={feed.startedAtMs}
           endedAtMs={feed.endedAtMs}
           demoSound={demoSound}
+          persona={persona}
         />
       ) : (
-        <Landing feed={feed} call={call} />
+        <Landing feed={feed} call={call} personas={personas} choice={choice} />
       )}
     </PipecatClientProvider>
   );

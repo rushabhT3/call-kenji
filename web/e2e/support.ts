@@ -37,6 +37,20 @@ export function sendViewerReady(socket: WebSocketRoute, code: string): void {
   socket.send(JSON.stringify({ type: "viewer_ready", viewer_id: "viewer-1", code }));
 }
 
+/**
+ * Keep each WebRTC offer a browser call sends, then refuse it, so a test can read what the page
+ * told the voice server. Register after routeViewerFeed: later routes are tried first.
+ */
+export async function captureOffers(page: Page): Promise<unknown[]> {
+  const offers: unknown[] = [];
+  await page.route("**/api/ice", (route) => route.fulfill({ json: { iceServers: [] } }));
+  await page.route("**/api/offer", async (route) => {
+    offers.push(route.request().postDataJSON());
+    await route.abort();
+  });
+  return offers;
+}
+
 interface Recording {
   events: { offset_ms: number; event: { type: string } }[];
 }

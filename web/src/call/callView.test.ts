@@ -32,6 +32,21 @@ describe("applyEvents", () => {
     expect(view.transport).toBe("phone");
   });
 
+  it("records the persona the caller plays, when the server says", () => {
+    const started = {
+      type: "call_started",
+      call_id: "c1",
+      transport: "browser",
+      started_at: START,
+    } satisfies CallEvent;
+
+    const named = applyEvents(EMPTY_CALL, [{ ...started, persona_id: "tanaka" }]);
+    const unnamed = applyEvents(EMPTY_CALL, [started]);
+
+    expect(named.personaId).toBe("tanaka");
+    expect(unnamed.personaId).toBeNull();
+  });
+
   it("replaces a partial caller line when its final arrives", () => {
     const view = applyEvents(EMPTY_CALL, [
       transcript("caller-1", "caller", "佐藤", false),

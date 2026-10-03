@@ -27,7 +27,7 @@ const NOW_SENTENCES: Readonly<Record<string, Bilingual>> = {
     ja: "AIであること、デモであること、記録について説明しています。",
   },
   verify_identity: {
-    en: "Checking that you are Yuki Sato before saying anything about the account.",
+    en: "Checking that you are who you play before saying anything about the account.",
     ja: "口座の話をする前に、ご本人様かどうかを確認しています。",
   },
   state_balance: {
@@ -96,6 +96,10 @@ export const ON_HOLD: Bilingual = {
 };
 
 export const HOLD_HINT = "Kenji keeps listening and waits to answer until you press Done.";
+
+export const CLIP_UNAVAILABLE = "That line couldn't be played. Read it aloud yourself instead.";
+
+export const UNMUTE_TO_SAY = "Unmute to have a line said for you.";
 
 export function nowSentence(status: CallStatus, node: string | null): Bilingual {
   if (status === "waiting") {

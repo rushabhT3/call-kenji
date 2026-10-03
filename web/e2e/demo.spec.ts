@@ -34,6 +34,49 @@ test.describe("demo replay", () => {
     await expect(page.locator("#audit")).toContainText("Hash chain verified");
   });
 
+  test("keeps the caller's role and lines in view, with nothing said for them", async ({
+    page,
+  }) => {
+    await blockBackend(page);
+    await openMidCall(page);
+    const card = page.getByRole("region", { name: /You are playing/ });
+    await expect(card).toContainText("佐藤ゆうき");
+
+    const toggle = card.getByRole("button", { name: /Show your role and lines/ });
+    if (await toggle.isVisible()) {
+      await toggle.click();
+    }
+
+    await expect(card).toContainText("平成2年7月14日");
+    await expect(card).toContainText("7731");
+    const lines = card.getByRole("list", { name: /Your turn/ }).getByRole("listitem");
+    await expect(lines.first()).toBeVisible();
+    await expect(lines.first().locator('[lang="ja"]')).not.toBeEmpty();
+    await expect(page.getByRole("button", { name: /Say it/ })).toHaveCount(0);
+  });
+
+  test("puts the role card at the top of the rail, or above the transcript on narrow screens", async ({
+    page,
+  }) => {
+    await blockBackend(page);
+    await openMidCall(page);
+    const width = page.viewportSize()?.width ?? 0;
+
+    const card = await page.getByRole("region", { name: /You are playing/ }).boundingBox();
+    const turn = await page.locator("#turn").boundingBox();
+    const transcript = await page.getByRole("log").boundingBox();
+
+    expect(card && turn && transcript).toBeTruthy();
+    if (card && turn && transcript) {
+      expect(card.y).toBeLessThan(turn.y);
+      if (width >= 1024) {
+        expect(card.x).toBeCloseTo(turn.x, 0);
+      } else {
+        expect(card.y).toBeLessThan(transcript.y);
+      }
+    }
+  });
+
   test("offers a call of your own throughout the replay", async ({ page }) => {
     await blockBackend(page);
     await openMidCall(page);

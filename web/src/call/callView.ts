@@ -2,6 +2,7 @@ import type {
   AuditPublished,
   CallEvent,
   CallOutcome,
+  CallStarted,
   ComplianceUpdated,
   HandoffRecorded,
   LatencyMeasured,
@@ -31,6 +32,8 @@ export interface PartialLine {
 export interface CallView {
   status: CallStatus;
   transport: Transport | null;
+  /** The persona the server says the caller plays; null in recordings made before personas. */
+  personaId: string | null;
   startedAt: string | null;
   endedAt: string | null;
   node: string | null;
@@ -54,6 +57,7 @@ export interface CallView {
 export const EMPTY_CALL: CallView = {
   status: "waiting",
   transport: null,
+  personaId: null,
   startedAt: null,
   endedAt: null,
   node: null,
@@ -94,10 +98,20 @@ function withTranscript(
   return { ...view, lines: [...others, entry], partial, speaking };
 }
 
+function withCallStarted(view: CallView, event: CallStarted): CallView {
+  return {
+    ...view,
+    status: "live",
+    transport: event.transport,
+    personaId: event.persona_id ?? null,
+    startedAt: event.started_at,
+  };
+}
+
 export function applyEvent(view: CallView, event: CallEvent): CallView {
   switch (event.type) {
     case "call_started":
-      return { ...view, status: "live", transport: event.transport, startedAt: event.started_at };
+      return withCallStarted(view, event);
     case "transcript":
       return withTranscript(view, event);
     case "subtitle":

@@ -4,7 +4,7 @@ interface CardProps {
   id: string;
   title: string;
   titleJa: string;
-  summary: string;
+  summary: ReactNode;
   isEmpty?: boolean;
   status?: ReactNode;
   className?: string;

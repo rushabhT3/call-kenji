@@ -22,7 +22,7 @@ const compliance = (overrides: Partial<ComplianceUpdated> = {}): ComplianceUpdat
 
 describe("nowSentence", () => {
   it("explains each step in one plain sentence", () => {
-    expect(nowSentence("live", "verify_identity").en).toContain("Yuki Sato");
+    expect(nowSentence("live", "verify_identity").en).toContain("who you play");
     expect(nowSentence("waiting", null).en).toBe("Waiting for your call.");
     expect(nowSentence("ended", "close").en).toContain("ended");
   });

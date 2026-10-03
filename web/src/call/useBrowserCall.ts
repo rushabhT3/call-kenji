@@ -2,6 +2,7 @@ import { PipecatClient } from "@pipecat-ai/client-js";
 import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LINE_UNREACHABLE, microphoneProblem } from "./copy.ts";
+import { useCallerClips, type CallerClips } from "./useCallerClips.ts";
 
 export type BrowserCallState = "idle" | "connecting" | "connected" | "failed";
 
@@ -21,6 +22,13 @@ export interface BrowserCall {
   end: () => Promise<void>;
   toggleMute: () => void;
   toggleHold: () => void;
+  clips: CallerClips;
+}
+
+/** What the offer tells the server about this call, beside the SDP. */
+interface CallRequest {
+  viewer_id: string | null;
+  persona_id: string;
 }
 
 async function fetchIceServers(): Promise<RTCIceServer[]> {
@@ -51,7 +59,7 @@ async function microphoneFailure(client: PipecatClient): Promise<string | null> 
 }
 
 /** Dials Kenji, or says in plain words why the call could not be placed. */
-async function placeCall(client: PipecatClient, viewerId: string | null): Promise<string | null> {
+async function placeCall(client: PipecatClient, request: CallRequest): Promise<string | null> {
   try {
     // A call Kenji cannot hear is worse than no call, so it is not placed at all.
     const micFailure = await microphoneFailure(client);
@@ -60,7 +68,7 @@ async function placeCall(client: PipecatClient, viewerId: string | null): Promis
     }
     const iceServers = await fetchIceServers();
     await client.connect({
-      webrtcRequestParams: { endpoint: OFFER_ENDPOINT, requestData: { viewer_id: viewerId } },
+      webrtcRequestParams: { endpoint: OFFER_ENDPOINT, requestData: request },
       iceConfig: { iceServers },
     });
     return null;
@@ -69,7 +77,7 @@ async function placeCall(client: PipecatClient, viewerId: string | null): Promis
   }
 }
 
-export function useBrowserCall(viewerId: string | null): BrowserCall {
+export function useBrowserCall(viewerId: string | null, personaId: string): BrowserCall {
   const client = useMemo(() => createClient(), []);
   const [state, setState] = useState<BrowserCallState>("idle");
   const [isMuted, setIsMuted] = useState(false);
@@ -78,10 +86,10 @@ export function useBrowserCall(viewerId: string | null): BrowserCall {
   const start = useCallback(async () => {
     setState("connecting");
     setError(null);
-    const failure = await placeCall(client, viewerId);
+    const failure = await placeCall(client, { viewer_id: viewerId, persona_id: personaId });
     setState(failure === null ? "connected" : "failed");
     setError(failure);
-  }, [client, viewerId]);
+  }, [client, viewerId, personaId]);
 
   const toggleMute = useCallback(() => {
     client.enableMic(isMuted);
@@ -89,6 +97,7 @@ export function useBrowserCall(viewerId: string | null): BrowserCall {
   }, [client, isMuted]);
 
   const hold = useHold(client);
+  const clips = useCallerClips(client);
   const end = useCallback(async () => {
     hold.reset();
     await client.disconnect();
@@ -105,6 +114,7 @@ export function useBrowserCall(viewerId: string | null): BrowserCall {
     end,
     toggleMute,
     toggleHold: hold.toggle,
+    clips,
   };
 }
 

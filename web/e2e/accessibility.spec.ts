@@ -46,6 +46,7 @@ test.describe("WCAG 2.1 AA scan", () => {
     await page.goto("/");
     sendViewerReady(await feed.connected, "4821");
     await expect(page.getByRole("group", { name: /Your code/ })).toBeVisible();
+    await expect(page.getByRole("radio").first()).toBeVisible();
 
     await expectNoAxeViolations(page);
   });
@@ -105,6 +106,7 @@ test.describe("accessibility rules", () => {
     await page.goto("/");
     sendViewerReady(await feed.connected, "4821");
     await expect(page.getByRole("group", { name: /Your code/ })).toBeVisible();
+    await expect(page.locator(".role__value").first()).toBeVisible();
 
     await expectTabularFigures(page, [".role__value", ".link-code__cell"]);
   });

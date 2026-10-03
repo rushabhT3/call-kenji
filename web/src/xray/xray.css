@@ -268,6 +268,87 @@
   scroll-margin-top: calc(var(--sticky-clearance, 0px) + var(--space-3));
 }
 
+/* The toggle keeps a full tap target without making the collapsed card any taller. */
+.persona-card__toggle {
+  min-height: var(--tap-target);
+  margin-block: calc(var(--space-3) * -1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.persona-card__details {
+  display: none;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.persona-card--open .persona-card__details {
+  display: grid;
+}
+
+.persona-card__fact {
+  display: grid;
+  justify-items: end;
+}
+
+.persona-card__note {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.hints {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.hints__list {
+  display: grid;
+}
+
+.hint {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  align-items: start;
+  padding-block: var(--space-3);
+  border-top: var(--border-hairline);
+}
+
+.hint__text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.hint__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-button);
+  color: var(--color-text-strong);
+}
+
+.hint__ja {
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.hint__en,
+.hints__empty,
+.hints__note {
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
+}
+
+.hints__error {
+  font-size: var(--text-small);
+  color: var(--color-danger-text);
+}
+
 .checks {
   display: grid;
 }
@@ -404,10 +485,31 @@
 }
 
 @media (min-width: 1024px) {
+  /* The persona card heads the rail; on narrower screens it comes first, above the transcript. */
   .live__grid {
     grid-template-columns: minmax(0, 1fr) var(--rail-width);
-    gap: var(--column-gap);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "main persona"
+      "main rail";
+    gap: var(--space-4) var(--column-gap);
     align-items: start;
+  }
+
+  .live__main {
+    grid-area: main;
+  }
+
+  .persona-card {
+    grid-area: persona;
+  }
+
+  .persona-card__toggle {
+    display: none;
+  }
+
+  .persona-card__details {
+    display: grid;
   }
 
   .live {
@@ -415,6 +517,7 @@
   }
 
   .rail {
+    grid-area: rail;
     grid-template-columns: minmax(0, 1fr);
   }
 

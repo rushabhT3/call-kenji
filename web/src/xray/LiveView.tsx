@@ -2,6 +2,8 @@ import { PostCall } from "../aftercall/PostCall.tsx";
 import { finishedCallMs, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
 import type { DemoSound } from "../call/useDemoSound.ts";
+import type { Persona } from "../contract/personas.ts";
+import type { Loadable } from "../persona/catalog.ts";
 import { Button } from "../ui/Button.tsx";
 import { ComplianceCard } from "./ComplianceCard.tsx";
 import { DemoBanner } from "./DemoBanner.tsx";
@@ -9,6 +11,7 @@ import { HoldButton } from "./HoldButton.tsx";
 import { LatencyCard } from "./LatencyCard.tsx";
 import { LiveHeader } from "./LiveHeader.tsx";
 import { NowStrip } from "./NowStrip.tsx";
+import { PersonaCard } from "./PersonaCard.tsx";
 import { StrategistCard } from "./StrategistCard.tsx";
 import { SummaryChips } from "./SummaryChips.tsx";
 import { Transcript } from "./Transcript.tsx";
@@ -23,6 +26,8 @@ interface LiveViewProps {
   startedAtMs: number | null;
   endedAtMs: number | null;
   demoSound: DemoSound | null;
+  /** Who the caller plays on this call. */
+  persona: Loadable<Persona>;
 }
 
 function liveClasses(status: CallView["status"], hasCallBar: boolean): string {
@@ -79,6 +84,12 @@ export function LiveView(props: LiveViewProps) {
           </p>
         ) : null}
         <div className="live__grid">
+          <PersonaCard
+            persona={props.persona}
+            node={view.node}
+            status={view.status}
+            speaker={hasCallBar ? { clips: call.clips, isMuted: call.isMuted } : null}
+          />
           <div className="live__main">
             <NowStrip view={view} isOnHold={hasCallBar && call.isOnHold} />
             <SummaryChips view={view} />

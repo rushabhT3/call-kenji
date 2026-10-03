@@ -1,5 +1,15 @@
 export type IconName =
-  "phone" | "check" | "cross" | "clock" | "copy" | "mic" | "end" | "arrowDown" | "pause" | "sound";
+  | "phone"
+  | "check"
+  | "cross"
+  | "clock"
+  | "copy"
+  | "mic"
+  | "end"
+  | "arrowDown"
+  | "pause"
+  | "sound"
+  | "shuffle";
 
 const PATHS: Record<IconName, string> = {
   phone:
@@ -13,6 +23,8 @@ const PATHS: Record<IconName, string> = {
   arrowDown: "M12 5v14M6 13l6 6 6-6",
   pause: "M9 5v14M15 5v14",
   sound: "M4 9h4l5-4v14l-5-4H4zM16.5 9.5a3.5 3.5 0 0 1 0 5M19 7a7 7 0 0 1 0 10",
+  shuffle:
+    "M4 7h3c5 0 5 10 10 10h3M4 17h3c1.5 0 2.5-1 3.3-2.3M13.7 9.3C14.5 8 15.5 7 17 7h3M17 4l3 3-3 3M17 14l3 3-3 3",
 };
 
 /** The stroke reads as 1.5px at 20px; smaller icons get a proportionally heavier stroke. */
