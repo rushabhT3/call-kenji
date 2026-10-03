@@ -1,0 +1,275 @@
+/* The trailer page: a dark cinema in the features page's comic universe. It reuses that page's
+   tokens and parts (the .showcase class), with ink for the room and yellow and red for the light. */
+
+.trailer {
+  --trailer-screen-max: 80rem;
+  --trailer-dot-size: var(--space-3);
+  --trailer-dot: color-mix(in srgb, var(--comic-paper) 9%, transparent);
+  --trailer-spotlight: color-mix(in srgb, var(--comic-red) 22%, transparent);
+  --trailer-dim: color-mix(in srgb, var(--comic-ink) 55%, transparent);
+  --trailer-grain-opacity: 0.07;
+  --trailer-pulse: 1800ms;
+
+  position: relative;
+  background-color: var(--comic-ink);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% 38%, var(--trailer-spotlight), transparent 70%),
+    radial-gradient(var(--trailer-dot) 18%, transparent 22%);
+  background-size:
+    100% 100%,
+    var(--trailer-dot-size) var(--trailer-dot-size);
+  color: var(--comic-white);
+}
+
+/* Film grain over the whole room; decoration only, so it never takes a click. */
+.trailer::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: var(--trailer-grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.trailer a:focus-visible,
+.trailer button:focus-visible,
+.trailer video:focus-visible {
+  outline: var(--comic-line) solid var(--comic-paper);
+  outline-offset: 4px;
+}
+
+.trailer__main {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-8);
+  padding-block: var(--space-9) var(--space-12);
+}
+
+/* Title */
+
+.trailer__header {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.trailer__kicker {
+  color: var(--comic-ink);
+}
+
+.trailer__burst {
+  width: min(100%, 18rem);
+  color: var(--comic-ink);
+  transform: rotate(var(--comic-tilt));
+}
+
+.trailer__burst .burst__word {
+  width: min-content;
+  font-size: var(--comic-text-title);
+}
+
+/* The screen */
+
+.trailer-screen {
+  position: relative;
+  width: min(100%, var(--trailer-screen-max));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: var(--comic-line) solid var(--comic-paper);
+  border-radius: var(--comic-radius);
+  background: var(--comic-ink);
+  box-shadow: var(--comic-shadow-red);
+}
+
+.trailer-screen__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--comic-ink);
+}
+
+.trailer-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: 0;
+  border: 0;
+  background: radial-gradient(circle at center, transparent 20%, var(--trailer-dim) 100%);
+  color: var(--comic-white);
+  cursor: pointer;
+}
+
+.trailer-play__disc {
+  display: grid;
+  place-items: center;
+  width: clamp(4.5rem, 3.6rem + 4vw, 7.5rem);
+  aspect-ratio: 1;
+  border: var(--comic-line) solid var(--comic-ink);
+  border-radius: var(--radius-pill);
+  background: var(--comic-paper);
+  box-shadow: 6px 6px 0 var(--comic-red);
+  animation: trailer-pulse var(--trailer-pulse) ease-in-out infinite;
+  transition: transform var(--comic-duration) var(--comic-ease);
+}
+
+.trailer-play__icon {
+  width: 46%;
+  margin-left: 8%;
+  fill: var(--comic-ink);
+}
+
+/* On a phone the label would cover the player's own controls; it stays for screen readers. */
+.trailer-play__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-4);
+  border: var(--comic-line-thin) solid var(--comic-ink);
+  border-radius: var(--radius-pill);
+  background: var(--comic-white);
+  color: var(--comic-ink);
+  font-family: var(--comic-font-display);
+  font-size: var(--text-lead);
+  box-shadow: 3px 3px 0 var(--comic-ink);
+}
+
+.trailer-play:hover .trailer-play__disc,
+.trailer-play:focus-visible .trailer-play__disc {
+  transform: scale(1.08) rotate(-4deg);
+  animation: none;
+}
+
+@keyframes trailer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* Words under the screen */
+
+.trailer__note {
+  max-width: var(--measure-en);
+  color: var(--comic-paper);
+  text-align: center;
+}
+
+.trailer__description {
+  max-width: var(--measure-en);
+  font-size: var(--text-lead);
+  line-height: var(--leading-body);
+  text-align: center;
+}
+
+.trailer-links {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-6);
+}
+
+.trailer-links__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trailer .comic-button {
+  box-shadow: 4px 4px 0 var(--comic-paper);
+}
+
+.trailer .comic-button:hover {
+  box-shadow: 6px 6px 0 var(--comic-paper);
+}
+
+.trailer .comic-button--primary {
+  background: var(--comic-paper);
+  color: var(--comic-ink);
+  box-shadow: 4px 4px 0 var(--comic-red);
+}
+
+.trailer .comic-button--primary:hover {
+  box-shadow: 6px 6px 0 var(--comic-red);
+}
+
+.trailer-links__demo {
+  color: var(--comic-paper);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration-thickness: var(--comic-line-thin);
+  text-underline-offset: 5px;
+}
+
+/* When the video will not load */
+
+.trailer-error {
+  display: grid;
+  gap: var(--space-4);
+  width: min(100%, 44rem);
+  color: var(--comic-ink);
+  transform: rotate(var(--comic-tilt-back));
+}
+
+.trailer-error .comic-label {
+  justify-self: start;
+}
+
+.trailer-error__title {
+  font-family: var(--comic-font-display);
+  font-size: var(--comic-text-heading);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-heading);
+}
+
+.trailer-error__text {
+  font-size: var(--text-lead);
+}
+
+.trailer-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.trailer-error .comic-button {
+  box-shadow: 4px 4px 0 var(--comic-ink);
+}
+
+.trailer-error .comic-button--primary {
+  background: var(--comic-ink);
+  color: var(--comic-white);
+  box-shadow: 4px 4px 0 var(--comic-red);
+}
+
+@media (min-width: 768px) {
+  .trailer__burst {
+    width: min(100%, 27rem);
+  }
+
+  .trailer-play__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+}
