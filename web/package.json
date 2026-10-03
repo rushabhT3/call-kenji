@@ -28,7 +28,8 @@
     "@pipecat-ai/client-react": "1.8.2",
     "@pipecat-ai/small-webrtc-transport": "1.10.8",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "wavesurfer.js": "8.0.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

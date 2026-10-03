@@ -1,7 +1,6 @@
 import { PostCall } from "../aftercall/PostCall.tsx";
 import { finishedCallMs, latestCallerTone, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
-import type { DemoSound } from "../call/useDemoSound.ts";
 import type { Persona } from "../contract/personas.ts";
 import type { Loadable } from "../persona/catalog.ts";
 import { Button } from "../ui/Button.tsx";
@@ -25,7 +24,6 @@ interface LiveViewProps {
   isFeedLost: boolean;
   startedAtMs: number | null;
   endedAtMs: number | null;
-  demoSound: DemoSound | null;
   /** Who the caller plays on this call. */
   persona: Loadable<Persona>;
 }
@@ -78,7 +76,7 @@ export function LiveView(props: LiveViewProps) {
     <>
       <LiveHeader view={view} elapsedMs={elapsedMs} isDemo={isDemo} call={call} />
       <main className={liveClasses(view.status, hasCallBar)}>
-        {isDemo ? <DemoBanner sound={props.demoSound} /> : null}
+        {isDemo ? <DemoBanner /> : null}
         {isFeedLost ? (
           <p className="banner" role="alert">
             Connection lost. The call may still be running. Reload to reconnect.

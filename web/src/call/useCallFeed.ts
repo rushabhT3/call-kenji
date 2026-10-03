@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
 import type { CallEvent } from "../contract/events.ts";
+import { useReplay, type ReplayPlayer } from "../demo/useReplay.ts";
 import { EMPTY_CALL, applyEvent, type CallView } from "./callView.ts";
-import { loadRecording, recordingAudioUrl, replaySchedule, startReplay } from "./demoReplay.ts";
 import { openViewerFeed, viewerSocketUrl, type FeedStatus } from "./viewerFeed.ts";
-
-/** The replay's audio and when the replay began, so sound can join it at the right moment. */
-export interface DemoAudio {
-  url: string;
-  startedAtMs: number;
-}
 
 export interface CallFeed {
   view: CallView;
   feedStatus: FeedStatus;
   viewerId: string | null;
   code: string | null;
-  replayError: string | null;
-  demoAudio: DemoAudio | null;
+  /** The demo's recorded call, to play and to move through; null on a live call. */
+  replay: ReplayPlayer | null;
+  /**
+   * When the call started and ended on this device's clock. A replay's clock stands at the
+   * playhead: it starts at 0 and has run as far as the replay has got.
+   */
   startedAtMs: number | null;
   endedAtMs: number | null;
 }
@@ -24,37 +22,6 @@ export interface CallFeed {
 interface FeedOptions {
   isDemo: boolean;
   speed: number;
-}
-
-function useDemoFeed(isEnabled: boolean, speed: number, dispatch: (event: CallEvent) => void) {
-  const [error, setError] = useState<string | null>(null);
-  const [audio, setAudio] = useState<DemoAudio | null>(null);
-  useEffect(() => {
-    if (!isEnabled) {
-      return undefined;
-    }
-    let stop: (() => void) | undefined;
-    let isCancelled = false;
-    const run = async () => {
-      try {
-        const recording = await loadRecording();
-        if (isCancelled) {
-          return;
-        }
-        stop = startReplay(replaySchedule(recording, speed), dispatch);
-        const url = recordingAudioUrl(recording, speed);
-        setAudio(url ? { url, startedAtMs: Date.now() } : null);
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : String(cause));
-      }
-    };
-    void run();
-    return () => {
-      isCancelled = true;
-      stop?.();
-    };
-  }, [isEnabled, speed, dispatch]);
-  return { error, audio };
 }
 
 function useLiveFeed(isEnabled: boolean, dispatch: (event: CallEvent) => void) {
@@ -88,7 +55,7 @@ function useLocalCallClock() {
   return { startedAtMs, endedAtMs, note };
 }
 
-export function useCallFeed({ isDemo, speed }: FeedOptions): CallFeed {
+function useLiveCall(isEnabled: boolean) {
   const [view, apply] = useReducer(applyEvent, EMPTY_CALL);
   const clock = useLocalCallClock();
   const { note } = clock;
@@ -99,16 +66,31 @@ export function useCallFeed({ isDemo, speed }: FeedOptions): CallFeed {
     },
     [note],
   );
-  const replay = useDemoFeed(isDemo, speed, dispatch);
-  const live = useLiveFeed(!isDemo, dispatch);
+  const feed = useLiveFeed(isEnabled, dispatch);
+  return { view, clock, feed };
+}
+
+export function useCallFeed({ isDemo, speed }: FeedOptions): CallFeed {
+  const live = useLiveCall(!isDemo);
+  const replay = useReplay(isDemo, speed);
+  if (replay) {
+    return {
+      view: replay.view,
+      feedStatus: "open",
+      viewerId: null,
+      code: null,
+      replay: replay.player,
+      startedAtMs: 0,
+      endedAtMs: replay.player.positionMs,
+    };
+  }
   return {
-    view,
-    feedStatus: isDemo ? "open" : live.status,
-    viewerId: live.link?.viewerId ?? null,
-    code: live.link?.code ?? null,
-    replayError: replay.error,
-    demoAudio: replay.audio,
-    startedAtMs: clock.startedAtMs,
-    endedAtMs: clock.endedAtMs,
+    view: live.view,
+    feedStatus: live.feed.status,
+    viewerId: live.feed.link?.viewerId ?? null,
+    code: live.feed.link?.code ?? null,
+    replay: null,
+    startedAtMs: live.clock.startedAtMs,
+    endedAtMs: live.clock.endedAtMs,
   };
 }

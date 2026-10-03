@@ -79,6 +79,136 @@
   gap: var(--space-2);
 }
 
+/* The demo's player: Play, the clock, the whole call as one track, who speaks, and a note. */
+.call-player {
+  --waveform-wave: var(--color-border-strong);
+  --waveform-played: var(--color-ink);
+  --waveform-cursor: var(--color-accent);
+  --band-kenji: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --band-caller: color-mix(in srgb, var(--color-accent) 22%, transparent);
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "play clock"
+    "track track"
+    "key key"
+    "note note";
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.call-player > .button {
+  grid-area: play;
+  justify-self: start;
+}
+
+.call-player__clock {
+  grid-area: clock;
+  justify-self: end;
+  color: var(--color-text-strong);
+  white-space: nowrap;
+}
+
+.call-player__track {
+  grid-area: track;
+  position: relative;
+  height: var(--space-10);
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.call-player__track[aria-disabled="true"] {
+  cursor: progress;
+}
+
+.call-player__waveform {
+  position: absolute;
+  inset: 0;
+}
+
+.call-player__played {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--played, 0%);
+  border-right: var(--rule-width) solid var(--waveform-cursor);
+  background: var(--band-kenji);
+}
+
+.speaker-bands {
+  position: absolute;
+  inset: 0;
+}
+
+.speaker-bands__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--start);
+  width: var(--length);
+  border-bottom: var(--rule-width) solid;
+}
+
+.speaker-bands__band--kenji {
+  background: var(--band-kenji);
+  border-bottom-color: var(--color-ink);
+}
+
+.speaker-bands__band--caller {
+  background: var(--band-caller);
+  border-bottom-color: var(--color-accent);
+}
+
+.call-player__key {
+  grid-area: key;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.call-player__speaker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.call-player__speaker::before {
+  content: "";
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-xs);
+}
+
+.call-player__speaker--kenji::before {
+  background: var(--color-ink);
+}
+
+.call-player__speaker--caller::before {
+  background: var(--color-accent);
+}
+
+.call-player__note {
+  grid-area: note;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-muted);
+}
+
+.call-player__note:empty {
+  display: none;
+}
+
 .banner {
   padding: var(--space-4);
   border-radius: var(--radius-sm);
@@ -216,6 +346,43 @@
 
 .line--backchannel .line__ja {
   color: var(--color-text-muted);
+}
+
+/* On a recording the whole line plays the call from it; its time is the control that says so. */
+.line--playable {
+  position: relative;
+}
+
+.line__play {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.line__play::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+}
+
+.line__play:focus-visible {
+  outline: none;
+}
+
+.line__play:focus-visible::after {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.line--playable:hover .line__play {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @keyframes line-enter {
@@ -483,6 +650,19 @@
 
   .live-status__channel {
     display: inline;
+  }
+
+  .call-player {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "play track clock"
+      ". key key"
+      ". note note";
+    column-gap: var(--space-5);
+  }
+
+  .call-player__clock {
+    justify-self: start;
   }
 }
 

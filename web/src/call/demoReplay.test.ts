@@ -1,34 +1,11 @@
 import { describe, expect, it } from "vitest";
-import {
-  isDemoMode,
-  recordingAudioUrl,
-  replaySchedule,
-  replaySpeed,
-  type Recording,
-} from "./demoReplay.ts";
+import { isDemoMode, recordingAudioUrl, replaySpeed, type Recording } from "./demoReplay.ts";
 
 const recording: Recording = {
   source: "test",
   recorded_on: "2026-10-02",
-  events: [
-    { offset_ms: 0, event: { type: "flow_node", node: "greeting" } },
-    { offset_ms: 2000, event: { type: "not-an-event" } },
-    { offset_ms: 4000, event: { type: "flow_node", node: "verify_identity" } },
-  ],
+  events: [{ offset_ms: 0, event: { type: "flow_node", node: "greeting" } }],
 };
-
-describe("replaySchedule", () => {
-  it("keeps valid events and scales their timing", () => {
-    const schedule = replaySchedule(recording, 2);
-
-    expect(schedule.map(({ delayMs }) => delayMs)).toEqual([0, 2000]);
-    expect(schedule.map(({ event }) => event.type)).toEqual(["flow_node", "flow_node"]);
-  });
-
-  it("refuses a speed that cannot play", () => {
-    expect(() => replaySchedule(recording, 0)).toThrow("positive");
-  });
-});
 
 describe("query options", () => {
   it("reads demo mode and speed from the query string", () => {

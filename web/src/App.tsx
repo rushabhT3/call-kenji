@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { isDemoMode, replaySpeed } from "./call/demoReplay.ts";
 import { useBrowserCall, type BrowserCall } from "./call/useBrowserCall.ts";
 import { useCallFeed, type CallFeed } from "./call/useCallFeed.ts";
-import { useDemoSound } from "./call/useDemoSound.ts";
+import { ReplayContext } from "./demo/replayContext.ts";
 import { CallPanel } from "./landing/CallPanel.tsx";
 import { Explainer } from "./landing/Explainer.tsx";
 import { Hero } from "./landing/Hero.tsx";
@@ -78,7 +78,6 @@ export function App() {
   const personas = usePersonaCatalog();
   const choice = usePersonaChoice(personas.catalog);
   const call = useBrowserCall(feed.viewerId, personaIdForCall(personas.catalog, choice.chosenId));
-  const demoSound = useDemoSound(feed.demoAudio);
   const showsLive = options.isDemo || feed.view.status !== "waiting";
   const persona = personaShownOnCall(personas.catalog, {
     startedId: feed.view.personaId,
@@ -88,16 +87,17 @@ export function App() {
     <PipecatClientProvider client={call.client}>
       <PipecatClientAudio />
       {showsLive ? (
-        <LiveView
-          view={feed.view}
-          isDemo={options.isDemo}
-          call={options.isDemo ? null : call}
-          isFeedLost={!options.isDemo && feed.feedStatus === "lost"}
-          startedAtMs={feed.startedAtMs}
-          endedAtMs={feed.endedAtMs}
-          demoSound={demoSound}
-          persona={persona}
-        />
+        <ReplayContext value={feed.replay}>
+          <LiveView
+            view={feed.view}
+            isDemo={options.isDemo}
+            call={options.isDemo ? null : call}
+            isFeedLost={!options.isDemo && feed.feedStatus === "lost"}
+            startedAtMs={feed.startedAtMs}
+            endedAtMs={feed.endedAtMs}
+            persona={persona}
+          />
+        </ReplayContext>
       ) : (
         <Landing feed={feed} call={call} personas={personas} choice={choice} />
       )}

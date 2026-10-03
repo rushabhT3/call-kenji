@@ -1,7 +1,25 @@
-import { expect, test } from "@playwright/test";
-import { DEMO_URL, WIDTHS, blockBackend, openAfterCall, openMidCall } from "./support.ts";
+import { expect, test, type Locator } from "@playwright/test";
+import {
+  DEMO_URL,
+  WIDTHS,
+  blockBackend,
+  openAfterCall,
+  openMidCall,
+  openPlayer,
+} from "./support.ts";
 
-const SIDEWAYS_SCROLL_TIMEOUT_MS = 120_000;
+const SIDEWAYS_SCROLL_TIMEOUT_MS = 180_000;
+// Long enough for a running clock to show another second.
+const PAUSE_WATCH_MS = 1500;
+
+/** Click the position slider this far along the call, from 0 at the start to 1 at the end. */
+async function clickAlong(slider: Locator, share: number): Promise<void> {
+  const box = await slider.boundingBox();
+  expect(box, "the position slider is on screen").not.toBeNull();
+  if (box) {
+    await slider.click({ position: { x: box.width * share, y: box.height / 2 } });
+  }
+}
 
 test.describe("demo replay", () => {
   test("replays a whole call with no backend at all", async ({ page }) => {
@@ -91,14 +109,105 @@ test.describe("demo replay", () => {
 
   test("plays both sides of the call when asked, at normal speed", async ({ page }) => {
     await blockBackend(page);
-    await page.goto("/?demo=1");
+    await openPlayer(page);
+    const position = page.getByRole("slider", { name: "Position in the call" });
 
-    await page.getByRole("button", { name: "Sound on" }).click();
+    await page.getByRole("button", { name: "Play", exact: true }).click();
 
-    await expect(page.getByRole("button", { name: "Sound off" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    await expect(position).not.toHaveAttribute("aria-valuetext", /^00:00 /);
+    await expect(page.getByRole("log").getByRole("listitem").first()).toContainText("ケンジ");
+  });
+
+  test("pausing freezes the sound and the X-ray together", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
+    const position = page.getByRole("slider", { name: "Position in the call" });
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+    await expect(position).not.toHaveAttribute("aria-valuetext", /^00:00 /);
+
+    await page.getByRole("button", { name: "Pause", exact: true }).click();
+    const pausedAt = await position.getAttribute("aria-valuetext");
+    await page.waitForTimeout(PAUSE_WATCH_MS);
+
+    await expect(position).toHaveAttribute("aria-valuetext", pausedAt ?? "");
+    await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+  });
+
+  test("shows the whole call as a waveform marked with who speaks when", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
+    const player = page.getByRole("region", { name: "Recorded call" });
+
+    await expect(player.getByRole("button", { name: "Play", exact: true })).toBeVisible();
+    await expect(player.getByRole("slider", { name: "Position in the call" })).toHaveAttribute(
+      "aria-valuetext",
+      "00:00 of 02:15",
     );
+    await expect(player.locator("canvas").first()).toBeVisible();
+    await expect(player.locator(".speaker-bands__band--kenji")).toHaveCount(7);
+    await expect(player.locator(".speaker-bands__band--caller")).toHaveCount(4);
+    await expect(page.getByRole("button", { name: /^Sound/ })).toHaveCount(0);
+  });
+
+  test("seeking moves the transcript and the cards to that moment", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
+    const position = page.getByRole("slider", { name: "Position in the call" });
+    const log = page.getByRole("log");
+
+    await clickAlong(position, 0.95);
+
+    await expect(position).toHaveAttribute("aria-valuetext", /^02:0\d of 02:15$/);
+    await expect(log).toContainText("はい、間違いありません。");
+    await expect(page.locator("#strategist")).toContainText("Next move");
+
+    await clickAlong(position, 0.2);
+
+    await expect(position).toHaveAttribute("aria-valuetext", /^00:2\d of 02:15$/);
+    await expect(log).not.toContainText("間違いありません");
+    await expect(page.locator("#strategist")).toContainText("Waiting for your first turn");
+  });
+
+  test("the arrow keys and End move through the call", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
+    const position = page.getByRole("slider", { name: "Position in the call" });
+    await position.focus();
+
+    await page.keyboard.press("ArrowRight");
+    await expect(position).toHaveAttribute("aria-valuetext", "00:05 of 02:15");
+
+    await page.keyboard.press("End");
+    await expect(page.getByRole("heading", { name: /What happened/ })).toBeVisible();
+  });
+
+  test("clicking a transcript line plays the call from that line", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
+    const position = page.getByRole("slider", { name: "Position in the call" });
+    await position.focus();
+    await page.keyboard.press("End");
+    await expect(page.getByRole("heading", { name: /What happened/ })).toBeVisible();
+
+    await page
+      .getByRole("log")
+      .getByRole("listitem")
+      .filter({ hasText: "今月はちょっと厳しくて" })
+      .click();
+
+    await expect(position).toHaveAttribute("aria-valuetext", /^01:0\d of 02:15$/);
+    await expect(page.getByRole("heading", { name: /What happened/ })).toHaveCount(0);
+    await expect(page.getByRole("log")).not.toContainText("わかりました。では");
+    await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  });
+
+  test("a fast replay runs by itself, without sound", async ({ page }) => {
+    await blockBackend(page);
+    await openMidCall(page);
+    const player = page.getByRole("region", { name: "Recorded call" });
+
+    await expect(player).toContainText("Replaying at 4× speed, without sound.");
+    await expect(player.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   });
 
   test("ends with a way to call, to watch again and to go home", async ({ page }) => {
@@ -189,6 +298,7 @@ test.describe("demo replay", () => {
         },
       },
       { name: "live view mid-call", open: () => openMidCall(page) },
+      { name: "player with sound", open: () => openPlayer(page) },
       { name: "after the call", open: () => openAfterCall(page) },
     ];
     for (const width of WIDTHS) {

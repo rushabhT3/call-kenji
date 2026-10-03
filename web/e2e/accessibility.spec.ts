@@ -5,6 +5,7 @@ import {
   blockBackend,
   openAfterCall,
   openMidCall,
+  openPlayer,
   routeViewerFeed,
   sendViewerReady,
   serveRecordingWithEveryCard,
@@ -54,6 +55,13 @@ test.describe("WCAG 2.1 AA scan", () => {
   test("live view during a call", async ({ page }) => {
     await blockBackend(page);
     await openMidCall(page);
+
+    await expectNoAxeViolations(page);
+  });
+
+  test("demo player with its sound loaded", async ({ page }) => {
+    await blockBackend(page);
+    await openPlayer(page);
 
     await expectNoAxeViolations(page);
   });
@@ -120,6 +128,7 @@ test.describe("accessibility rules", () => {
     await expectTabularFigures(page, [
       ".live-status time",
       ".line__meta time",
+      ".call-player__clock",
       "#latency .metric__value",
       "#latency .stage__value",
       ".latency__percentiles",

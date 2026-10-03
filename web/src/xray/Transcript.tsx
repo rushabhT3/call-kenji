@@ -6,6 +6,7 @@ import {
   type TranscriptEntry,
 } from "../call/callView.ts";
 import { transcriptSummary } from "../call/copy.ts";
+import { useLinePlayer } from "../demo/replayContext.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import { TranscriptLine } from "./TranscriptLine.tsx";
@@ -76,6 +77,7 @@ function TranscriptLog({ view, lines }: TranscriptLogProps) {
   const currentId = currentKenjiLineId(view);
   const startedAt = view.startedAt;
   const offset = (line: TranscriptEntry) => (startedAt ? elapsedMs(startedAt, line.at) : 0);
+  const playLine = useLinePlayer();
   return (
     <div role="log" aria-live="polite" aria-relevant="additions" aria-label="Call transcript">
       <ol className="transcript__log">
@@ -87,6 +89,7 @@ function TranscriptLog({ view, lines }: TranscriptLogProps) {
             subtitle={view.subtitles[line.lineId]}
             isCurrent={line.lineId === currentId}
             tone={view.tones[line.lineId]}
+            onPlay={playLine}
           />
         ))}
         {speaking ? (
@@ -97,6 +100,7 @@ function TranscriptLog({ view, lines }: TranscriptLogProps) {
             subtitle={view.subtitles[speaking.lineId]}
             isCurrent
             isSpeaking
+            onPlay={playLine}
           />
         ) : null}
       </ol>

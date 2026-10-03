@@ -14,6 +14,8 @@ interface TranscriptLineProps {
   isSpeaking?: boolean;
   /** How the caller sounded on this line, once it has been heard. */
   tone?: CallerToneHeard | undefined;
+  /** Plays a recorded call from a line; null or absent when the call is live. */
+  onPlay?: ((lineId: string) => void) | null;
 }
 
 const SPEAKERS = {
@@ -35,6 +37,32 @@ function englishFor(
   return subtitle ?? (isSpeaking ? "" : "Translating…");
 }
 
+interface LineTimeProps {
+  line: TranscriptEntry;
+  offsetMs: number;
+  onPlay: ((lineId: string) => void) | null;
+}
+
+/** When the line was said; on a recording, also the way to play the call from it. */
+function LineTime({ line, offsetMs, onPlay }: LineTimeProps) {
+  const time = <time dateTime={isoDuration(offsetMs)}>{formatClock(offsetMs)}</time>;
+  if (onPlay === null) {
+    return time;
+  }
+  return (
+    <button
+      type="button"
+      className="line__play"
+      onClick={() => {
+        onPlay(line.lineId);
+      }}
+    >
+      <span className="visually-hidden">Play from this line, </span>
+      {time}
+    </button>
+  );
+}
+
 export function TranscriptLine({
   line,
   offsetMs,
@@ -42,6 +70,7 @@ export function TranscriptLine({
   isCurrent,
   isSpeaking = false,
   tone,
+  onPlay = null,
 }: TranscriptLineProps) {
   const speaker = SPEAKERS[line.speaker];
   const badge = tone ? toneBadge(tone) : null;
@@ -51,6 +80,7 @@ export function TranscriptLine({
     isCurrent ? "line--current" : "",
     line.isBackchannel ? "line--backchannel" : "",
     isSpeaking ? "line--speaking" : "",
+    onPlay ? "line--playable" : "",
   ];
   return (
     <li className={classes.join(" ").trim()}>
@@ -58,7 +88,7 @@ export function TranscriptLine({
         <span className="line__speaker">
           {speaker.en} <span lang="ja">{speaker.ja}</span>
         </span>
-        <time dateTime={isoDuration(offsetMs)}>{formatClock(offsetMs)}</time>
+        <LineTime line={line} offsetMs={offsetMs} onPlay={onPlay} />
         {badge ? <Pill tone="info" label={badge} context="Tone" /> : null}
       </p>
       <div className="line__text">

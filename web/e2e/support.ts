@@ -99,6 +99,8 @@ export async function serveRecordingWithEveryCard(page: Page): Promise<void> {
 /** The recorded call lasts about 140 s: speed 4 leaves time to inspect it mid-call. */
 export const MID_CALL_URL = "/?demo=1&speed=4";
 export const DEMO_URL = "/?demo=1&speed=40";
+/** At normal speed the replay has its sound, and waits for the visitor to press Play. */
+export const PLAYER_URL = "/?demo=1";
 export const WIDTHS = [1440, 1024, 768, 390] as const;
 const REPLAY_TIMEOUT_MS = 20_000;
 // A live transcript shows the latest three lines, so three lines in means the call is well under way.
@@ -117,6 +119,14 @@ export async function openMidCall(page: Page): Promise<void> {
 export async function openAfterCall(page: Page): Promise<void> {
   await page.goto(DEMO_URL);
   await expect(page.getByRole("heading", { name: /What happened/ })).toBeVisible({
+    timeout: REPLAY_TIMEOUT_MS,
+  });
+}
+
+/** Open the demo at normal speed, once its waveform is drawn and Play can start the sound. */
+export async function openPlayer(page: Page): Promise<void> {
+  await page.goto(PLAYER_URL);
+  await expect(page.getByText("Press Play to hear both voices")).toBeVisible({
     timeout: REPLAY_TIMEOUT_MS,
   });
 }
