@@ -1,0 +1,27 @@
+{
+  "name": "call-kenji-trailer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts",
+    "render": "remotion render src/index.ts Trailer out/kenji-trailer.mp4"
+  },
+  "dependencies": {
+    "@fontsource/bebas-neue": "5.3.0",
+    "@fontsource/oswald": "5.3.0",
+    "@fontsource/permanent-marker": "5.3.0",
+    "@fontsource/yusei-magic": "5.3.0",
+    "@remotion/cli": "4.0.532",
+    "@remotion/media-utils": "4.0.532",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "6.0.3"
+  }
+}

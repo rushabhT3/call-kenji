@@ -1,0 +1,48 @@
+{
+  "fps": 30,
+  "durationSecs": 78,
+  "scenes": {
+    "coldOpen": [0, 8.8],
+    "voice": [8.8, 19],
+    "titles": [19, 26],
+    "montage": [26, 40],
+    "refusal": [40, 53],
+    "flipbook": [53, 59],
+    "promise": [59, 62.6],
+    "logo": [62.6, 70.5],
+    "endCard": [70.5, 78]
+  },
+  "cards": {
+    "everyCall": [1.0, 4.3],
+    "hasSilence": [4.6, 8.0],
+    "voiceAgent": [19.0, 21.2],
+    "inJapanese": [21.2, 23.4],
+    "howItThinks": [23.4, 26.0],
+    "cannotBreak": [50.3, 53.0]
+  },
+  "voice": {
+    "hello": { "file": "voice/k_hello.wav", "from": 1.4, "to": 6.15, "at": 9.0, "ja": "お電話ありがとうございます。みなとのAIアシスタント、ケンジと申します。", "en": "Thank you for calling. I'm Kenji, Minato's AI assistant." },
+    "offer": { "file": "voice/c_offer.wav", "from": 65.1, "to": 69.3, "at": 40.3, "ja": "今月はちょっと厳しくて、月3,000円なら払えます。", "en": "This month's tight, but I can pay 3,000 yen a month." },
+    "sorry": { "file": "voice/k_sorry.wav", "from": 70.1, "to": 75.6, "at": 44.7, "ja": "申し訳ございません。毎月3,000円ですと、お受けできる条件に届きません。", "en": "I'm sorry. ¥3,000 a month is below what we can accept." },
+    "promise": { "file": "voice/k_promise.wav", "from": 101.1, "to": 104.0, "at": 59.4, "ja": "ありがとうございます。お約束を承りました。", "en": "Thank you. Your promise is recorded." }
+  },
+  "montage": {
+    "turn": 26.0,
+    "strategist": 28.0,
+    "compliance": 30.0,
+    "stamps": [30.5, 30.9, 31.3, 31.7, 32.1],
+    "latency": 32.6,
+    "slowModel": 34.0,
+    "fastKenji": 35.6,
+    "evals": 37.4,
+    "coverage": 38.6
+  },
+  "flipbook": { "start": 53.0, "end": 59.0 },
+  "impact": 62.6,
+  "ticks": [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5],
+  "braams": [19.0, 21.2, 23.4, 50.3],
+  "whooshes": [26.0, 28.0, 30.0, 32.6, 34.0, 37.4, 38.6, 53.0, 70.5],
+  "hits": [30.5, 30.9, 31.3, 31.7, 32.1, 34.0, 37.4, 38.6],
+  "slams": [35.6],
+  "silences": [[8.0, 8.8], [59.0, 59.4]]
+}
