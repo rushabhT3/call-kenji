@@ -8,8 +8,9 @@ import { CallPanel } from "./landing/CallPanel.tsx";
 import { Explainer } from "./landing/Explainer.tsx";
 import { Hero } from "./landing/Hero.tsx";
 import { RoleCard } from "./landing/RoleCard.tsx";
-import { SiteHeader } from "./landing/SiteHeader.tsx";
+import { LandingHeader } from "./landing/LandingHeader.tsx";
 import { useScrollToHash } from "./landing/useScrollToHash.ts";
+import { useSoftphone } from "./call/useSoftphone.ts";
 import { personaIdForCall, personaShownOnCall } from "./persona/catalog.ts";
 import { usePersonaCatalog, type PersonaCatalogLoad } from "./persona/usePersonaCatalog.ts";
 import { usePersonaChoice, type PersonaChoice } from "./persona/usePersonaChoice.ts";
@@ -25,20 +26,17 @@ interface LandingProps {
   choice: PersonaChoice;
 }
 
+/** The softphone, set to ring as the persona chosen here. */
+function softphoneFor(url: string | null, personaId: string): string | null {
+  return url ? `${url}?persona=${encodeURIComponent(personaId)}` : null;
+}
+
 function Landing({ feed, call, personas, choice }: LandingProps) {
   useScrollToHash();
+  const softphone = useSoftphone();
   return (
     <>
-      <SiteHeader homeHref="/">
-        <a className="caption site-header__link" href="#how-to-read">
-          <span className="site-header__link-long">How to read the X-ray</span>
-          <span className="site-header__link-short">How it works</span>
-        </a>
-        <a className="caption site-header__link" href="/?demo=1">
-          <span className="site-header__link-long">Watch a demo call</span>
-          <span className="site-header__link-short">Demo</span>
-        </a>
-      </SiteHeader>
+      <LandingHeader />
       <main className="container landing">
         <Hero />
         <div className="play">
@@ -56,6 +54,10 @@ function Landing({ feed, call, personas, choice }: LandingProps) {
             callError={call.error}
             canCall={feed.viewerId !== null}
             onCall={() => void call.start()}
+            softphoneUrl={softphoneFor(
+              softphone,
+              personaIdForCall(personas.catalog, choice.chosenId),
+            )}
           />
         </div>
         <Explainer />

@@ -93,7 +93,7 @@ class TranscriptFeed:
         self._publish(self._caller_line_id, "caller", japanese, is_final=False)
 
     def caller_said(self, japanese: str) -> None:
-        self.finish_kenji_line()
+        self._finish_interrupted_line()
         line_id = self._caller_line_id or self._next_id("caller")
         self._caller_line_id = None
         self._publish(line_id, "caller", japanese, is_final=True)
@@ -132,6 +132,11 @@ class TranscriptFeed:
         line, self._kenji = self._kenji, None
         if line is not None:
             self._finish(line, line.spoken)
+
+    def _finish_interrupted_line(self) -> None:
+        """Close a line the caller cut into; a lone 「はい、」 still waits for its answer."""
+        if self._kenji is not None and self._kenji.sentences:
+            self.finish_kenji_line()
 
     async def drain(self) -> None:
         self.finish_kenji_line()

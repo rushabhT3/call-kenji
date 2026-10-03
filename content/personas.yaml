@@ -64,7 +64,7 @@ personas:
         ja: もう電話してこないでください。
         en: Please don't call me again.
       - id: confirm
-        steps: [read_back]
+        steps: [negotiate, read_back]
         label: Confirm the plan
         ja: はい、間違いありません。
         en: Yes, that's right.
@@ -130,7 +130,7 @@ personas:
         ja: もう電話してこないでください。
         en: Please don't call me again.
       - id: confirm
-        steps: [read_back]
+        steps: [negotiate, read_back]
         label: Confirm the plan
         ja: はい、それで大丈夫です。
         en: Yes, that's fine.
@@ -196,7 +196,7 @@ personas:
         ja: もう電話してこないでください。
         en: Please don't call me again.
       - id: confirm
-        steps: [read_back]
+        steps: [negotiate, read_back]
         label: Confirm the plan
         ja: はい、間違いありません。
         en: Yes, that's right.
@@ -262,7 +262,7 @@ personas:
         ja: もう電話してこないでください。
         en: Please don't call me again.
       - id: confirm
-        steps: [read_back]
+        steps: [negotiate, read_back]
         label: Confirm the plan
         ja: はい、それでお願いします。
         en: Yes, let's do that.
@@ -328,7 +328,7 @@ personas:
         ja: もう電話してこないでください。
         en: Please don't call me again.
       - id: confirm
-        steps: [read_back]
+        steps: [negotiate, read_back]
         label: Confirm the plan
         ja: はい、大丈夫です。
         en: Yes, that's fine.

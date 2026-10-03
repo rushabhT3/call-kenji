@@ -3,8 +3,9 @@
 A Japanese debt-collection voice agent you can phone, with a live view of its reasoning during
 **your own** call.
 
-Kenji works for Minato Servicer (みなと債権回収), a fictional debt servicer. You play the
-customer, 佐藤ゆうき (Yuki Sato), who is ¥35,000 behind. Call from the browser or by phone, and the
+Kenji works for Minato Servicer (みなと債権回収), a fictional debt servicer. You play one of five
+fictional customers, each behind on a different amount for a different reason, and the page
+can say your lines in Japanese for you. Call from the browser or by phone, and the
 page shows what Kenji hears, how he decides when you talk over him, what a second model advises
 him to do next, which safeguards hold, and how fast he answers. When you hang up you get the
 outcome, the SMS he would send (it is never sent) and a hash-chained audit record.
@@ -144,7 +145,11 @@ cd web && pnpm dev    # then open http://localhost:5173/?demo=1
    OpenAI, also set `LLM_BASE_URL` and the three model names. The Muse Spark settings are in
    `.env.example`.
 3. Run `make dev` and open http://localhost:5173.
-4. Press **Call from browser**.
+4. Choose who you play (or **Surprise me**), then press **Call from browser**.
+
+Your character stays on screen during the call, with lines that fit the step Kenji is at. Press
+**Say it** and the line is spoken into the call for you in a synthetic voice, so you need no
+Japanese. The clips are recorded once with `uv run python scripts/phrase_clips.py`.
 
 Need time to think mid-sentence? Press **Hold**: Kenji waits, however long you pause, until
 you press **Done**.
@@ -178,8 +183,9 @@ for real. It costs about $0.008 a minute of Twilio credit:
 3. Install [cloudflared][cloudflared] for a free quick tunnel. No Cloudflare account is needed.
 4. Run `uv run python scripts/dev_server.py --phone` and, in another terminal,
    `cd web && pnpm dev`. Add `--afternoon-in-tokyo` to call outside Japanese calling hours.
-5. Open http://localhost:5173 for the live view, then http://127.0.0.1:7860/dev/softphone.
-   Press **Call Kenji**, and type the page's four-digit code on the keypad when he asks.
+5. Open http://localhost:5173, choose who you play, and press **Call through the phone line
+   (Twilio)**. The softphone rings Kenji as that character, types its own link code on the
+   keypad, and shows the transcript beside the keypad.
 
 The softphone only answers a browser on the same machine, never a request through the tunnel.
 

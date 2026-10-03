@@ -95,15 +95,40 @@ async def test_the_instant_acknowledgement_opens_the_line_of_the_answer() -> Non
     assert _subtitles(recorder)[-1].en == "Yes, [en] 承知いたしました。"
 
 
-async def test_an_acknowledgement_whose_answer_never_came_closes_when_the_caller_speaks() -> None:
+async def test_an_acknowledgement_waits_for_its_answer_while_the_caller_speaks() -> None:
     feed, recorder = _feed()
     feed.expect_lead(ACKNOWLEDGEMENT)
 
     feed.kenji_speaking("はい、")
-    feed.caller_said("もしもし")
+    feed.caller_said("月9,000円でお願いします。")
+    feed.kenji_speaking("承知いたしました。")
+    feed.kenji_said("承知いたしました。")
     await feed.drain()
 
-    assert _finals(recorder) == ["はい、", "もしもし"]
+    assert _finals(recorder) == ["月9,000円でお願いします。", "はい、承知いたしました。"]
+
+
+async def test_a_line_the_caller_cut_into_is_closed_when_they_finish() -> None:
+    feed, recorder = _feed()
+
+    feed.kenji_speaking("それでは、お約束の内容を確認させていただきます。")
+    feed.caller_said("あ、すみません。")
+    await feed.drain()
+
+    assert _finals(recorder) == [
+        "それでは、お約束の内容を確認させていただきます。",
+        "あ、すみません。",
+    ]
+
+
+async def test_an_acknowledgement_whose_answer_never_came_is_closed_when_the_call_ends() -> None:
+    feed, recorder = _feed()
+    feed.expect_lead(ACKNOWLEDGEMENT)
+
+    feed.kenji_speaking("はい、")
+    await feed.drain()
+
+    assert _finals(recorder) == ["はい、"]
     assert _subtitles(recorder)[0].en == "Yes,"
 
 
