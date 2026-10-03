@@ -22,7 +22,18 @@ RATE = 48_000
 DURATION = TIMELINE["durationSecs"]
 RNG = np.random.default_rng(7)
 
-D1, D2, F2, A2, D3, F3, A3, C4, D4, FS3 = 36.71, 73.42, 87.31, 110.0, 146.83, 174.61, 220.0, 261.63, 293.66, 185.0
+D1, D2, F2, A2, D3, F3, A3, C4, D4, FS3 = (
+    36.71,
+    73.42,
+    87.31,
+    110.0,
+    146.83,
+    174.61,
+    220.0,
+    261.63,
+    293.66,
+    185.0,
+)
 
 
 def seconds(count: float) -> np.ndarray:
@@ -69,7 +80,9 @@ def stereo(x: np.ndarray, pan: float = 0.0) -> np.ndarray:
 
 def reverb(x: np.ndarray, length: float, mix: float, darkness: float = 5000.0) -> np.ndarray:
     tail = seconds(length)
-    impulse = np.stack([noise(length), noise(length)], axis=1) * np.exp(-tail / (length / 5))[:, None]
+    impulse = (
+        np.stack([noise(length), noise(length)], axis=1) * np.exp(-tail / (length / 5))[:, None]
+    )
     impulse = lowpass(impulse, darkness)
     impulse /= np.abs(impulse).sum(axis=0).max() / 6
     wet = np.stack([signal.fftconvolve(x[:, side], impulse[:, side]) for side in (0, 1)], axis=1)
@@ -90,7 +103,10 @@ class Mix:
 
 
 def braam(length: float = 3.6) -> np.ndarray:
-    tone = sum(saw(f, length, d) for f, d in [(D2, 0), (D2, 0.004), (A2, -0.003), (D3, 0.002), (F3, -0.002)])
+    tone = sum(
+        saw(f, length, d)
+        for f, d in [(D2, 0), (D2, 0.004), (A2, -0.003), (D3, 0.002), (F3, -0.002)]
+    )
     tone = np.tanh(2.5 * tone / 3)
     bright, dark = lowpass(tone, 2600), lowpass(tone, 420)
     t = seconds(length)
@@ -121,12 +137,18 @@ def whoosh(length: float = 0.75, rising: bool = True) -> np.ndarray:
     edges = np.linspace(0, len(raw), blocks + 1, dtype=int)
     centres = np.geomspace(300, 4200, blocks) if rising else np.geomspace(4200, 300, blocks)
     swept = np.concatenate(
-        [bandpass(raw[a:b], c * 0.6, min(c * 1.6, 20_000)) for a, b, c in zip(edges[:-1], edges[1:], centres)]
+        [
+            bandpass(raw[a:b], c * 0.6, min(c * 1.6, 20_000))
+            for a, b, c in zip(edges[:-1], edges[1:], centres, strict=True)
+        ]
     )
     shape = np.sin(np.linspace(0, np.pi, len(swept))) ** 2
     out = swept * shape * 2.2
     pan = np.linspace(-0.7, 0.7, len(out))
-    return np.stack([out * np.cos((pan + 1) * np.pi / 4), out * np.sin((pan + 1) * np.pi / 4)], axis=1) * 1.4
+    return (
+        np.stack([out * np.cos((pan + 1) * np.pi / 4), out * np.sin((pan + 1) * np.pi / 4)], axis=1)
+        * 1.4
+    )
 
 
 def tick(high: bool) -> np.ndarray:
@@ -151,7 +173,9 @@ def pluck(freq: float, length: float = 0.22) -> np.ndarray:
     return lowpass(tone, 2200) * decay(length, 0.07, 0.002)
 
 
-def ostinato(start: float, end: float, step_start: float, step_end: float, mix: Mix, gain: float) -> None:
+def ostinato(
+    start: float, end: float, *, steps: tuple[float, float], mix: Mix, gain: float
+) -> None:
     pattern = [D3, D3, D3, F3, D3, D3, D3, A3, D3, D3, D3, C4, D3, D3, A3, F3]
     at, index = start, 0
     while at < end:
@@ -161,7 +185,8 @@ def ostinato(start: float, end: float, step_start: float, step_end: float, mix: 
         mix.add(stereo(pluck(pattern[index % len(pattern)]), 0.3 if index % 2 else -0.3), at, level)
         if index % 4 == 0:
             mix.add(boom(0.5, 90, 45), at, level * 0.5)
-        at += step_start + (step_end - step_start) * progress
+        first_step, last_step = steps
+        at += first_step + (last_step - first_step) * progress
         index += 1
 
 
@@ -260,11 +285,11 @@ def score(mix: Mix) -> None:
         mix.add(braam(2.6), at, 0.9)
         mix.add(boom(), at, 0.9)
     mix.add(boom(1.8), montage["slowModel"], 0.5)
-    ostinato(montage["turn"], scenes["refusal"][0], 0.125, 0.11, mix, 0.5)
+    ostinato(montage["turn"], scenes["refusal"][0], steps=(0.125, 0.11), mix=mix, gain=0.5)
     for beat in np.arange(40.2, 50.2, 1.0):
         mix.add(heartbeat(), beat, 0.5)
     flip = TIMELINE["flipbook"]
-    ostinato(flip["start"], flip["end"], 0.1, 0.05, mix, 0.42)
+    ostinato(flip["start"], flip["end"], steps=(0.1, 0.05), mix=mix, gain=0.42)
     snare_roll(flip["start"], flip["end"], mix)
     mix.add(riser(flip["end"] - flip["start"]), flip["start"], 0.5)
     silence(mix)
@@ -315,5 +340,6 @@ if __name__ == "__main__":
     score(mix)
     final = master(mix, spans)
     write_wav(PUBLIC / "audio" / "soundtrack.wav", final)
-    rms = np.sqrt((final**2).mean())
-    print(f"soundtrack: {len(final) / RATE:.1f}s, peak {np.abs(final).max():.2f}, rms {20 * np.log10(rms):.1f} dBFS")
+    rms_db = 20 * np.log10(np.sqrt((final**2).mean()))
+    peak = np.abs(final).max()
+    print(f"soundtrack: {len(final) / RATE:.1f}s, peak {peak:.2f}, rms {rms_db:.1f} dBFS")

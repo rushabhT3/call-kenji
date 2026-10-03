@@ -16,4 +16,5 @@ for name in sys.argv[1:]:
                 streams.append(f"video {context.name} {context.width}x{context.height}")
             elif stream.type == "audio":
                 streams.append(f"audio {context.name} {context.sample_rate}Hz {context.channels}ch")
-    print(f"{path.name}: {path.stat().st_size / 1_048_576:.2f} MB, {duration:.2f}s, {'; '.join(streams)}")
+    size_mb = path.stat().st_size / 1_048_576
+    print(f"{path.name}: {size_mb:.2f} MB, {duration:.2f}s, {'; '.join(streams)}")

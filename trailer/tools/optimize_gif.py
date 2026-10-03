@@ -1,6 +1,6 @@
 """Re-encode the email GIF so each frame stores only what changed, on one shared palette.
 
-    uv run --with pillow python trailer/tools/optimize_gif.py <in.gif> <out.gif> <frame_ms>
+uv run --with pillow python trailer/tools/optimize_gif.py <in.gif> <out.gif> <frame_ms>
 """
 
 import sys

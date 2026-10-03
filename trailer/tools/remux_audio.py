@@ -20,11 +20,18 @@ FRAME_SAMPLES = 1024
 def read_wav(path: str) -> tuple[np.ndarray, int]:
     with wave.open(path) as file:
         rate = file.getframerate()
-        samples = np.frombuffer(file.readframes(file.getnframes()), "<i2").reshape(-1, 2).astype(np.float32) / 32768
+        samples = (
+            np.frombuffer(file.readframes(file.getnframes()), "<i2")
+            .reshape(-1, 2)
+            .astype(np.float32)
+            / 32768
+        )
     return samples / np.abs(samples).max() * TARGET_PEAK, rate
 
 
-def encode_audio(stream: av.audio.stream.AudioStream, samples: np.ndarray, rate: int) -> list[av.Packet]:
+def encode_audio(
+    stream: av.audio.stream.AudioStream, samples: np.ndarray, rate: int
+) -> list[av.Packet]:
     packets: list[av.Packet] = []
     for start in range(0, len(samples), FRAME_SAMPLES):
         chunk = np.ascontiguousarray(samples[start : start + FRAME_SAMPLES].T)
@@ -39,7 +46,10 @@ def encode_audio(stream: av.audio.stream.AudioStream, samples: np.ndarray, rate:
 
 def remux(rendered: str, soundtrack: str, target: str) -> None:
     samples, rate = read_wav(soundtrack)
-    with av.open(rendered) as source, av.open(target, "w", options={"movflags": "+faststart"}) as output:
+    with (
+        av.open(rendered) as source,
+        av.open(target, "w", options={"movflags": "+faststart"}) as output,
+    ):
         video_in = source.streams.video[0]
         video_out = output.add_stream_from_template(video_in)
         audio_out = output.add_stream("aac", rate=rate, layout="stereo")
@@ -47,7 +57,9 @@ def remux(rendered: str, soundtrack: str, target: str) -> None:
         audio_packets = encode_audio(audio_out, samples, rate)
         video_packets = [packet for packet in source.demux(video_in) if packet.dts is not None]
         timed = [(float(p.dts * video_in.time_base), p, video_out) for p in video_packets]
-        timed += [(float(p.dts * p.time_base), p, audio_out) for p in audio_packets if p.dts is not None]
+        timed += [
+            (float(p.dts * p.time_base), p, audio_out) for p in audio_packets if p.dts is not None
+        ]
         for _, packet, stream in sorted(timed, key=lambda item: item[0]):
             packet.stream = stream
             output.mux(packet)

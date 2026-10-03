@@ -11,7 +11,10 @@ ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "models" / "sense-voice"
 
 recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
-    model=str(MODEL / "model.int8.onnx"), tokens=str(MODEL / "tokens.txt"), num_threads=2, language="ja"
+    model=str(MODEL / "model.int8.onnx"),
+    tokens=str(MODEL / "tokens.txt"),
+    num_threads=2,
+    language="ja",
 )
 audio = decode(CALL_AUDIO)
 for span in sys.argv[1:]:
