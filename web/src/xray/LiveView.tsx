@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { PostCall } from "../aftercall/PostCall.tsx";
 import { finishedCallMs, latestCallerTone, type CallView } from "../call/callView.ts";
 import type { BrowserCall } from "../call/useBrowserCall.ts";
@@ -72,6 +73,10 @@ export function LiveView(props: LiveViewProps) {
   const timerMs = useCallTimer(props.startedAtMs, props.endedAtMs);
   const elapsedMs = finishedCallMs(view) ?? timerMs;
   const hasCallBar = call?.state === "connected" && view.status === "live";
+  // A call replaces the landing page in place, so it would open wherever that page was scrolled to.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <>
       <LiveHeader view={view} elapsedMs={elapsedMs} isDemo={isDemo} call={call} />

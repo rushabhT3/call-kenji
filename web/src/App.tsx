@@ -32,7 +32,7 @@ function softphoneFor(url: string | null, personaId: string): string | null {
 }
 
 function Landing({ feed, call, personas, choice }: LandingProps) {
-  useScrollToHash();
+  useScrollToHash(personas.catalog.status !== "loading");
   const softphone = useSoftphone();
   return (
     <>
