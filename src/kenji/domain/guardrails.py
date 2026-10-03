@@ -20,7 +20,7 @@ class Refusal(StrEnum):
 class CallLimits:
     max_call_seconds: int = 300
     daily_seconds: int = 3_600
-    calls_per_caller_per_day: int = 10
+    calls_per_caller_per_day: int = 25
 
     def __post_init__(self) -> None:
         if min(self.max_call_seconds, self.daily_seconds, self.calls_per_caller_per_day) <= 0:

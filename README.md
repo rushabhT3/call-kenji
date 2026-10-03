@@ -119,7 +119,7 @@ The guardrails cap usage:
 
 - 5 minutes a call;
 - 60 phone minutes and 60 browser minutes a day;
-- 10 calls a day per caller;
+- 25 calls a day per caller;
 - a $20 budget alert.
 
 The itemised table and the full hosting decision are in [docs/DEPLOY.md](docs/DEPLOY.md).

@@ -27,8 +27,8 @@ def test_call_is_shortened_to_what_is_left_of_the_daily_pool() -> None:
     assert admission.call_seconds_allowed == 120
 
 
-def test_a_caller_may_call_ten_times_a_day() -> None:
-    admission = admit_call(UsageToday(seconds_used=0, calls_by_this_caller=9), LIMITS)
+def test_a_caller_may_call_25_times_a_day() -> None:
+    admission = admit_call(UsageToday(seconds_used=0, calls_by_this_caller=24), LIMITS)
 
     assert admission.is_admitted
 
@@ -37,7 +37,7 @@ def test_a_caller_may_call_ten_times_a_day() -> None:
     ("usage", "refusal"),
     [
         (UsageToday(seconds_used=3_600, calls_by_this_caller=0), Refusal.DAILY_MINUTES_USED_UP),
-        (UsageToday(seconds_used=0, calls_by_this_caller=10), Refusal.CALLER_DAILY_LIMIT),
+        (UsageToday(seconds_used=0, calls_by_this_caller=25), Refusal.CALLER_DAILY_LIMIT),
     ],
 )
 def test_calls_are_refused_when_a_guardrail_is_hit(usage: UsageToday, refusal: Refusal) -> None:
