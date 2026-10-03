@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import cast
 
+from loguru import logger
+
 from kenji.app.events import CallEnded, CallStarted, TranscriptLine
 from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRequest, CallRouting
@@ -16,8 +18,11 @@ from kenji.domain.outcome import CallOutcome
 from tests.conversation.harness import (
     FixedClock,
     MemoryRecorder,
+    TextCall,
+    TextKit,
     TextTransport,
     build_text_kit,
+    wait_until,
 )
 
 LIMITS = CallLimits(max_call_seconds=300, daily_seconds=3_600, calls_per_caller_per_day=3)
@@ -39,6 +44,7 @@ class MemoryUsage:
 
 
 LATE = datetime(2026, 10, 2, 21, 10, tzinfo=JAPAN_STANDARD_TIME)
+TANAKA_IDENTITY = "田中けんたです。生年月日は、昭和60年3月2日です。"
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,7 @@ class LauncherUnderTest:
     launcher: CallLauncher
     recorder: MemoryRecorder
     hub: EventHub
+    text: TextKit
 
 
 def launcher_for(clock: FixedClock, usage: MemoryUsage) -> LauncherUnderTest:
@@ -60,7 +67,7 @@ def launcher_for(clock: FixedClock, usage: MemoryUsage) -> LauncherUnderTest:
         CallRouting(hub=hub, links=LinkRegistry(text.kit.clock)),
         CallAccounting(usage, make_recorder, {"phone": LIMITS, "browser": LIMITS}),
     )
-    return LauncherUnderTest(launcher, recorder, hub)
+    return LauncherUnderTest(launcher, recorder, hub, text)
 
 
 async def _connected_call(launcher: CallLauncher, request: CallRequest) -> CallOutcome:
@@ -146,3 +153,62 @@ async def test_phone_call_inside_the_limits_is_answered_without_a_record_yet() -
     assert line is None
     assert under_test.recorder.events == []
     assert usage.calls == 0
+
+
+async def _text_call(under_test: LauncherUnderTest, request: CallRequest) -> TextCall:
+    transport = TextTransport()
+    task = asyncio.create_task(under_test.launcher.run(transport, request))
+    await asyncio.sleep(0.2)
+    await transport.connect()
+    text = under_test.text
+    return TextCall(
+        transport,
+        text.talker,
+        text.speech,
+        under_test.recorder,
+        text.contacts,
+        text.advice,
+        task,
+        acknowledgement=text.kit.script.lines.acknowledgement.ja,
+    )
+
+
+def _started(recorder: MemoryRecorder) -> CallStarted:
+    return cast(CallStarted, recorder.of_type("call_started")[0])
+
+
+async def test_a_call_plays_the_persona_the_caller_chose() -> None:
+    under_test = launcher_for(FixedClock(), MemoryUsage())
+    request = CallRequest("browser", "caller-a", persona_id="tanaka")
+
+    call = await _text_call(under_test, request)
+    await call.opening_played()
+    await call.caller_says(TANAKA_IDENTITY, then_node="state_balance")
+    await wait_until(lambda: any("4410" in line for line in call.kenji_lines()), "the balance")
+    await call.hang_up()
+
+    assert _started(under_test.recorder).persona_id == "tanaka"
+    assert any("52,000円" in line for line in call.kenji_lines())
+
+
+async def test_an_unknown_persona_plays_the_default_and_is_logged() -> None:
+    under_test = launcher_for(FixedClock(), MemoryUsage())
+    warnings: list[str] = []
+    sink = logger.add(lambda message: warnings.append(str(message)), level="WARNING")
+    try:
+        await _connected_call(
+            under_test.launcher, CallRequest("browser", "caller-a", persona_id="nobody")
+        )
+    finally:
+        logger.remove(sink)
+
+    assert _started(under_test.recorder).persona_id == "sato"
+    assert any("unknown persona 'nobody'" in warning for warning in warnings)
+
+
+async def test_a_refused_call_still_names_its_persona() -> None:
+    under_test = launcher_for(FixedClock(LATE), MemoryUsage())
+
+    await under_test.launcher.screen(CallRequest("phone", "caller-a", persona_id="ito"))
+
+    assert _started(under_test.recorder).persona_id == "ito"

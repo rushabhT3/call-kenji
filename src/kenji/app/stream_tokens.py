@@ -10,8 +10,16 @@ STREAM_TOKEN_TTL = timedelta(seconds=60)
 
 
 @dataclass(frozen=True, slots=True)
-class _Pending:
+class StreamGrant:
+    """What the webhook announced for the stream: who is calling and the persona they play."""
+
     caller_ref: str
+    persona_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _Pending:
+    grant: StreamGrant
     issued_at: datetime
 
 
@@ -21,16 +29,16 @@ class StreamTokens:
         self._ttl = ttl
         self._pending: dict[str, _Pending] = {}
 
-    def issue(self, caller_ref: str) -> str:
+    def issue(self, grant: StreamGrant) -> str:
         self._drop_expired()
         token = secrets.token_urlsafe(24)
-        self._pending[token] = _Pending(caller_ref=caller_ref, issued_at=self._clock.now())
+        self._pending[token] = _Pending(grant=grant, issued_at=self._clock.now())
         return token
 
-    def redeem(self, token: str) -> str | None:
+    def redeem(self, token: str) -> StreamGrant | None:
         self._drop_expired()
         pending = self._pending.pop(token, None)
-        return None if pending is None else pending.caller_ref
+        return None if pending is None else pending.grant
 
     def _drop_expired(self) -> None:
         oldest_valid = self._clock.now() - self._ttl

@@ -30,6 +30,7 @@ class CallContext:
     transport: Literal["phone", "browser"]
     caller_ref: str
     started_at: datetime
+    persona_id: str
     account: Account
     negotiation: Negotiation
 

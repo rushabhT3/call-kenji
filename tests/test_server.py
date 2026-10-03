@@ -1,4 +1,6 @@
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi import Request
@@ -7,6 +9,7 @@ from pydantic import SecretStr
 
 from kenji import server
 from kenji.app.events import FlowNodeEntered
+from kenji.app.launcher import CallRequest
 from kenji.config import Settings
 from kenji.container import Services
 from kenji.server import client_address, create_app
@@ -85,3 +88,38 @@ def test_forwarded_address_is_trusted_only_with_the_proxy_secret() -> None:
     assert client_address(from_proxy, "s3cret") == "203.0.113.9"
     assert client_address(spoofed, "s3cret") == "10.0.0.1"
     assert client_address(_request(forwarded), None) == "10.0.0.1"
+
+
+@pytest.mark.parametrize(
+    ("extra", "persona_id"),
+    [
+        ({"requestData": {"viewer_id": "tab", "persona_id": "tanaka"}}, "tanaka"),
+        ({"request_data": {"persona_id": "nobody"}}, "nobody"),
+        ({"requestData": {"viewer_id": "tab", "persona_id": ""}}, None),
+        ({}, None),
+    ],
+)
+def test_the_offer_passes_the_chosen_persona_to_the_call(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    extra: dict[str, Any],
+    persona_id: str | None,
+) -> None:
+    requests: list[CallRequest] = []
+
+    def starter(
+        _services: Services, _background: object, request: CallRequest
+    ) -> Callable[..., None]:
+        requests.append(request)
+        return lambda _connection: None
+
+    async def answer(_webrtc: object, _offer: object, _start: object) -> dict[str, str]:
+        return {"sdp": "answer", "type": "answer"}
+
+    monkeypatch.setattr(server, "_call_starter", starter)
+    monkeypatch.setattr(server, "_answer_offer", answer)
+    with client:
+        reply = client.post("/api/offer", json={"sdp": "offer", "type": "offer"} | extra)
+
+    assert reply.json() == {"sdp": "answer", "type": "answer"}
+    assert [request.persona_id for request in requests] == [persona_id]

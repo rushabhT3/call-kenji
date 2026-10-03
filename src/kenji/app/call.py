@@ -104,6 +104,7 @@ class Call:
                 call_id=session.context.call_id,
                 transport=session.context.transport,
                 started_at=session.context.started_at,
+                persona_id=session.context.persona_id,
             )
         )
         session.publish_compliance()

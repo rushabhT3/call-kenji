@@ -48,7 +48,10 @@ async def speak_and_hang_up(
 def publish_refusal(io: CallIO, context: CallContext, line: Line, clock: Clock) -> None:
     io.sink.publish(
         CallStarted(
-            call_id=context.call_id, transport=context.transport, started_at=context.started_at
+            call_id=context.call_id,
+            transport=context.transport,
+            started_at=context.started_at,
+            persona_id=context.persona_id,
         )
     )
     io.sink.publish(

@@ -24,6 +24,38 @@ DEBTOR = DebtorIdentity(
     family_name_latin="Sato",
     date_of_birth=BIRTHDAY,
 )
+KENTA = DebtorIdentity(
+    family_name_kana="たなか",
+    given_name_kana="けんた",
+    written_name="田中けんた",
+    family_name_written="田中",
+    family_name_latin="Tanaka",
+    date_of_birth=date(1985, 3, 2),
+)
+HARUKA = DebtorIdentity(
+    family_name_kana="すずき",
+    given_name_kana="はるか",
+    written_name="鈴木はるか",
+    family_name_written="鈴木",
+    family_name_latin="Suzuki",
+    date_of_birth=date(1996, 11, 23),
+)
+MASARU = DebtorIdentity(
+    family_name_kana="いとう",
+    given_name_kana="まさる",
+    written_name="伊藤まさる",
+    family_name_written="伊藤",
+    family_name_latin="Ito",
+    date_of_birth=date(1972, 5, 9),
+)
+AYA = DebtorIdentity(
+    family_name_kana="やまもと",
+    given_name_kana="あや",
+    written_name="山本あや",
+    family_name_written="山本",
+    family_name_latin="Yamamoto",
+    date_of_birth=date(2000, 1, 30),
+)
 
 
 @pytest.mark.parametrize(
@@ -47,6 +79,24 @@ def test_one_date_of_birth_is_found(speech: str) -> None:
 
 def test_the_first_year_of_an_era_is_read() -> None:
     assert find_birth_date("平成元年1月8日です") == date(1989, 1, 8)
+
+
+@pytest.mark.parametrize(
+    ("speech", "expected"),
+    [
+        ("昭和60年3月2日です", date(1985, 3, 2)),
+        ("昭和六十年三月二日生まれです", date(1985, 3, 2)),
+        ("昭和 47年 5月 9日", date(1972, 5, 9)),
+        ("昭和四十七年五月九日です", date(1972, 5, 9)),
+        ("１９７２年５月９日です", date(1972, 5, 9)),
+        ("昭和元年12月25日です", date(1926, 12, 25)),
+        ("昭和64年1月7日です", date(1989, 1, 7)),
+        ("平成八年十一月二十三日です", date(1996, 11, 23)),
+        ("平成12年1月30日生まれです", date(2000, 1, 30)),
+    ],
+)
+def test_a_date_of_birth_in_any_personas_era_is_read(speech: str, expected: date) -> None:
+    assert find_birth_date(speech) == expected
 
 
 @pytest.mark.parametrize(
@@ -179,6 +229,50 @@ def test_the_account_holders_full_name_is_recognised(speech: str) -> None:
 )
 def test_someone_else_or_a_partial_name_is_not_the_account_holder(speech: str) -> None:
     assert not names_the_debtor(speech, DEBTOR)
+
+
+@pytest.mark.parametrize(
+    ("speech", "debtor"),
+    [
+        ("田中けんたです。生年月日は、昭和60年3月2日です。", KENTA),
+        ("タナカケンタです。昭和六十年三月二日生まれです。", KENTA),
+        ("鈴木はるかです。生年月日は、平成8年11月23日です。", HARUKA),
+        ("伊藤まさると申します。昭和47年5月9日生まれです。", MASARU),
+        ("はい、本人です。いとうまさる、生年月日は1972年5月9日です。", MASARU),
+        ("山本あやです。生年月日は2000年1月30日です。", AYA),
+    ],
+)
+def test_every_personas_name_and_birth_date_are_left_for_the_rules(
+    speech: str, debtor: DebtorIdentity
+) -> None:
+    assert find_birth_date(speech) == debtor.date_of_birth
+    assert names_the_debtor(speech, debtor)
+    assert only_identity_words(speech, debtor)
+
+
+@pytest.mark.parametrize(
+    ("speech", "debtor"),
+    [
+        ("田中です", KENTA),
+        ("けんたです", KENTA),
+        ("田中の家族です。本人はいま出かけています。", KENTA),
+        ("田中けんたの父です", KENTA),
+        ("伊藤まさるさんの件で電話しました", MASARU),
+        ("佐藤ゆうきです", MASARU),
+        ("山本の家族です。本人はいま出かけています。", AYA),
+    ],
+)
+def test_someone_else_or_a_partial_name_is_not_another_persona(
+    speech: str, debtor: DebtorIdentity
+) -> None:
+    assert not names_the_debtor(speech, debtor)
+
+
+def test_another_personas_identity_is_not_this_debtors() -> None:
+    speech = "佐藤ゆうきです。生年月日は、平成2年7月14日です。"
+
+    assert not names_the_debtor(speech, KENTA)
+    assert find_birth_date(speech) != KENTA.date_of_birth
 
 
 @pytest.mark.parametrize(

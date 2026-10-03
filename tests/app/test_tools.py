@@ -35,6 +35,7 @@ def session(recorder: MemoryRecorder) -> CallSession:
         transport="browser",
         caller_ref="caller-1",
         started_at=NOW,
+        persona_id="sato",
         account=ACCOUNT,
         negotiation=Negotiation(balance_yen=35_000, today=NOW.date()),
     )

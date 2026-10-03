@@ -124,10 +124,21 @@ def client_address(http: Request, proxy_secret: str | None) -> str:
     return http.client.host if http.client else "unknown"
 
 
-def _browser_request(services: Services, http: Request, viewer_id: str | None) -> CallRequest:
+def _requested_persona(request_data: object) -> str | None:
+    """The persona the page chose, if any; the launcher plays the default for an unknown one."""
+    persona_id = request_data.get("persona_id") if isinstance(request_data, dict) else None
+    return str(persona_id) if persona_id else None
+
+
+def _browser_request(
+    services: Services, http: Request, viewer_id: str | None, persona_id: str | None = None
+) -> CallRequest:
     address = client_address(http, services.proxy_secret)
     return CallRequest(
-        transport="browser", caller_ref=caller_ref(address, services.salt), viewer_id=viewer_id
+        transport="browser",
+        caller_ref=caller_ref(address, services.salt),
+        viewer_id=viewer_id,
+        persona_id=persona_id,
     )
 
 
@@ -185,7 +196,7 @@ def _add_browser_call_routes(
         body: dict[str, Any] = await http.json()
         request_data = body.get("requestData") or body.get("request_data") or {}
         viewer_id = request_data.get("viewer_id") if isinstance(request_data, dict) else None
-        request = _browser_request(services, http, viewer_id)
+        request = _browser_request(services, http, viewer_id, _requested_persona(request_data))
         return await _answer_offer(webrtc, body, _call_starter(services, background, request))
 
     @app.patch("/api/offer")

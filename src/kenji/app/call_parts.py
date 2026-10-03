@@ -8,6 +8,7 @@ from kenji.app.events import StrategistUpdated
 from kenji.app.fast_path import FastPathParts, FastPathPlanner
 from kenji.app.flows import CallFlow
 from kenji.app.latency import LatencyTracker
+from kenji.app.personas import PersonaCatalog
 from kenji.app.ports import (
     AdviceModel,
     AuditLog,
@@ -25,7 +26,6 @@ from kenji.app.session import CallContext, CallSession
 from kenji.app.strategist import Advice, Strategist, StrategistInjector, render_conversation
 from kenji.app.tools import CallTools
 from kenji.app.transcript import TranscriptFeed
-from kenji.domain.account import Account
 from kenji.domain.terms import smallest_acceptable_monthly, suggested_plans
 from kenji.domain.turn import BackchannelClassifier
 
@@ -41,7 +41,7 @@ class VoiceServices:
 @dataclass(frozen=True, slots=True)
 class CallKit:
     script: Script
-    account: Account
+    personas: PersonaCatalog
     voice: VoiceServices
     advice_model: AdviceModel
     translator: Translator
@@ -74,8 +74,8 @@ class CallParts:
         )
 
 
-def _persona_fields(kit: CallKit, context: CallContext) -> dict[str, str]:
-    account, terms = kit.account, context.negotiation.terms
+def _persona_fields(context: CallContext) -> dict[str, str]:
+    account, terms = context.account, context.negotiation.terms
     return {
         "debtor_name": account.debtor.written_name,
         "balance_yen": format_yen(account.balance_yen),
@@ -100,7 +100,7 @@ def _publish_advice(sink: EventSink) -> Callable[[Advice], None]:
 
 def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallParts:
     prompts = kit.script.prompts
-    fields = _persona_fields(kit, context)
+    fields = _persona_fields(context)
     session = CallSession(context, io.sink, io.audit, kit.clock)
     feed = TranscriptFeed(io.sink, kit.translator, kit.clock)
     tools = CallTools(session, kit.contacts)
@@ -113,7 +113,7 @@ def build_call_parts(kit: CallKit, context: CallContext, io: CallIO) -> CallPart
             flow=flow,
             tools=tools,
             session=session,
-            debtor=kit.account.debtor,
+            debtor=context.account.debtor,
             lines=kit.script.lines,
             on_line=feed.expect_scripted,
         )

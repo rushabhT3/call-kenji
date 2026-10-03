@@ -4,7 +4,7 @@ from pathlib import Path
 
 from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.openai.llm import OpenAILLMService
-from pipecat.services.soniox.stt import SonioxSTTService
+from pipecat.services.soniox.stt import SonioxContextObject, SonioxSTTService
 from pydantic import SecretStr
 
 from kenji.adapters.openai_models import OpenAIAdviceModel, OpenAITranslator
@@ -40,6 +40,21 @@ def test_real_speech_and_model_adapters_build_without_a_network(tmp_path: Path) 
     assert kit.voice.turn_detection.user_params(strategy, CallerHold()).vad_analyzer is not None
     assert isinstance(kit.advice_model, OpenAIAdviceModel)
     assert isinstance(kit.translator, OpenAITranslator)
+
+
+def test_speech_recognition_knows_every_personas_name(tmp_path: Path) -> None:
+    kit = build_kit(_settings(tmp_path))
+
+    speech_to_text = kit.voice.speech_to_text.create()
+
+    assert isinstance(speech_to_text, SonioxSTTService)
+    settings = speech_to_text.settings
+    assert isinstance(settings, SonioxSTTService.Settings)
+    assert isinstance(settings.context, SonioxContextObject)
+    terms = settings.context.terms or []
+    names = {account.debtor.written_name for account in kit.personas.accounts.values()}
+    assert names == {"佐藤ゆうき", "田中けんた", "鈴木はるか", "伊藤まさる", "山本あや"}
+    assert names <= set(terms)
 
 
 def test_browser_only_services_have_no_phone_line_and_use_stun(tmp_path: Path) -> None:

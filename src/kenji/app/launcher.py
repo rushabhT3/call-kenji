@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
+from loguru import logger
 from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.transports.base_transport import BaseTransport
 
@@ -35,6 +36,7 @@ class CallRequest:
     caller_ref: str
     viewer_id: str | None = None
     call_id: str = ""
+    persona_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,15 +140,25 @@ class CallLauncher:
 
     def _context(self, request: CallRequest) -> CallContext:
         started_at = self._kit.clock.now()
-        account = self._kit.account
+        persona_id = self._persona_id(request.persona_id)
+        account = self._kit.personas.account_for(persona_id)
         return CallContext(
             call_id=request.call_id or uuid.uuid4().hex,
             transport=request.transport,
             caller_ref=request.caller_ref,
             started_at=started_at,
+            persona_id=persona_id,
             account=account,
             negotiation=Negotiation(balance_yen=account.balance_yen, today=usage_day(started_at)),
         )
+
+    def _persona_id(self, requested: str | None) -> str:
+        persona_id = self._kit.personas.resolve(requested)
+        if requested is not None and requested != persona_id:
+            logger.warning(
+                "unknown persona {persona_id!r}; playing the default", persona_id=requested
+            )
+        return persona_id
 
     async def _admit(self, attempt: _Attempt) -> Admission:
         request = attempt.request

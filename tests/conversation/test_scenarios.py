@@ -8,6 +8,7 @@ from typing import cast
 
 from kenji.app.events import (
     AuditPublished,
+    CallStarted,
     ComplianceUpdated,
     HandoffRecorded,
     SmsPreview,
@@ -20,6 +21,7 @@ from tests.conversation.harness import Say, TextCall, ToolCall, start_text_call,
 
 VERIFY = ToolCall("verify_identity", {"name_kana": "サトウユウキ", "date_of_birth": "1990-07-14"})
 IDENTITY_ANSWER = "佐藤ゆうきです。平成2年7月14日生まれです。"
+TANAKA_IDENTITY_ANSWER = "田中けんたです。生年月日は、昭和60年3月2日です。"
 ACKNOWLEDGEMENT = "はい、"
 DEBT_WORDS = ("債権", "回収", "返済", "支払", "延滞", "滞納", "円", "7731", "35,000", "万")
 
@@ -161,3 +163,31 @@ async def test_caller_lines_get_english_subtitles() -> None:
     subtitles = cast(list[Subtitle], call.recorder.of_type("subtitle"))
     assert any(subtitle.en == "[en] よろしくお願いします。" for subtitle in subtitles)
     assert any(subtitle.en.startswith("Thank you for calling.") for subtitle in subtitles)
+
+
+async def test_a_caller_playing_tanaka_is_verified_by_his_name_and_showa_birth_date() -> None:
+    call = await start_text_call([], persona_id="tanaka")
+    await call.opening_played()
+    await call.caller_says(TANAKA_IDENTITY_ANSWER, then_node="state_balance")
+    await wait_until(lambda: any("4410" in line for line in _kenji_lines(call)), "the balance")
+    await call.hang_up()
+
+    assert cast(CallStarted, call.recorder.of_type("call_started")[0]).persona_id == "tanaka"
+    assert _last_compliance(call).identity_gate is CheckStatus.PASSED
+    assert any("52,000円" in line for line in _kenji_lines(call))
+    assert call.talker.inferences == []
+
+
+async def test_a_caller_playing_tanaka_is_not_verified_as_sato() -> None:
+    call = await start_text_call([VERIFY], persona_id="tanaka")
+    await call.opening_played()
+    await call.reply(IDENTITY_ANSWER)
+    await call.hang_up()
+
+    checks = [
+        record.entry.payload
+        for record in call.recorder.records()
+        if record.entry.kind == "identity_checked"
+    ]
+    assert checks == [{"status": "unverified", "failed_attempts": 1}]
+    assert "state_balance" not in call.nodes()

@@ -8,7 +8,7 @@ import asyncio
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from kenji.adapters.content import load_account, load_script
+from kenji.adapters.content import load_personas, load_script
 from kenji.app.call import Call, CallSetup
 from kenji.app.call_parts import CallIO, CallKit, VoiceServices
 from kenji.app.events import TranscriptLine
@@ -162,7 +162,7 @@ def build_text_kit(
     contacts, advice = MemoryContacts(), CannedAdvice()
     kit = CallKit(
         script=load_script(CONTENT / "script_ja.yaml"),
-        account=load_account(CONTENT / "account.yaml"),
+        personas=load_personas(CONTENT / "personas.yaml"),
         voice=VoiceServices(
             speech_to_text=_Factory(_Passthrough),
             text_to_speech=_Factory(lambda: speech),
@@ -178,15 +178,17 @@ def build_text_kit(
     return TextKit(kit, talker, speech, contacts, advice)
 
 
-def text_call_context(kit: CallKit) -> CallContext:
+def text_call_context(kit: CallKit, persona_id: str | None = None) -> CallContext:
     started_at = kit.clock.now()
+    account = kit.personas.account_for(persona_id)
     return CallContext(
         call_id="text-call",
         transport="browser",
         caller_ref="caller-ref",
         started_at=started_at,
-        account=kit.account,
-        negotiation=Negotiation(balance_yen=kit.account.balance_yen, today=started_at.date()),
+        persona_id=kit.personas.resolve(persona_id),
+        account=account,
+        negotiation=Negotiation(balance_yen=account.balance_yen, today=started_at.date()),
     )
 
 
@@ -194,17 +196,23 @@ async def start_text_call(
     steps: Sequence[TalkerStep],
     clock: FixedClock | None = None,
     live: LiveModels | None = None,
+    persona_id: str | None = None,
 ) -> TextCall:
     wait_secs = LIVE_WAIT_SECS if live else WAIT_SECS
-    return await launch_text_call(build_text_kit(steps, clock, live), wait_secs=wait_secs)
+    return await launch_text_call(
+        build_text_kit(steps, clock, live), wait_secs=wait_secs, persona_id=persona_id
+    )
 
 
 async def launch_text_call(
-    parts: TextKit, max_seconds: int = MAX_CALL_SECS, wait_secs: float = WAIT_SECS
+    parts: TextKit,
+    max_seconds: int = MAX_CALL_SECS,
+    wait_secs: float = WAIT_SECS,
+    persona_id: str | None = None,
 ) -> TextCall:
     recorder, transport = MemoryRecorder(), TextTransport()
     io = CallIO(sink=recorder, audit=recorder)
-    setup = CallSetup(text_call_context(parts.kit), io, max_seconds)
+    setup = CallSetup(text_call_context(parts.kit, persona_id), io, max_seconds)
     task = asyncio.create_task(Call(parts.kit, setup, transport).run())
     await asyncio.sleep(0.2)
     await transport.connect()

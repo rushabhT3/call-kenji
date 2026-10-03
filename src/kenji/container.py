@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from kenji.adapters.clock import SystemClock
-from kenji.adapters.content import load_account, load_script
+from kenji.adapters.content import load_personas, load_script
 from kenji.adapters.onnx_classifier import OnnxBackchannelClassifier
 from kenji.adapters.openai_models import (
     ChatEndpoint,
@@ -27,11 +27,11 @@ from kenji.app.call_parts import CallKit, VoiceServices
 from kenji.app.hub import EventHub
 from kenji.app.launcher import CallAccounting, CallLauncher, CallRouting, TransportKind
 from kenji.app.linking import LinkRegistry
+from kenji.app.personas import PersonaCatalog
 from kenji.app.ports import CallRecorder, Clock, IceServerSource, TalkerFactory
 from kenji.app.script import Script
 from kenji.app.stream_tokens import StreamTokens
 from kenji.config import LanguageModelSettings, Settings
-from kenji.domain.account import Account
 from kenji.domain.guardrails import CallLimits
 from kenji.domain.turn import BackchannelClassifier, LexiconBackchannelClassifier
 
@@ -89,11 +89,11 @@ def load_or_create_salt(path: Path) -> bytes:
     return salt
 
 
-def _voice(settings: Settings, script: Script, account: Account) -> VoiceServices:
+def _voice(settings: Settings, script: Script, personas: PersonaCatalog) -> VoiceServices:
     vocabulary = [
         script.persona.agent_name,
         script.persona.servicer_full,
-        account.debtor.written_name,
+        *(account.debtor.written_name for account in personas.accounts.values()),
     ]
     return VoiceServices(
         speech_to_text=SonioxSpeechToText(
@@ -111,12 +111,12 @@ def _voice(settings: Settings, script: Script, account: Account) -> VoiceService
 
 def build_kit(settings: Settings) -> CallKit:
     script = load_script(settings.content_dir / "script_ja.yaml")
-    account = load_account(settings.content_dir / "account.yaml")
+    personas = load_personas(settings.content_dir / "personas.yaml")
     endpoint = chat_endpoint(settings)
     return CallKit(
         script=script,
-        account=account,
-        voice=_voice(settings, script, account),
+        personas=personas,
+        voice=_voice(settings, script, personas),
         advice_model=OpenAIAdviceModel(endpoint, settings.strategist_model),
         translator=OpenAITranslator(
             endpoint, settings.translator_model, script.prompts.translator_system

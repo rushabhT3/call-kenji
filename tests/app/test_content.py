@@ -4,13 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from kenji.adapters.content import load_account, load_script
+from kenji.adapters.content import load_personas, load_script
 from kenji.app.agreement import (
     describe_balance,
     describe_handoff_sms,
     describe_promise_sms,
     describe_read_back,
 )
+from kenji.app.personas import PersonaCatalog
 from kenji.app.script import Script
 from kenji.domain.account import Account, AccountSummary
 from kenji.domain.terms import Negotiation, PaymentProposal, check_terms
@@ -25,11 +26,16 @@ def script() -> Script:
 
 
 @pytest.fixture(scope="module")
-def account() -> Account:
-    return load_account(CONTENT / "account.yaml")
+def personas() -> PersonaCatalog:
+    return load_personas(CONTENT / "personas.yaml")
 
 
-def test_account_is_the_fictional_debtor(account: Account) -> None:
+@pytest.fixture(scope="module")
+def account(personas: PersonaCatalog) -> Account:
+    return personas.account_for(None)
+
+
+def test_the_default_persona_is_the_fictional_debtor(account: Account) -> None:
     assert account.debtor.written_name == "佐藤ゆうき"
     assert account.debtor.date_of_birth == date(1990, 7, 14)
     assert (account.account_suffix, account.balance_yen) == ("7731", 35_000)
@@ -112,5 +118,6 @@ def test_every_tool_documents_exactly_its_parameters(script: Script) -> None:
         assert set(getattr(script.tools, name).parameters) == expected.get(name, set())
 
 
-def test_debtor_identity_fields_all_come_from_the_account_file(account: Account) -> None:
-    assert all(getattr(account.debtor, field.name) for field in fields(account.debtor))
+def test_debtor_identity_fields_all_come_from_the_persona_file(personas: PersonaCatalog) -> None:
+    for account in personas.accounts.values():
+        assert all(getattr(account.debtor, field.name) for field in fields(account.debtor))
