@@ -31,6 +31,10 @@
   cursor: not-allowed;
 }
 
+.button[aria-busy="true"] {
+  cursor: progress;
+}
+
 .button--lg {
   min-height: var(--button-height-lg);
   padding: 0 var(--space-7);

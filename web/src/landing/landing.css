@@ -656,6 +656,11 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+.link-code__cell--waiting {
+  background: var(--color-surface-sunken);
+  animation: pulse var(--duration-pulse) ease-in-out infinite;
+}
+
 .link-code__help,
 .link-code__pending {
   display: grid;

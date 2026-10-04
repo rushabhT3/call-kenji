@@ -10,6 +10,7 @@ import { Hero } from "./landing/Hero.tsx";
 import { RoleCard } from "./landing/RoleCard.tsx";
 import { LandingHeader } from "./landing/LandingHeader.tsx";
 import { useScrollToHash } from "./landing/useScrollToHash.ts";
+import { serverReadiness } from "./landing/readiness.ts";
 import { useSoftphone } from "./call/useSoftphone.ts";
 import { personaIdForCall, personaShownOnCall } from "./persona/catalog.ts";
 import { usePersonaCatalog, type PersonaCatalogLoad } from "./persona/usePersonaCatalog.ts";
@@ -52,7 +53,7 @@ function Landing({ feed, call, personas, choice }: LandingProps) {
             code={feed.code}
             callState={call.state}
             callError={call.error}
-            canCall={feed.viewerId !== null}
+            readiness={serverReadiness(feed.viewerId, feed.feedStatus)}
             onCall={() => void call.start()}
             softphoneUrl={softphoneFor(
               softphone,

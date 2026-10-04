@@ -154,3 +154,25 @@ test("an unreachable line is explained in plain words", async ({ page }) => {
     "Kenji's line can't be reached right now. Please try again in a minute.",
   );
 });
+
+test("while the server wakes, the call button says so and the code keeps its place", async ({
+  page,
+}) => {
+  const feed = await routeViewerFeed(page);
+  await page.goto("/");
+  const socket = await feed.connected;
+  const waking = page.getByRole("button", { name: "Waking Kenji up…" });
+
+  await expect(waking).toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByText("Getting your code…")).toBeVisible();
+  await expect(page.getByText(/He sleeps when nobody is calling/)).toBeVisible();
+
+  sendViewerReady(socket, "4821");
+
+  await expect(page.getByRole("button", { name: "Call from browser" })).toHaveAttribute(
+    "aria-disabled",
+    "false",
+  );
+  await expect(page.getByRole("group", { name: "Your code: 4 8 2 1" })).toBeVisible();
+  await expect(page.getByText(/He sleeps when nobody is calling/)).toHaveCount(0);
+});
